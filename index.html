@@ -556,33 +556,46 @@ let detailChart = null;
 const cache = {};
 let pfRows = [];
 
-// ── WEB APP FETCH (gviz 호환 형태로 변환) ─────────────────────
-// Apps Script Web App 응답: { ok, data: [[헤더], [행1], [행2], ...] }
-// → gviz table 형태 { cols: [{id,label}], rows: [{c: [{v}, ...]}] } 로 변환
-async function fetchSheet(name, range) {
-  let url = WEBAPP_URL + '?action=read&sheet=' + encodeURIComponent(name);
-  if (range) url += '&range=' + encodeURIComponent(range);
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 15000);
-  let json;
-  try {
-    const res = await fetch(url, { signal: ctrl.signal, redirect: 'follow' });
-    json = await res.json();
-  } catch (e) {
-    throw new Error('네트워크 오류: ' + name + ' (' + e.message + ')');
-  } finally {
-    clearTimeout(t);
-  }
-  if (json.error) throw new Error('API 오류: ' + name + ' — ' + json.error);
-  const data = json.data || [];
-  if (data.length === 0) return { cols: [], rows: [] };
-  const headerRow = data[0];
-  return {
-    cols: headerRow.map(h => ({ id: String(h), label: String(h) })),
-    rows: data.slice(1).map(row => ({
-      c: row.map(v => (v === null || v === undefined || v === '') ? null : { v: v })
-    })),
-  };
+// ── WEB APP JSONP FETCH (CORS 우회 — script 태그 동적 삽입) ─────
+// Apps Script Web App의 cross-origin redirect에 CORS 헤더 누락 이슈 우회.
+// callback 파라미터로 응답을 JS 함수 호출 형태로 받음 (gviz 방식과 동일).
+function fetchSheet(name, range) {
+  return new Promise((resolve, reject) => {
+    const cb = '_wa' + Math.random().toString(36).slice(2);
+    let sc;
+    const cleanup = () => {
+      try { delete window[cb]; } catch (_e) {}
+      if (sc && sc.parentNode) sc.parentNode.removeChild(sc);
+    };
+    const t = setTimeout(() => { cleanup(); reject(new Error('타임아웃: ' + name)); }, 15000);
+
+    window[cb] = (data) => {
+      clearTimeout(t);
+      cleanup();
+      if (data && data.error) {
+        reject(new Error('API 오류: ' + name + ' — ' + data.error));
+        return;
+      }
+      const arr = (data && data.data) || [];
+      if (arr.length === 0) { resolve({ cols: [], rows: [] }); return; }
+      const headerRow = arr[0];
+      resolve({
+        cols: headerRow.map(h => ({ id: String(h), label: String(h) })),
+        rows: arr.slice(1).map(row => ({
+          c: row.map(v => (v === null || v === undefined || v === '') ? null : { v: v })
+        })),
+      });
+    };
+
+    let url = WEBAPP_URL + '?action=read&sheet=' + encodeURIComponent(name);
+    if (range) url += '&range=' + encodeURIComponent(range);
+    url += '&callback=' + cb;
+
+    sc = document.createElement('script');
+    sc.onerror = () => { clearTimeout(t); cleanup(); reject(new Error('네트워크 오류: ' + name)); };
+    sc.src = url;
+    document.head.appendChild(sc);
+  });
 }
 
 // ── PARSE ──────────────────────────────────────────────
