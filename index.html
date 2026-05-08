@@ -559,7 +559,18 @@ let pfRows = [];
 // ── WEB APP JSONP FETCH (CORS 우회 — script 태그 동적 삽입) ─────
 // Apps Script Web App의 cross-origin redirect에 CORS 헤더 누락 이슈 우회.
 // callback 파라미터로 응답을 JS 함수 호출 형태로 받음 (gviz 방식과 동일).
+// timeout 30초 + 1회 자동 재시도 (모바일 네트워크 + Apps Script 콜드 스타트 대응)
 function fetchSheet(name, range) {
+  return _fetchSheetOnce(name, range, 1).catch(err => {
+    // 첫 호출 timeout/네트워크오류 시 1회 자동 재시도
+    if (String(err.message).startsWith('타임아웃') || String(err.message).startsWith('네트워크')) {
+      return _fetchSheetOnce(name, range, 2);
+    }
+    throw err;
+  });
+}
+
+function _fetchSheetOnce(name, range, attempt) {
   return new Promise((resolve, reject) => {
     const cb = '_wa' + Math.random().toString(36).slice(2);
     let sc;
@@ -567,7 +578,7 @@ function fetchSheet(name, range) {
       try { delete window[cb]; } catch (_e) {}
       if (sc && sc.parentNode) sc.parentNode.removeChild(sc);
     };
-    const t = setTimeout(() => { cleanup(); reject(new Error('타임아웃: ' + name)); }, 15000);
+    const t = setTimeout(() => { cleanup(); reject(new Error('타임아웃: ' + name + (attempt > 1 ? ' (재시도)' : ''))); }, 30000);
 
     window[cb] = (data) => {
       clearTimeout(t);
@@ -592,7 +603,7 @@ function fetchSheet(name, range) {
     url += '&callback=' + cb;
 
     sc = document.createElement('script');
-    sc.onerror = () => { clearTimeout(t); cleanup(); reject(new Error('네트워크 오류: ' + name)); };
+    sc.onerror = () => { clearTimeout(t); cleanup(); reject(new Error('네트워크 오류: ' + name + (attempt > 1 ? ' (재시도)' : ''))); };
     sc.src = url;
     document.head.appendChild(sc);
   });
