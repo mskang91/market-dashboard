@@ -404,6 +404,165 @@ body.light .table-wrap { background: #fff; }
 .pw-cancel { font-size: 12px; color: var(--text3); cursor: pointer; text-decoration: underline; }
 .pw-cancel:hover { color: var(--text2); }
 
+/* AI 인사이트 헤드라인 박스 (Phase 4 — dashboard.html 동기화) */
+.insight-box {
+  background: linear-gradient(135deg, rgba(6,182,212,0.10), rgba(59,130,246,0.04));
+  border: 1px solid rgba(6,182,212,0.35);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+.insight-box.collapsed { cursor: pointer; }
+.insight-box.collapsed:hover { background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,130,246,0.06)); }
+.insight-headline-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.insight-icon { font-size: 18px; line-height: 1; }
+.insight-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #06b6d4;
+  background: rgba(6,182,212,0.15);
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.insight-headline {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.5;
+  min-width: 0;
+}
+.insight-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+.insight-toggle {
+  font-size: 11px;
+  color: var(--text3);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.insight-toggle.expanded { transform: rotate(180deg); }
+.insight-body {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(6,182,212,0.18);
+}
+.insight-subsection { margin-bottom: 14px; }
+.insight-subsection:last-child { margin-bottom: 0; }
+.insight-subtitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #06b6d4;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.insight-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text2);
+  white-space: pre-wrap;
+}
+.insight-issue-list { list-style: none; padding: 0; margin: 0; }
+.insight-issue-item {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text2);
+  padding: 4px 0 4px 16px;
+  position: relative;
+}
+.insight-issue-item::before {
+  content: '▎';
+  color: #06b6d4;
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+body.light .insight-box { background: linear-gradient(135deg, rgba(6,182,212,0.06), rgba(59,130,246,0.03)); }
+
+/* 뉴스 자동 롤링 띠 (B3) — News 시트 최신 10건, topic별 색상, 60초 마퀴 */
+.news-ticker {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(15,23,42,0.6) 0%, rgba(15,23,42,0.3) 50%, rgba(15,23,42,0.6) 100%);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  display: none; /* 데이터 로드 후 노출 */
+}
+body.light .news-ticker {
+  background: linear-gradient(90deg, rgba(248,250,252,0.9) 0%, rgba(248,250,252,0.6) 50%, rgba(248,250,252,0.9) 100%);
+}
+.news-ticker::before, .news-ticker::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 50px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+.news-ticker::before { left: 0; background: linear-gradient(to right, var(--bg) 0%, transparent 100%); }
+.news-ticker::after  { right: 0; background: linear-gradient(to left,  var(--bg) 0%, transparent 100%); }
+.news-ticker-track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 10px 0;
+  animation: news-scroll 60s linear infinite;
+  will-change: transform;
+}
+.news-ticker:hover .news-ticker-track { animation-play-state: paused; }
+@keyframes news-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.news-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 28px;
+  font-size: 13px;
+  color: var(--text2);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.news-item:hover { color: var(--text); }
+.news-item:hover .news-title { text-decoration: underline; }
+.news-topic {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid currentColor;
+}
+.news-title { font-size: 13px; line-height: 1.4; }
+.news-source { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+/* topic별 색상 — Code.gs NEWS_TOPICS 10개 매핑 */
+.news-topic.t-us         { color: #3b82f6; }
+.news-topic.t-kr         { color: #ef4444; }
+.news-topic.t-fed        { color: #a855f7; }
+.news-topic.t-fx         { color: #14b8a6; }
+.news-topic.t-econ       { color: #f59e0b; }
+.news-topic.t-ai         { color: #06b6d4; }
+.news-topic.t-semi       { color: #8b5cf6; }
+.news-topic.t-commodity  { color: #fbbf24; }
+.news-topic.t-crypto     { color: #fb923c; }
+.news-topic.t-global     { color: #22c55e; }
+.news-topic.t-default    { color: #94a3b8; }
+.news-ticker-loading, .news-ticker-empty {
+  padding: 12px 18px;
+  font-size: 12px;
+  color: var(--text3);
+  text-align: center;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1100px) {
   .g4, .g5, .cf-summary { grid-template-columns: repeat(2, 1fr); }
@@ -426,6 +585,15 @@ body.light .table-wrap { background: #fff; }
   .info-popup { left: 0; transform: none; }
   .header-right { gap: 6px; }
   .last-updated { display: none; }
+  /* 뉴스 띠: 모바일 가독성 */
+  .news-item { font-size: 12px; margin-right: 22px; }
+  .news-topic { font-size: 9px; padding: 2px 6px; }
+  .news-title { font-size: 12px; }
+  .news-source { display: none; } /* 좁은 화면에선 매체명 숨김 */
+  /* 인사이트 박스: 모바일 패딩 축소 */
+  .insight-box { padding: 12px 14px; }
+  .insight-headline { font-size: 13px; }
+  .insight-text, .insight-issue-item { font-size: 12px; }
 }
 </style>
 </head>
@@ -463,6 +631,38 @@ body.light .table-wrap { background: #fff; }
 
     <!-- ════ 시장 단일 페이지 ════ -->
     <div id="tab-market">
+
+      <!-- B3. 뉴스 자동 롤링 띠 (Phase 3 News 시트, 최신 10건) -->
+      <div class="news-ticker" id="news-ticker">
+        <div class="news-ticker-track" id="news-ticker-track">
+          <div class="news-ticker-loading">뉴스 로딩 중...</div>
+        </div>
+      </div>
+
+      <!-- B2. AI 인사이트 헤드라인 박스 (Phase 4) -->
+      <div class="insight-box collapsed" id="insight-box" style="display:none" onclick="toggleInsight()">
+        <div class="insight-headline-row">
+          <span class="insight-icon">📰</span>
+          <span class="insight-label">AI 인사이트</span>
+          <span class="insight-headline" id="insight-headline">로딩 중...</span>
+          <span class="insight-time" id="insight-time"></span>
+          <span class="insight-toggle" id="insight-toggle">▼</span>
+        </div>
+        <div class="insight-body" id="insight-body" style="display:none" onclick="event.stopPropagation()">
+          <div class="insight-subsection">
+            <div class="insight-subtitle">시장 요약</div>
+            <p class="insight-text" id="insight-summary"></p>
+          </div>
+          <div class="insight-subsection">
+            <div class="insight-subtitle">주요 이슈</div>
+            <ul class="insight-issue-list" id="insight-issues"></ul>
+          </div>
+          <div class="insight-subsection">
+            <div class="insight-subtitle">전망</div>
+            <p class="insight-text" id="insight-outlook"></p>
+          </div>
+        </div>
+      </div>
 
       <!-- 4. 주요 지수 -->
       <div class="section sec-index">
@@ -2444,6 +2644,127 @@ function restoreTab() {
   _doSwitchTab(tabId, null);
 }
 
+// ── B2. AI 인사이트 헤드라인 박스 (Phase 4 — dashboard.html 동기화) ─────
+async function loadInsight() {
+  try {
+    const table = await fetchSheet('Insight');
+    const rows = toRows(table);
+    if (!rows.length) return;
+
+    // 마지막 행이 가장 최신 (시트가 append-only)
+    const latest = rows[rows.length - 1];
+    const headline = String(latest['headline'] || '').trim();
+    const summary  = String(latest['summary']  || '').trim();
+    const issues   = String(latest['issues']   || '').trim();
+    const outlook  = String(latest['outlook']  || '').trim();
+    const ts       = String(latest['timestamp']|| '').trim();
+
+    if (!headline) return;
+
+    document.getElementById('insight-headline').textContent = headline;
+    document.getElementById('insight-time').textContent     = ts ? '🕒 ' + ts : '';
+    document.getElementById('insight-summary').textContent  = summary || '–';
+    document.getElementById('insight-outlook').textContent  = outlook || '–';
+
+    const issuesEl = document.getElementById('insight-issues');
+    issuesEl.innerHTML = '';
+    if (issues) {
+      issues.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        const text = trimmed.replace(/^[-•*▎]\s*/, '').trim();
+        if (text) {
+          const li = document.createElement('li');
+          li.className = 'insight-issue-item';
+          li.textContent = text;
+          issuesEl.appendChild(li);
+        }
+      });
+    }
+
+    document.getElementById('insight-box').style.display = 'block';
+  } catch (e) {
+    console.warn('[Insight]', e.message);
+  }
+}
+
+function toggleInsight() {
+  const box = document.getElementById('insight-box');
+  const body = document.getElementById('insight-body');
+  const toggle = document.getElementById('insight-toggle');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    toggle.classList.add('expanded');
+    box.classList.remove('collapsed');
+  } else {
+    body.style.display = 'none';
+    toggle.classList.remove('expanded');
+    box.classList.add('collapsed');
+  }
+}
+
+// ── B3. 뉴스 자동 롤링 띠 (Phase 3 News 시트, 최신 10건) ─────────────────
+// topic별 색상 매핑 (Code.gs NEWS_TOPICS 10개와 1:1 대응)
+const NEWS_TOPIC_CLASS = {
+  '미국 증시':   't-us',
+  '한국 증시':   't-kr',
+  '연준 금리':   't-fed',
+  '환율':        't-fx',
+  '경제지표':    't-econ',
+  'AI 빅테크':   't-ai',
+  '반도체':      't-semi',
+  '원자재':      't-commodity',
+  '가상화폐':    't-crypto',
+  '글로벌 이슈': 't-global'
+};
+function _newsEscape(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+async function loadNews() {
+  const wrap = document.getElementById('news-ticker');
+  const track = document.getElementById('news-ticker-track');
+  if (!wrap || !track) return;
+  try {
+    const table = await fetchSheet('News');
+    const rows = toRows(table);
+    if (!rows.length) {
+      wrap.style.display = 'none';
+      return;
+    }
+    // 최신순 (timestamp 내림차순) → 상위 10건
+    const sorted = rows.slice().sort((a, b) => {
+      const ta = String(a['timestamp'] || a['pub_date'] || '');
+      const tb = String(b['timestamp'] || b['pub_date'] || '');
+      return tb.localeCompare(ta);
+    });
+    const top10 = sorted.slice(0, 10).filter(r => String(r['title'] || '').trim() && String(r['url'] || '').trim());
+    if (!top10.length) {
+      wrap.style.display = 'none';
+      return;
+    }
+    // HTML 생성: 끊김 없는 무한 마퀴를 위해 동일 세트 2회 렌더 (translateX -50% 까지 이동)
+    const buildItem = (n) => {
+      const topic = String(n['topic'] || '').trim();
+      const cls   = NEWS_TOPIC_CLASS[topic] || 't-default';
+      const title = _newsEscape(String(n['title'] || '').trim());
+      const src   = _newsEscape(String(n['source'] || '').trim());
+      const url   = String(n['url'] || '').trim();
+      const safeUrl = (url.startsWith('http://') || url.startsWith('https://')) ? url : '#';
+      return `<a class="news-item" href="${_newsEscape(safeUrl)}" target="_blank" rel="noopener noreferrer">`
+           + `<span class="news-topic ${cls}">${_newsEscape(topic) || 'NEWS'}</span>`
+           + `<span class="news-title">${title}</span>`
+           + (src ? `<span class="news-source">— ${src}</span>` : '')
+           + `</a>`;
+    };
+    const setHtml = top10.map(buildItem).join('');
+    track.innerHTML = setHtml + setHtml; // 두 번 복제
+    wrap.style.display = 'block';
+  } catch (e) {
+    console.warn('[News]', e.message);
+    wrap.style.display = 'none';
+  }
+}
+
 // ── MAIN (시장 단독 페이지) ──────────────────────────────
 async function loadAll() {
   document.getElementById('loading-view').style.display = 'flex';
@@ -2469,8 +2790,10 @@ async function loadAll() {
     document.getElementById('dashboard-content').style.display = 'block';
     initPopupDirection();
 
-    // 비동기 로드: 섹터 히트맵
+    // 비동기 로드: 섹터 히트맵 + AI 인사이트 + 뉴스 띠 (병렬, 실패해도 메인 화면 영향 X)
     renderSectorHeatmap();
+    loadInsight();
+    loadNews();
 
   } catch(e) {
     document.getElementById('loading-view').style.display = 'none';
