@@ -434,6 +434,9 @@ body.light .table-wrap { background: #fff; }
   color: var(--text);
   line-height: 1.5;
   min-width: 0;
+  /* 한국어 단어 단위 줄바꿈 — 글자 단위 끊김 방지 (PC + 모바일 공통 효과) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 .insight-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
 .insight-toggle {
@@ -563,6 +566,50 @@ body.light .news-ticker {
   text-align: center;
 }
 
+/* 뉴스 모바일 정적 리스트 — 마퀴 대신 카드 5개 (가독성 우선) */
+.news-list-mobile { display: none; padding: 8px 4px; }
+.news-list-mobile .news-card-m {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: linear-gradient(145deg, var(--bg2), var(--bg3));
+  border: 1px solid var(--border);
+  border-left: 3px solid currentColor;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+.news-list-mobile .news-card-m:last-child { margin-bottom: 0; }
+.news-list-mobile .news-card-m:active { background: var(--bg3); }
+.news-list-mobile .news-card-m-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text3);
+}
+.news-list-mobile .news-card-m-topic {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  flex-shrink: 0;
+}
+.news-list-mobile .news-card-m-source { color: var(--text3); font-size: 10px; }
+.news-list-mobile .news-card-m-title {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  font-weight: 500;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, #fff, #f8fafc); }
+
 /* RESPONSIVE */
 @media (max-width: 1100px) {
   .g4, .g5, .cf-summary { grid-template-columns: repeat(2, 1fr); }
@@ -579,17 +626,17 @@ body.light .news-ticker {
   .cf-summary { grid-template-columns: repeat(2, 1fr); }
   .cf-bar-label { width: 110px; }
 }
+@media (max-width: 768px) {
+  /* 모바일 분기: 뉴스 마퀴 숨김, 정적 리스트 노출 */
+  .news-ticker { display: none !important; }
+  .news-list-mobile.has-news { display: block; }
+}
 @media (max-width: 500px)  {
   .g2, .g3, .g4, .g5 { grid-template-columns: 1fr 1fr; }
   .g-macro { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .info-popup { left: 0; transform: none; }
   .header-right { gap: 6px; }
   .last-updated { display: none; }
-  /* 뉴스 띠: 모바일 가독성 */
-  .news-item { font-size: 12px; margin-right: 22px; }
-  .news-topic { font-size: 9px; padding: 2px 6px; }
-  .news-title { font-size: 12px; }
-  .news-source { display: none; } /* 좁은 화면에선 매체명 숨김 */
   /* 인사이트 박스: 모바일 패딩 축소 */
   .insight-box { padding: 12px 14px; }
   .insight-headline { font-size: 13px; }
@@ -632,12 +679,13 @@ body.light .news-ticker {
     <!-- ════ 시장 단일 페이지 ════ -->
     <div id="tab-market">
 
-      <!-- B3. 뉴스 자동 롤링 띠 (Phase 3 News 시트, 최신 10건) -->
+      <!-- B3. 뉴스 — PC 마퀴 + 모바일 정적 리스트 (CSS 미디어쿼리로 분기) -->
       <div class="news-ticker" id="news-ticker">
         <div class="news-ticker-track" id="news-ticker-track">
           <div class="news-ticker-loading">뉴스 로딩 중...</div>
         </div>
       </div>
+      <div class="news-list-mobile" id="news-list-mobile"></div>
 
       <!-- B2. AI 인사이트 헤드라인 박스 (Phase 4) -->
       <div class="insight-box collapsed" id="insight-box" style="display:none" onclick="toggleInsight()">
@@ -2696,6 +2744,15 @@ async function loadInsight() {
     }
 
     document.getElementById('insight-box').style.display = 'block';
+
+    // 모바일(768px 이하)에서는 시청자가 글 보러 온 상황이므로 default expanded
+    // PC는 collapsed 유지 (정보 밀도 우선)
+    if (window.innerWidth <= 768) {
+      const body = document.getElementById('insight-body');
+      if (body && body.style.display === 'none') {
+        toggleInsight();
+      }
+    }
   } catch (e) {
     console.warn('[Insight]', e.message);
   }
@@ -2734,29 +2791,35 @@ function _newsEscape(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 async function loadNews() {
-  const wrap = document.getElementById('news-ticker');
-  const track = document.getElementById('news-ticker-track');
+  const wrap   = document.getElementById('news-ticker');
+  const track  = document.getElementById('news-ticker-track');
+  const mobile = document.getElementById('news-list-mobile');
   if (!wrap || !track) return;
   try {
     const table = await fetchSheet('News');
     const rows = toRows(table);
     if (!rows.length) {
       wrap.style.display = 'none';
+      if (mobile) mobile.classList.remove('has-news');
       return;
     }
-    // 최신순 (timestamp 내림차순) → 상위 10건
+    // 최신순 (timestamp 내림차순) → 상위 10건 (PC 마퀴) / 상위 5건 (모바일 카드)
     const sorted = rows.slice().sort((a, b) => {
       const ta = String(a['timestamp'] || a['pub_date'] || '');
       const tb = String(b['timestamp'] || b['pub_date'] || '');
       return tb.localeCompare(ta);
     });
-    const top10 = sorted.slice(0, 10).filter(r => String(r['title'] || '').trim() && String(r['url'] || '').trim());
+    const valid = sorted.filter(r => String(r['title'] || '').trim() && String(r['url'] || '').trim());
+    const top10 = valid.slice(0, 10);
+    const top5  = valid.slice(0, 5);
     if (!top10.length) {
       wrap.style.display = 'none';
+      if (mobile) mobile.classList.remove('has-news');
       return;
     }
-    // HTML 생성: 끊김 없는 무한 마퀴를 위해 동일 세트 2회 렌더 (translateX -50% 까지 이동)
-    const buildItem = (n) => {
+
+    // ── PC 마퀴 (현재 디자인 유지) ────────────────────────
+    const buildMarqueeItem = (n) => {
       const topic = String(n['topic'] || '').trim();
       const cls   = NEWS_TOPIC_CLASS[topic] || 't-default';
       const title = _newsEscape(String(n['title'] || '').trim());
@@ -2769,12 +2832,34 @@ async function loadNews() {
            + (src ? `<span class="news-source">— ${src}</span>` : '')
            + `</a>`;
     };
-    const setHtml = top10.map(buildItem).join('');
-    track.innerHTML = setHtml + setHtml; // 두 번 복제
+    const setHtml = top10.map(buildMarqueeItem).join('');
+    track.innerHTML = setHtml + setHtml; // 끊김 없는 무한 마퀴용 2회 복제
     wrap.style.display = 'block';
+
+    // ── 모바일 정적 카드 리스트 (상위 5건) ─────────────────
+    if (mobile) {
+      const buildCard = (n) => {
+        const topic = String(n['topic'] || '').trim();
+        const cls   = NEWS_TOPIC_CLASS[topic] || 't-default';
+        const title = _newsEscape(String(n['title'] || '').trim());
+        const src   = _newsEscape(String(n['source'] || '').trim());
+        const url   = String(n['url'] || '').trim();
+        const safeUrl = (url.startsWith('http://') || url.startsWith('https://')) ? url : '#';
+        return `<a class="news-card-m news-topic ${cls}" href="${_newsEscape(safeUrl)}" target="_blank" rel="noopener noreferrer">`
+             + `<div class="news-card-m-top">`
+             +   `<span class="news-card-m-topic">${_newsEscape(topic) || 'NEWS'}</span>`
+             +   (src ? `<span class="news-card-m-source">${src}</span>` : '')
+             + `</div>`
+             + `<div class="news-card-m-title">${title}</div>`
+             + `</a>`;
+      };
+      mobile.innerHTML = top5.map(buildCard).join('');
+      mobile.classList.add('has-news');
+    }
   } catch (e) {
     console.warn('[News]', e.message);
     wrap.style.display = 'none';
+    if (mobile) mobile.classList.remove('has-news');
   }
 }
 
