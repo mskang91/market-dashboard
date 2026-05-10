@@ -2645,6 +2645,19 @@ function restoreTab() {
 }
 
 // ── B2. AI 인사이트 헤드라인 박스 (Phase 4 — dashboard.html 동기화) ─────
+// 마크다운 sanitize: 시트에 이미 저장된 ** 등 표시 직전 제거 (백엔드 sanitize와 이중 안전망)
+function _stripMarkdown(s) {
+  if (!s) return '';
+  let t = String(s);
+  t = t.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // 링크
+  t = t.replace(/`+/g, '');                       // 백틱
+  t = t.replace(/\*\*/g, '');                     // 볼드
+  t = t.replace(/__/g, '');                       // 볼드(언더스코어)
+  t = t.replace(/~~/g, '');                       // 취소선
+  t = t.replace(/^#{1,6}\s*/gm, '');               // 헤더
+  return t;
+}
+
 async function loadInsight() {
   try {
     const table = await fetchSheet('Insight');
@@ -2653,10 +2666,10 @@ async function loadInsight() {
 
     // 마지막 행이 가장 최신 (시트가 append-only)
     const latest = rows[rows.length - 1];
-    const headline = String(latest['headline'] || '').trim();
-    const summary  = String(latest['summary']  || '').trim();
-    const issues   = String(latest['issues']   || '').trim();
-    const outlook  = String(latest['outlook']  || '').trim();
+    const headline = _stripMarkdown(String(latest['headline'] || '').trim());
+    const summary  = _stripMarkdown(String(latest['summary']  || '').trim());
+    const issues   = _stripMarkdown(String(latest['issues']   || '').trim());
+    const outlook  = _stripMarkdown(String(latest['outlook']  || '').trim());
     const ts       = String(latest['timestamp']|| '').trim();
 
     if (!headline) return;
