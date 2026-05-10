@@ -212,8 +212,32 @@ body.light .table-wrap { background: #fff; }
 .range-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
 .range-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 @media (max-width: 768px) {
-  .chart-controls { flex-direction: column; align-items: stretch; }
+  .chart-controls { flex-direction: column; align-items: stretch; gap: 8px; padding: 8px 10px; }
   .range-filter { justify-content: center; }
+
+  /* 모바일 차트 detail view 재설계 */
+  .detail-main { padding: 12px 12px 40px; }
+  .detail-title { font-size: 18px; margin-bottom: 2px; }
+  .detail-sub { font-size: 11px; margin-bottom: 12px; }
+  .back-btn { margin-bottom: 12px; padding: 5px 10px; font-size: 11px; }
+
+  /* 정보 카드 (현재/최고/최저) — 한 줄에 3개 컴팩트 */
+  .stat-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 6px; margin-bottom: 12px; }
+  .stat-card { padding: 8px 10px; }
+  .stat-label { font-size: 9px; margin-bottom: 2px; letter-spacing: 0.2px; }
+  .stat-value { font-size: 14px; }
+
+  /* 기간 탭 — 한 줄 가로 스크롤 */
+  .period-tabs { gap: 4px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .period-tab { padding: 5px 9px; font-size: 11px; flex-shrink: 0; white-space: nowrap; }
+
+  /* 캘린더 필터 — 모바일 컴팩트 */
+  .range-input { width: 95px; padding: 5px 7px; font-size: 11px; }
+  .range-btn { padding: 5px 9px; font-size: 12px; }
+
+  /* 차트 영역 — height 60vh 확장 (충분한 가독성) */
+  .chart-box { padding: 10px; margin-bottom: 12px; }
+  .chart-box canvas { max-height: 60vh !important; min-height: 320px; }
 }
 
 /* EVENT TIMELINE */
@@ -630,7 +654,34 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
   /* 모바일 분기: 뉴스 마퀴 숨김, 정적 리스트 노출 */
   .news-ticker { display: none !important; }
   .news-list-mobile.has-news { display: block; }
+
+  /* 모바일 카드 컴팩트 (지수 + 매크로 + 원자재 등 모든 카드 적용) */
+  .card { padding: 10px 12px; }
+  .card-label { font-size: 10px; margin-bottom: 4px; }
+  .card-value { font-size: 16px; margin-bottom: 2px; }
+  .card-change { font-size: 10px; }
+  .card-abs { font-size: 9px; }
+  .card-date { font-size: 9px; margin-top: 3px; }
+
+  /* 매크로 핵심 4 + 더보기 — 5번째 이후 카드 default 숨김 */
+  #macro-cards:not(.expanded) > .card:nth-child(n+5) { display: none; }
+  .macro-toggle-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .macro-toggle-btn:active { background: var(--bg3); }
 }
+.macro-toggle-btn { display: none; } /* PC default 숨김 */
 @media (max-width: 500px)  {
   .g2, .g3, .g4, .g5 { grid-template-columns: 1fr 1fr; }
   .g-macro { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -722,6 +773,7 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
       <div class="section sec-macro">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">🌐 매크로 지표</span><span class="section-badge">[D-1] 전일 대비 변화 · ⓘ 호버 시 참조표 확인</span></div>
         <div class="cards g-macro" id="macro-cards"></div>
+        <button class="macro-toggle-btn" id="macro-toggle-btn" onclick="toggleMacroExtra()">매크로 5개 더 보기 ▼</button>
       </div>
 
       <!-- 6. 원자재 -->
@@ -1131,13 +1183,16 @@ function renderRaw(rows) {
     c('S&P 500','S&P500','sp500') + c('NASDAQ','NASDAQ','nasdaq') +
     c('KOSPI','KOSPI','kospi')    + c('KOSDAQ','KOSDAQ','kosdaq');
 
+  // 매크로 카드 순서: 핵심 4 (1~4) + 기타 5 (5~9). 모바일 default는 1~4만 노출, "더보기" 클릭 시 5~9 펼침.
   document.getElementById('macro-cards').innerHTML =
+    // 핵심 4 (시청자 가장 많이 보는 vector: 환율·금리·변동성·달러)
     c('USD / KRW',    'USD/KRW',    'usdkrw', 2, 'usdkrw') +
-    c('USD / JPY',    'USD/JPY',    'usdjpy', 2, 'usdjpy') +
-    c('USD / CNY',    'USD/CNY',    'usdcny', 3, 'usdcny') +
     c('미국채 10년물', '미10년물(%)', 'us10y',  2, 'us10y') +
     c('VIX',          'VIX',         'vix',    2, 'vix')   +
     c('DXY',          'DXY',         'dxy',    2, 'dxy')   +
+    // 기타 5 (모바일 default 숨김)
+    c('USD / JPY',    'USD/JPY',    'usdjpy', 2, 'usdjpy') +
+    c('USD / CNY',    'USD/CNY',    'usdcny', 3, 'usdcny') +
     c('CNN Fear&Greed', 'Fear&Greed',  'feargreed', 0, 'feargreed') +
     c('한국 Fear&Greed', 'KR Fear&Greed', '', 0, 'feargreed') +
     c('Crypto Fear&Greed', 'Crypto F&G', '', 0, '');
@@ -2338,20 +2393,24 @@ function _renderDetailChart(key, cfg, points) {
     disp = points.filter((_, i) => i % step === 0 || i === points.length - 1);
   }
 
+  // 모바일: 차트 위 annotation 라벨 비우기 (events-section에 timeline으로 별도 표시되므로 중복 X)
+  const isMobileChart = window.innerWidth <= 768;
   const evs = EVENTS[key] || [];
   const annotations = {};
-  evs.forEach((e, i) => {
-    const idx = disp.findIndex(p => p.date >= e.date);
-    if (idx < 0) return;
-    annotations['ev' + i] = {
-      type: 'line',
-      xMin: idx, xMax: idx,
-      borderColor: e.color,
-      borderWidth: 1.5,
-      borderDash: [4, 3],
-      label: { display: true, content: e.label, font: { size: 10 }, color: e.color, backgroundColor: 'rgba(0,0,0,0.7)', position: 'start', yAdjust: -5 }
-    };
-  });
+  if (!isMobileChart) {
+    evs.forEach((e, i) => {
+      const idx = disp.findIndex(p => p.date >= e.date);
+      if (idx < 0) return;
+      annotations['ev' + i] = {
+        type: 'line',
+        xMin: idx, xMax: idx,
+        borderColor: e.color,
+        borderWidth: 1.5,
+        borderDash: [4, 3],
+        label: { display: true, content: e.label, font: { size: 10 }, color: e.color, backgroundColor: 'rgba(0,0,0,0.7)', position: 'start', yAdjust: -5 }
+      };
+    });
+  }
 
   document.getElementById('chart-box').innerHTML = '<canvas id="detail-chart"></canvas>';
   const ctx = document.getElementById('detail-chart').getContext('2d');
@@ -2373,6 +2432,7 @@ function _renderDetailChart(key, cfg, points) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,  // 모바일에서 CSS height 제어 가능하게
       animation: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
@@ -2388,8 +2448,25 @@ function _renderDetailChart(key, cfg, points) {
         }
       },
       scales: {
-        x: { grid: { color: '#1a2a3f' }, ticks: { color: '#475569', maxTicksLimit: 10, font:{ size:11 } } },
-        y: { position: 'right', grid: { color: '#1a2a3f' }, ticks: { color: '#475569', font:{ size:11 }, callback: v => fmt(v,0) + suf } }
+        x: {
+          grid: { color: '#1a2a3f' },
+          ticks: {
+            color: '#475569',
+            maxTicksLimit: isMobileChart ? 4 : 10,
+            font: { size: isMobileChart ? 9 : 11 },
+            maxRotation: isMobileChart ? 0 : 50,
+            autoSkipPadding: isMobileChart ? 12 : 4,
+          }
+        },
+        y: {
+          position: 'right',
+          grid: { color: '#1a2a3f' },
+          ticks: {
+            color: '#475569',
+            font: { size: isMobileChart ? 9 : 11 },
+            callback: v => fmt(v,0) + suf
+          }
+        }
       }
     }
   });
@@ -2861,6 +2938,15 @@ async function loadNews() {
     wrap.style.display = 'none';
     if (mobile) mobile.classList.remove('has-news');
   }
+}
+
+// ── 매크로 카드 더보기 토글 (모바일 한정) ─────────────────
+function toggleMacroExtra() {
+  const cards = document.getElementById('macro-cards');
+  const btn = document.getElementById('macro-toggle-btn');
+  if (!cards || !btn) return;
+  const expanded = cards.classList.toggle('expanded');
+  btn.textContent = expanded ? '매크로 핵심만 보기 ▲' : '매크로 5개 더 보기 ▼';
 }
 
 // ── MAIN (시장 단독 페이지) ──────────────────────────────
