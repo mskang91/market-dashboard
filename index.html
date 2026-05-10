@@ -63,7 +63,7 @@ body.hide-numbers .sensitive-number { filter: blur(6px); transition: filter 0.25
 .section { margin-bottom: 28px; }
 .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
 .section-bar { width: 4px; height: 22px; border-radius: 3px; flex-shrink: 0; background: var(--sc, var(--accent)); box-shadow: 0 0 8px var(--sc-glow, rgba(37,99,235,0.4)); }
-.section-title { font-size: 15px; font-weight: 800; color: var(--sc, var(--text)); letter-spacing: 0.1px; }
+.section-title { font-size: 15px; font-weight: 800; color: var(--sc, var(--text)); letter-spacing: 0.1px; word-break: keep-all; overflow-wrap: break-word; white-space: nowrap; }
 .section-badge { font-size: 11px; color: var(--text3); background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 2px 9px; border-radius: 20px; }
 
 /* SECTION COLOR THEMES */
@@ -651,6 +651,10 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
   .cf-bar-label { width: 110px; }
 }
 @media (max-width: 768px) {
+  /* 섹션 헤더 — 좁은 화면에서 title/badge 줄바꿈 자연스럽게 */
+  .section-header { flex-wrap: wrap; gap: 6px; }
+  .section-badge { font-size: 10px; padding: 2px 8px; }
+
   /* 모바일 분기: 뉴스 마퀴 숨김, 정적 리스트 노출 */
   .news-ticker { display: none !important; }
   .news-list-mobile.has-news { display: block; }
@@ -666,7 +670,7 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
   /* 매크로 핵심 4 + 더보기 — 5번째 이후 카드 default 숨김 */
   #macro-cards:not(.expanded) > .card:nth-child(n+5) { display: none; }
   .macro-toggle-btn {
-    display: block;
+    display: block !important;  /* PC default(none) 보다 우선 */
     width: 100%;
     margin-top: 8px;
     padding: 10px 12px;
