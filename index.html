@@ -864,17 +864,63 @@ let pfRows = [];
 // Apps Script Web App의 cross-origin redirect에 CORS 헤더 누락 이슈 우회.
 // callback 파라미터로 응답을 JS 함수 호출 형태로 받음 (gviz 방식과 동일).
 // timeout 30초 + 1회 자동 재시도 (모바일 네트워크 + Apps Script 콜드 스타트 대응)
-function fetchSheet(name, range) {
-  return _fetchSheetOnce(name, range, 1).catch(err => {
-    // 첫 호출 timeout/네트워크오류 시 1회 자동 재시도
+// ── B6: sessionStorage 캐시 (재방문 즉시 표시 + 백그라운드 갱신) ───────
+//   TTL 5분. Apps Script 서버 캐시 15분과 동기화. 만료 시 fetch.
+//   강제 새로고침 시 캐시 무시: URL ?nocache=1
+const _CACHE_TTL_MS = 5 * 60 * 1000; // 5분
+const _CACHE_NOCACHE = new URLSearchParams(window.location.search).get('nocache') === '1';
+
+function _cacheKey(name, range, tail) {
+  return 'mhCache:' + name + ':' + (range || '') + ':' + (tail || 0);
+}
+
+function _cacheSave(key, data) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: data }));
+  } catch (e) {
+    // sessionStorage quota exceeded 등 — 무시 (캐시 없이 작동)
+    console.warn('[Cache] save failed:', e.message);
+  }
+}
+
+function _cacheLoad(key) {
+  if (_CACHE_NOCACHE) return null;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.ts || (Date.now() - obj.ts) > _CACHE_TTL_MS) return null;
+    return obj.data;
+  } catch (_e) {
+    return null;
+  }
+}
+
+// tail: 마지막 N행만 fetch (옵션, 큰 시트 첫 로드 단축용)
+// 캐시 흐름: 캐시 히트면 즉시 반환 + 백그라운드 갱신 (다음 방문 신선) / 미스면 fetch + 저장
+function fetchSheet(name, range, tail) {
+  const key = _cacheKey(name, range, tail);
+  const cached = _cacheLoad(key);
+  if (cached) {
+    // 캐시 히트 → 즉시 반환 + 백그라운드 갱신 (silent)
+    _fetchSheetOnce(name, range, 1, tail)
+      .then(data => _cacheSave(key, data))
+      .catch(_e => {});
+    return Promise.resolve(cached);
+  }
+  // 캐시 미스 → fetch + 자동 재시도 + 캐시 저장
+  return _fetchSheetOnce(name, range, 1, tail).catch(err => {
     if (String(err.message).startsWith('타임아웃') || String(err.message).startsWith('네트워크')) {
-      return _fetchSheetOnce(name, range, 2);
+      return _fetchSheetOnce(name, range, 2, tail);
     }
     throw err;
+  }).then(data => {
+    _cacheSave(key, data);
+    return data;
   });
 }
 
-function _fetchSheetOnce(name, range, attempt) {
+function _fetchSheetOnce(name, range, attempt, tail) {
   return new Promise((resolve, reject) => {
     const cb = '_wa' + Math.random().toString(36).slice(2);
     let sc;
@@ -904,6 +950,7 @@ function _fetchSheetOnce(name, range, attempt) {
 
     let url = WEBAPP_URL + '?action=read&sheet=' + encodeURIComponent(name);
     if (range) url += '&range=' + encodeURIComponent(range);
+    if (tail) url += '&tail=' + tail;
     url += '&callback=' + cb;
 
     sc = document.createElement('script');
@@ -2710,8 +2757,17 @@ async function showDetail(key) {
   document.getElementById('chart-box').innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:200px;gap:12px;color:var(--text2)"><div class="spinner"></div><span>차트 로딩 중...</span></div>`;
 
   try {
-    const table = cache[cfg.sheet] || await fetchSheet(cfg.sheet);
-    cache[cfg.sheet] = table;
+    // B7: MDD Chart는 메인 view에서 마지막 30행만 fetch → detail view에서는 전체 30년 fetch 필요
+    //     캐시 키 분리: cache['MDD Chart'] (30행, 카드용) vs cache['MDD Chart_full'] (전체, 차트용)
+    let table;
+    if (cfg.sheet === 'MDD Chart') {
+      const fullKey = 'MDD Chart_full';
+      table = cache[fullKey] || await fetchSheet('MDD Chart');  // 전체 fetch (30년)
+      cache[fullKey] = table;
+    } else {
+      table = cache[cfg.sheet] || await fetchSheet(cfg.sheet);
+      cache[cfg.sheet] = table;
+    }
     const rows = toRows(table);
 
     let points = rows
@@ -3046,46 +3102,62 @@ function toggleMacroExtra() {
   btn.textContent = expanded ? '매크로 핵심만 보기 ▲' : '매크로 5개 더 보기 ▼';
 }
 
-// ── MAIN (시장 단독 페이지) ──────────────────────────────
+// ── MAIN (시장 단독 페이지) — B9 점진 렌더링 ──────────────────────────
+// 각 영역 독립 fetch + 완료 시 즉시 렌더 + 부분 실패 허용 (한 영역 에러가 전체 페이지 안 깨뜨림)
 async function loadAll() {
-  document.getElementById('loading-view').style.display = 'flex';
-  document.getElementById('dashboard-content').style.display = 'none';
+  // 1. 즉시 화면 표시 (스피너 사라지고 빈 뼈대 + 영역별 로딩 인디케이터)
+  document.getElementById('loading-view').style.display = 'none';
+  document.getElementById('dashboard-content').style.display = 'block';
   document.getElementById('error-view').style.display = 'none';
+
+  const cardLoadingHtml = '<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--text3);font-size:12px"><div class="spinner sm" style="display:inline-block;vertical-align:middle;margin-right:8px"></div>로딩 중...</div>';
+  ['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = cardLoadingHtml;
+  });
   const shmEl = document.getElementById('sector-heatmap-content');
   if (shmEl) shmEl.innerHTML = '<div class="hm-loading"><div class="spinner sm" style="display:inline-block;vertical-align:middle;margin-right:8px"></div>섹터 데이터 로딩 중...</div>';
-  try {
-    // Raw Data + MDD + Live (실시간 시장 가격) 병렬 fetch
-    // Live 실패해도 fallback: Raw Data 마지막 행 (기존 D-1 동작)
-    const [rawT, mddT, liveData] = await Promise.all([
-      fetchSheet('Raw Data'),
-      fetchSheet('MDD Chart'),
-      fetchLive(),
-    ]);
-    cache['Raw Data']  = rawT;
-    cache['MDD Chart'] = mddT;
-    cache['Live']      = liveData;
+  initPopupDirection();
 
-    renderRaw(toRows(rawT), liveData);
-    renderMdd(toRows(mddT));
+  // 2. 독립 fetch — 각각 catch로 부분 실패 isolation
+  const rawPromise  = fetchSheet('Raw Data').then(t => { cache['Raw Data'] = t; return t; }).catch(e => { console.error('[Raw Data]', e); return null; });
+  const mddPromise  = fetchSheet('MDD Chart', '', 30).then(t => { cache['MDD Chart'] = t; return t; }).catch(e => { console.error('[MDD Chart]', e); return null; });
+  const livePromise = fetchLive().then(d => { cache['Live'] = d; return d; }).catch(e => { console.error('[Live]', e); return null; });
 
-    const now = new Date();
-    document.getElementById('last-updated').textContent =
-      `업데이트: ${now.toLocaleDateString('ko-KR')} ${now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`;
-    document.getElementById('loading-view').style.display = 'none';
-    document.getElementById('dashboard-content').style.display = 'block';
-    initPopupDirection();
+  // 3. Raw + Live → 카드 (지수/매크로/원자재/ETF/가상화폐)
+  Promise.all([rawPromise, livePromise]).then(([rawT, liveData]) => {
+    if (rawT) {
+      renderRaw(toRows(rawT), liveData);
+      const now = new Date();
+      document.getElementById('last-updated').textContent =
+        `업데이트: ${now.toLocaleDateString('ko-KR')} ${now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`;
+      initPopupDirection();
+    } else {
+      _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards'], '시장 데이터 로드 실패');
+    }
+  });
 
-    // 비동기 로드: 섹터 히트맵 + AI 인사이트 + 뉴스 띠 (병렬, 실패해도 메인 화면 영향 X)
-    renderSectorHeatmap();
-    loadInsight();
-    loadNews();
+  // 4. Raw + Live + MDD → MDD 카드 (Live 의존)
+  Promise.all([rawPromise, livePromise, mddPromise]).then(([rawT, liveData, mddT]) => {
+    if (mddT) {
+      renderMdd(toRows(mddT));
+    } else {
+      _renderAreaError(['mdd-cards'], 'MDD 로드 실패');
+    }
+  });
 
-  } catch(e) {
-    document.getElementById('loading-view').style.display = 'none';
-    const ev = document.getElementById('error-view');
-    ev.style.display = 'block';
-    ev.innerHTML = `<div style="font-size:36px;margin-bottom:12px">⚠️</div><div style="font-size:15px;margin-bottom:8px">${e.message}</div><button class="refresh-btn" onclick="loadAll()">↻ 다시 시도</button>`;
-  }
+  // 5. 그 외 비동기 — 섹터/인사이트/뉴스 (각자 try/catch 내장)
+  renderSectorHeatmap();
+  loadInsight();
+  loadNews();
+}
+
+function _renderAreaError(ids, msg) {
+  const html = `<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--red);font-size:12px"><span style="font-size:18px;display:block;margin-bottom:4px">⚠️</span>${msg} — <button onclick="loadAll()" style="background:transparent;border:1px solid var(--red);color:var(--red);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:4px">↻ 다시 시도</button></div>`;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
 }
 
 // ── SMART POPUP DIRECTION ─────────────────────────────
