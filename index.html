@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>실시간 시장 대시보드 — S&P · KOSPI · KOSDAQ · 매크로</title>
+<!-- Phase D: favicon (404 제거 + 브라우저 탭 아이콘 + SEO 미세 개선) -->
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.ico">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
@@ -983,6 +986,70 @@ function fetchLive() {
     sc.src = WEBAPP_URL + '?action=live&callback=' + cb;
     document.head.appendChild(sc);
   });
+}
+
+// ── Phase B: array → fetchSheet 응답 형태({cols, rows}) 어댑터 ─────
+//    bundle 응답의 각 시트 데이터(2차원 array)를 기존 render 함수 호환 형태로 변환
+function _arrToTable(arr) {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) return { cols: [], rows: [] };
+  const headerRow = arr[0];
+  return {
+    cols: headerRow.map(h => ({ id: String(h), label: String(h) })),
+    rows: arr.slice(1).map(row => ({
+      c: row.map(v => (v === null || v === undefined || v === '') ? null : { v: v })
+    }))
+  };
+}
+
+// ── Phase B/C: bundle fetch (raw/mdd/sector/live + insight/news 한꺼번에) ─
+//   variant: 'light' (raw+mdd+sector+live) / 'heavy' (insight+news) / 'full' (전체)
+//   응답: { raw, mdd, sector, live, insight, news, errors? } — 각 키는 2차원 array (live만 객체)
+//   타임아웃 30초 + 자동 재시도 1회
+function fetchBundle(variant) {
+  const action = variant === 'light' ? 'bundle-light'
+               : variant === 'heavy' ? 'bundle-heavy'
+               : 'bundle';
+  return _fetchBundleOnce(action, 1).catch(err => {
+    if (String(err.message).startsWith('타임아웃') || String(err.message).startsWith('네트워크')) {
+      return _fetchBundleOnce(action, 2);
+    }
+    throw err;
+  });
+}
+
+function _fetchBundleOnce(action, attempt) {
+  return new Promise((resolve, reject) => {
+    const cb = '_wb' + Math.random().toString(36).slice(2);
+    let sc;
+    const cleanup = () => {
+      try { delete window[cb]; } catch (_e) {}
+      if (sc && sc.parentNode) sc.parentNode.removeChild(sc);
+    };
+    const t = setTimeout(() => { cleanup(); reject(new Error('타임아웃: ' + action + (attempt > 1 ? ' (재시도)' : ''))); }, 30000);
+    window[cb] = (data) => {
+      clearTimeout(t);
+      cleanup();
+      if (data && data.error) { reject(new Error('API 오류: ' + action + ' — ' + data.error)); return; }
+      resolve((data && data.data) || {});
+    };
+    sc = document.createElement('script');
+    sc.onerror = () => { clearTimeout(t); cleanup(); reject(new Error('네트워크 오류: ' + action + (attempt > 1 ? ' (재시도)' : ''))); };
+    sc.src = WEBAPP_URL + '?action=' + action + '&callback=' + cb;
+    document.head.appendChild(sc);
+  });
+}
+
+// ── Phase B/C: bundle 결과를 sessionStorage 캐시에 저장 ─────────────
+//   후속 fetchSheet('Sector'), loadInsight, loadNews 등이 캐시 hit으로 즉시 반환
+//   tail은 MDD Chart만 30으로 호출 → 다른 시트는 tail=0
+function _stashBundleToCache(bundle) {
+  try {
+    if (bundle.raw)     _cacheSave(_cacheKey('Raw Data', '', 0),  _arrToTable(bundle.raw));
+    if (bundle.mdd)     _cacheSave(_cacheKey('MDD Chart', '', 30), _arrToTable(bundle.mdd));
+    if (bundle.sector)  _cacheSave(_cacheKey('Sector', '', 0),    _arrToTable(bundle.sector));
+    if (bundle.insight) _cacheSave(_cacheKey('Insight', '', 0),   _arrToTable(bundle.insight));
+    if (bundle.news)    _cacheSave(_cacheKey('News', '', 0),      _arrToTable(bundle.news));
+  } catch (e) { console.warn('[Bundle] stash 실패:', e.message); }
 }
 
 // ── PARSE ──────────────────────────────────────────────
@@ -3102,8 +3169,14 @@ function toggleMacroExtra() {
   btn.textContent = expanded ? '매크로 핵심만 보기 ▲' : '매크로 5개 더 보기 ▼';
 }
 
-// ── MAIN (시장 단독 페이지) — B9 점진 렌더링 ──────────────────────────
-// 각 영역 독립 fetch + 완료 시 즉시 렌더 + 부분 실패 허용 (한 영역 에러가 전체 페이지 안 깨뜨림)
+// ── MAIN (시장 단독 페이지) — Phase B+C 통합 ──────────────────────────
+// 흐름:
+//   1. 화면 즉시 표시 (스피너 사라지고 영역별 로딩 인디케이터)
+//   2. bundle-light 1회 fetch → 시장 카드 + MDD + 섹터 + Live 동시 도착
+//   3. 받자마자 sessionStorage 캐시에 stash → 후속 함수 호출이 캐시 hit
+//   4. renderRaw / renderMdd / renderSectorHeatmap 호출
+//   5. 300ms 후 bundle-heavy fetch → Insight + News 도착 시 렌더
+// 효과: 6 라운드트립 → 1 라운드트립 (시장 카드 LCP). Insight/News는 300ms 지연 로드 (인지 속도)
 async function loadAll() {
   // 1. 즉시 화면 표시 (스피너 사라지고 빈 뼈대 + 영역별 로딩 인디케이터)
   document.getElementById('loading-view').style.display = 'none';
@@ -3119,37 +3192,60 @@ async function loadAll() {
   if (shmEl) shmEl.innerHTML = '<div class="hm-loading"><div class="spinner sm" style="display:inline-block;vertical-align:middle;margin-right:8px"></div>섹터 데이터 로딩 중...</div>';
   initPopupDirection();
 
-  // 2. 독립 fetch — 각각 catch로 부분 실패 isolation
-  const rawPromise  = fetchSheet('Raw Data').then(t => { cache['Raw Data'] = t; return t; }).catch(e => { console.error('[Raw Data]', e); return null; });
-  const mddPromise  = fetchSheet('MDD Chart', '', 30).then(t => { cache['MDD Chart'] = t; return t; }).catch(e => { console.error('[MDD Chart]', e); return null; });
-  const livePromise = fetchLive().then(d => { cache['Live'] = d; return d; }).catch(e => { console.error('[Live]', e); return null; });
+  // 2. bundle-light fetch (1 라운드트립) — raw + mdd30 + sector + live
+  fetchBundle('light').then(bundle => {
+    if (!bundle || (!bundle.raw && !bundle.mdd)) {
+      _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+      return;
+    }
 
-  // 3. Raw + Live → 카드 (지수/매크로/원자재/ETF/가상화폐)
-  Promise.all([rawPromise, livePromise]).then(([rawT, liveData]) => {
-    if (rawT) {
+    // 3. sessionStorage 캐시에 stash (후속 호출이 즉시 캐시 hit)
+    _stashBundleToCache(bundle);
+
+    const rawT  = _arrToTable(bundle.raw);
+    const mddT  = _arrToTable(bundle.mdd);
+    const liveData = bundle.live || null;
+
+    cache['Raw Data'] = rawT;
+    cache['MDD Chart'] = mddT;
+    cache['Live'] = liveData;
+
+    // 4. 시장 카드 + MDD 즉시 렌더
+    try {
       renderRaw(toRows(rawT), liveData);
       const now = new Date();
       document.getElementById('last-updated').textContent =
         `업데이트: ${now.toLocaleDateString('ko-KR')} ${now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`;
       initPopupDirection();
-    } else {
-      _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards'], '시장 데이터 로드 실패');
+    } catch (e) {
+      console.error('[renderRaw]', e);
+      _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
     }
+
+    try {
+      if (bundle.mdd) renderMdd(toRows(mddT));
+      else _renderAreaError(['mdd-cards'], 'MDD 로드 실패');
+    } catch (e) {
+      console.error('[renderMdd]', e);
+      _renderAreaError(['mdd-cards'], 'MDD 렌더 실패');
+    }
+
+    // 섹터 히트맵 — bundle.sector는 이미 stash됐으므로 fetchSheet 캐시 hit
+    try { renderSectorHeatmap(); } catch (e) { console.error('[Sector]', e); }
+  }).catch(e => {
+    console.error('[Bundle light]', e);
+    _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
   });
 
-  // 4. Raw + Live + MDD → MDD 카드 (Live 의존)
-  Promise.all([rawPromise, livePromise, mddPromise]).then(([rawT, liveData, mddT]) => {
-    if (mddT) {
-      renderMdd(toRows(mddT));
-    } else {
-      _renderAreaError(['mdd-cards'], 'MDD 로드 실패');
-    }
-  });
-
-  // 5. 그 외 비동기 — 섹터/인사이트/뉴스 (각자 try/catch 내장)
-  renderSectorHeatmap();
-  loadInsight();
-  loadNews();
+  // 5. 300ms 후 bundle-heavy (Insight + News) — 인지 속도 분리
+  setTimeout(() => {
+    fetchBundle('heavy').then(bundle => {
+      if (!bundle) return;
+      _stashBundleToCache(bundle);
+      try { loadInsight(); } catch (e) { console.error('[Insight]', e); }
+      try { loadNews(); }    catch (e) { console.error('[News]', e); }
+    }).catch(e => { console.error('[Bundle heavy]', e); });
+  }, 300);
 }
 
 function _renderAreaError(ids, msg) {
