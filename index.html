@@ -905,10 +905,14 @@ function fetchSheet(name, range, tail) {
   const key = _cacheKey(name, range, tail);
   const cached = _cacheLoad(key);
   if (cached) {
-    // 캐시 히트 → 즉시 반환 + 백그라운드 갱신 (silent)
-    _fetchSheetOnce(name, range, 1, tail)
-      .then(data => _cacheSave(key, data))
-      .catch(_e => {});
+    // 캐시 히트 → 즉시 반환 + 조건부 백그라운드 갱신 (silent)
+    // bundle stash 60초 이내면 skip — 방금 받은 신선한 데이터 중복 fetch 방지
+    const bundleAge = window._bundleStashedAt ? Date.now() - window._bundleStashedAt : Infinity;
+    if (bundleAge > 60000) {
+      _fetchSheetOnce(name, range, 1, tail)
+        .then(data => _cacheSave(key, data))
+        .catch(_e => {});
+    }
     return Promise.resolve(cached);
   }
   // 캐시 미스 → fetch + 자동 재시도 + 캐시 저장
@@ -1042,6 +1046,7 @@ function _fetchBundleOnce(action, attempt) {
 // ── Phase B/C: bundle 결과를 sessionStorage 캐시에 저장 ─────────────
 //   후속 fetchSheet('Sector'), loadInsight, loadNews 등이 캐시 hit으로 즉시 반환
 //   tail은 MDD Chart만 30으로 호출 → 다른 시트는 tail=0
+//   window._bundleStashedAt 세팅 → fetchSheet의 백그라운드 갱신 60초 동안 skip (중복 fetch 방지)
 function _stashBundleToCache(bundle) {
   try {
     if (bundle.raw)     _cacheSave(_cacheKey('Raw Data', '', 0),  _arrToTable(bundle.raw));
@@ -1049,6 +1054,7 @@ function _stashBundleToCache(bundle) {
     if (bundle.sector)  _cacheSave(_cacheKey('Sector', '', 0),    _arrToTable(bundle.sector));
     if (bundle.insight) _cacheSave(_cacheKey('Insight', '', 0),   _arrToTable(bundle.insight));
     if (bundle.news)    _cacheSave(_cacheKey('News', '', 0),      _arrToTable(bundle.news));
+    window._bundleStashedAt = Date.now();
   } catch (e) { console.warn('[Bundle] stash 실패:', e.message); }
 }
 
