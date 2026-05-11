@@ -1184,7 +1184,8 @@ function mkCard(label, value, chg, pct, key, dec=2, infoKey='', dateStr='') {
 
 function mkMdd(label, mdd, key, dateStr='', isAth=false) {
   const info = infoBtn('mdd');
-  const dateHtml = dateStr ? `<div class="card-date">🕒 ${dateStr}</div>` : '';
+  // MDD는 시점 의미가 다른 카드들과 다름 — "30년 누적 max 기준 + Live 현재가" 명시
+  const dateHtml = `<div class="card-date">📅 30년 누적 기준 (1996~현재)</div>`;
   if (mdd==null) return `<div class="card no-drill"><div class="card-label">MDD · ${label}${info}</div><div class="mdd-value" style="color:var(--text3)">–</div></div>`;
 
   // 신고가 갱신 시 — 안전 색 + "역대 최고치 갱신" 라벨
