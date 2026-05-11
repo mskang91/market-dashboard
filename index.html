@@ -913,6 +913,31 @@ function _fetchSheetOnce(name, range, attempt) {
   });
 }
 
+// ── FETCH LIVE (실시간 시장 가격 — Yahoo Finance via Apps Script Web App) ─
+// 응답 형식: { 'S&P500': 7398, 'KOSPI': 7833, 'USD/KRW': 1461, ... }
+// 실패 시 null 반환 → 카드 렌더가 Raw Data fallback
+function fetchLive() {
+  return new Promise((resolve) => {
+    const cb = '_wl' + Math.random().toString(36).slice(2);
+    let sc;
+    const cleanup = () => {
+      try { delete window[cb]; } catch (_e) {}
+      if (sc && sc.parentNode) sc.parentNode.removeChild(sc);
+    };
+    const t = setTimeout(() => { cleanup(); resolve(null); }, 15000);
+    window[cb] = (data) => {
+      clearTimeout(t);
+      cleanup();
+      if (data && data.error) { console.warn('[Live]', data.error); resolve(null); return; }
+      resolve((data && data.data) || null);
+    };
+    sc = document.createElement('script');
+    sc.onerror = () => { clearTimeout(t); cleanup(); resolve(null); };
+    sc.src = WEBAPP_URL + '?action=live&callback=' + cb;
+    document.head.appendChild(sc);
+  });
+}
+
 // ── PARSE ──────────────────────────────────────────────
 function toRows(table) {
   if (!table || !table.rows) return [];
@@ -1172,9 +1197,29 @@ function mkMdd(label, mdd, key, dateStr='') {
 }
 
 // ── RENDER: RAW DATA ───────────────────────────────────
-function renderRaw(rows) {
-  function last(col) { for(let i=rows.length-1;i>=0;i--){ if(rows[i][col]!=null) return rows[i][col]; } return null; }
-  function prev(col) { let n=0; for(let i=rows.length-1;i>=0;i--){ if(rows[i][col]!=null){ n++; if(n===2) return rows[i][col]; } } return null; }
+// Live 데이터(Yahoo 실시간) 우선 + Raw Data 직전일 종가 기준 변동률
+//   카드 가격: Live 우선 (없으면 Raw 마지막 행 = D-1)
+//   카드 변동률: Live 있으면 (Live - Raw 마지막) / Raw 마지막 × 100  ← 진짜 일중 변동
+//                Live 없으면 (Raw 마지막 - Raw 그 전) / Raw 그 전 × 100  ← 기존 D-1 vs D-2
+function renderRaw(rows, liveData) {
+  function last(col) {
+    // Live 우선 (실시간 가격)
+    if (liveData && liveData[col] !== undefined && liveData[col] !== null) return liveData[col];
+    // Fallback: Raw Data 마지막 행
+    for (let i=rows.length-1; i>=0; i--){ if(rows[i][col]!=null) return rows[i][col]; }
+    return null;
+  }
+  function prev(col) {
+    // Live 있으면 기준점 = Raw Data 마지막 행 (= 직전일 종가)
+    if (liveData && liveData[col] !== undefined && liveData[col] !== null) {
+      for (let i=rows.length-1; i>=0; i--){ if(rows[i][col]!=null) return rows[i][col]; }
+      return null;
+    }
+    // Live 없으면 기존: Raw 마지막의 그 전 행 (D-2)
+    let n=0;
+    for (let i=rows.length-1; i>=0; i--){ if(rows[i][col]!=null){ n++; if(n===2) return rows[i][col]; } }
+    return null;
+  }
   function chg(col) { const l=last(col),p=prev(col); return (l!=null&&p!=null)?l-p:null; }
   function pct(col) { const l=last(col),p=prev(col); return (l!=null&&p!=null&&p!==0)?(l-p)/p*100:null; }
   const rawDate = fmtDateShort(findDate(rows));
@@ -2961,14 +3006,18 @@ async function loadAll() {
   const shmEl = document.getElementById('sector-heatmap-content');
   if (shmEl) shmEl.innerHTML = '<div class="hm-loading"><div class="spinner sm" style="display:inline-block;vertical-align:middle;margin-right:8px"></div>섹터 데이터 로딩 중...</div>';
   try {
-    const [rawT, mddT] = await Promise.all([
+    // Raw Data + MDD + Live (실시간 시장 가격) 병렬 fetch
+    // Live 실패해도 fallback: Raw Data 마지막 행 (기존 D-1 동작)
+    const [rawT, mddT, liveData] = await Promise.all([
       fetchSheet('Raw Data'),
       fetchSheet('MDD Chart'),
+      fetchLive(),
     ]);
     cache['Raw Data']  = rawT;
     cache['MDD Chart'] = mddT;
+    cache['Live']      = liveData;
 
-    renderRaw(toRows(rawT));
+    renderRaw(toRows(rawT), liveData);
     renderMdd(toRows(mddT));
 
     const now = new Date();
