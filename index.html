@@ -2426,10 +2426,20 @@ function _renderDetailChart(key, cfg, points) {
   }
 
   const vals = points.map(p => p.val);
-  const cur  = vals[vals.length - 1];
+  let cur    = vals[vals.length - 1];
   const min  = Math.min(...vals);
   const max  = Math.max(...vals);
   const suf  = cfg.pct ? '%' : '';
+
+  // Live data 있으면 "현재" 값 override (실시간 가격)
+  // RAW_DATA_COL_MAP을 통해 key(예: 'kospi') → 컬럼명(예: 'KOSPI') 매핑
+  // MDD 카드(mdd_sp500 등)는 pct 기반이라 Live 적용 X
+  if (!cfg.pct && cache['Live']) {
+    const liveCol = RAW_DATA_COL_MAP[key];
+    if (liveCol && cache['Live'][liveCol] !== undefined && cache['Live'][liveCol] !== null) {
+      cur = cache['Live'][liveCol];
+    }
+  }
 
   document.getElementById('detail-stats').innerHTML = `
     <div class="stat-card"><div class="stat-label">현재</div><div class="stat-value" style="color:${cfg.color}">${fmt(cur)}${suf}</div></div>
