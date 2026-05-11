@@ -1182,10 +1182,21 @@ function mkCard(label, value, chg, pct, key, dec=2, infoKey='', dateStr='') {
   </div>`;
 }
 
-function mkMdd(label, mdd, key, dateStr='') {
+function mkMdd(label, mdd, key, dateStr='', isAth=false) {
   const info = infoBtn('mdd');
   const dateHtml = dateStr ? `<div class="card-date">🕒 ${dateStr}</div>` : '';
   if (mdd==null) return `<div class="card no-drill"><div class="card-label">MDD · ${label}${info}</div><div class="mdd-value" style="color:var(--text3)">–</div></div>`;
+
+  // 신고가 갱신 시 — 안전 색 + "역대 최고치 갱신" 라벨
+  if (isAth) {
+    return `<div class="card" onclick="showDetail('${key}')">
+      <div class="card-label">MDD · ${label}${info}</div>
+      <div class="mdd-value" style="color:#22c55e">0.00%</div>
+      <div class="mdd-track"><div class="mdd-fill" style="width:100%;background:#22c55e"></div></div>
+      <div class="mdd-status" style="color:#22c55e">✨ 역대 최고치 갱신</div>
+      ${dateHtml}
+    </div>`;
+  }
   const col=mddColor(mdd), barW=Math.min(Math.abs(mdd)*2.5,100);
   return `<div class="card" onclick="showDetail('${key}')">
     <div class="card-label">MDD · ${label}${info}</div>
@@ -1259,15 +1270,41 @@ function renderRaw(rows, liveData) {
 }
 
 // ── RENDER: MDD ────────────────────────────────────────
+// 30년 (MDD Chart 시트 전체) 기준 + Live 가격으로 즉시 갱신
+//   max = MAX(RollingMax, Live 현재가)  ← 신고가 갱신 즉시 반영
+//   MDD = (Live - max) / max × 100
+//   신고가(Live ≥ RollingMax)면 MDD = 0% + "역대 최고치 갱신" 라벨
 function renderMdd(rows) {
   const last = rows[rows.length-1];
   if (!last) return;
   const mddDate = fmtDateShort(findDate(rows));
+  const live = cache['Live'] || {};
+
+  function computeMdd(indexCol) {
+    const rollingMax = parseFloat(last[indexCol + ' RollingMax']);
+    const liveVal = live[indexCol];
+    const sheetClose = parseFloat(last[indexCol + ' 종가']);
+    const currentVal = (liveVal != null && !isNaN(parseFloat(liveVal))) ? parseFloat(liveVal) : sheetClose;
+    if (!currentVal || isNaN(currentVal) || !rollingMax || isNaN(rollingMax)) {
+      return { mdd: null, isAth: false };
+    }
+    // 신고가 처리: Live가 RollingMax 초과면 max를 Live로 갱신 → MDD = 0%
+    const effectiveMax = Math.max(rollingMax, currentVal);
+    const mdd = (currentVal - effectiveMax) / effectiveMax * 100;
+    const isAth = currentVal >= rollingMax;
+    return { mdd, isAth };
+  }
+
+  const sp500  = computeMdd('S&P500');
+  const nasdaq = computeMdd('NASDAQ');
+  const kospi  = computeMdd('KOSPI');
+  const kosdaq = computeMdd('KOSDAQ');
+
   document.getElementById('mdd-cards').innerHTML =
-    mkMdd('S&P 500',parseFloat(last['S&P500 MDD(%)']),  'mdd_sp500',  mddDate) +
-    mkMdd('NASDAQ', parseFloat(last['NASDAQ MDD(%)']),   'mdd_nasdaq', mddDate) +
-    mkMdd('KOSPI',  parseFloat(last['KOSPI MDD(%)']),    'mdd_kospi',  mddDate) +
-    mkMdd('KOSDAQ', parseFloat(last['KOSDAQ MDD(%)']),   'mdd_kosdaq', mddDate);
+    mkMdd('S&P 500', sp500.mdd,  'mdd_sp500',  mddDate, sp500.isAth) +
+    mkMdd('NASDAQ',  nasdaq.mdd, 'mdd_nasdaq', mddDate, nasdaq.isAth) +
+    mkMdd('KOSPI',   kospi.mdd,  'mdd_kospi',  mddDate, kospi.isAth) +
+    mkMdd('KOSDAQ',  kosdaq.mdd, 'mdd_kosdaq', mddDate, kosdaq.isAth);
 }
 
 // ── RENDER: SECTOR HEATMAP ─────────────────────────────
