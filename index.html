@@ -574,18 +574,22 @@ body.light .news-ticker {
 }
 .news-title { font-size: 13px; line-height: 1.4; }
 .news-source { font-size: 11px; color: var(--text3); flex-shrink: 0; }
-/* topic별 색상 — Code.gs NEWS_TOPICS 10개 매핑 */
-.news-topic.t-us         { color: #3b82f6; }
-.news-topic.t-kr         { color: #ef4444; }
-.news-topic.t-fed        { color: #a855f7; }
-.news-topic.t-fx         { color: #14b8a6; }
-.news-topic.t-econ       { color: #f59e0b; }
-.news-topic.t-ai         { color: #06b6d4; }
-.news-topic.t-semi       { color: #8b5cf6; }
-.news-topic.t-commodity  { color: #fbbf24; }
-.news-topic.t-crypto     { color: #fb923c; }
-.news-topic.t-global     { color: #22c55e; }
-.news-topic.t-default    { color: #94a3b8; }
+/* topic별 색상 — Code.gs NEWS_TOPICS 14개 매핑 */
+.news-topic.t-us         { color: #3b82f6; }  /* 미국 증시 — 파랑 */
+.news-topic.t-kr         { color: #ef4444; }  /* 한국 증시 — 빨강 */
+.news-topic.t-fed        { color: #a855f7; }  /* 연준 금리 — 보라 */
+.news-topic.t-fx         { color: #14b8a6; }  /* 환율 — 청록 */
+.news-topic.t-econ       { color: #f59e0b; }  /* 경제지표 — 주황 */
+.news-topic.t-ai         { color: #06b6d4; }  /* AI 빅테크 — 시안 */
+.news-topic.t-semi       { color: #8b5cf6; }  /* 반도체 — 진보라 */
+.news-topic.t-crypto     { color: #fb923c; }  /* 가상화폐 — 진주황 */
+.news-topic.t-energy     { color: #84cc16; }  /* 에너지 — 라임 (신규) */
+.news-topic.t-defense    { color: #64748b; }  /* 방산 — 그레이블루 (신규) */
+.news-topic.t-health     { color: #ec4899; }  /* 헬스케어 — 핑크 (신규) */
+.news-topic.t-finance    { color: #d4af37; }  /* 금융주 — 골드 (신규) */
+.news-topic.t-commodity  { color: #fbbf24; }  /* 원자재 — 노랑 */
+.news-topic.t-global     { color: #22c55e; }  /* 글로벌 이슈 — 초록 */
+.news-topic.t-default    { color: #94a3b8; }  /* 기본 (fallback) */
 .news-ticker-loading, .news-ticker-empty {
   padding: 12px 18px;
   font-size: 12px;
@@ -3077,7 +3081,7 @@ function toggleInsight() {
 }
 
 // ── B3. 뉴스 자동 롤링 띠 (Phase 3 News 시트, 최신 10건) ─────────────────
-// topic별 색상 매핑 (Code.gs NEWS_TOPICS 10개와 1:1 대응)
+// topic별 색상 매핑 (Code.gs NEWS_TOPICS 14개와 1:1 대응)
 const NEWS_TOPIC_CLASS = {
   '미국 증시':   't-us',
   '한국 증시':   't-kr',
@@ -3086,8 +3090,12 @@ const NEWS_TOPIC_CLASS = {
   '경제지표':    't-econ',
   'AI 빅테크':   't-ai',
   '반도체':      't-semi',
-  '원자재':      't-commodity',
   '가상화폐':    't-crypto',
+  '에너지':      't-energy',     // 신규
+  '방산':        't-defense',    // 신규
+  '헬스케어':    't-health',     // 신규
+  '금융주':      't-finance',    // 신규
+  '원자재':      't-commodity',
   '글로벌 이슈': 't-global'
 };
 function _newsEscape(s) {
