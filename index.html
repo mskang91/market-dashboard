@@ -3081,22 +3081,29 @@ function toggleInsight() {
 }
 
 // ── B3. 뉴스 자동 롤링 띠 (Phase 3 News 시트, 최신 10건) ─────────────────
-// topic별 색상 매핑 (Code.gs NEWS_TOPICS 14개와 1:1 대응)
+// topic별 색상 매핑 (Code.gs NEWS_TOPICS 18개와 1:1 대응)
+// 영어 토픽(Reuters/CNBC/Bloomberg/미국 매크로 EN)은 한국어 동일 카테고리와 같은 색상 사용
+//   → 시청자에게 영어/한국어 구분 없이 자연스럽게 표시
 const NEWS_TOPIC_CLASS = {
-  '미국 증시':   't-us',
-  '한국 증시':   't-kr',
-  '연준 금리':   't-fed',
-  '환율':        't-fx',
-  '경제지표':    't-econ',
-  'AI 빅테크':   't-ai',
-  '반도체':      't-semi',
-  '가상화폐':    't-crypto',
-  '에너지':      't-energy',     // 신규
-  '방산':        't-defense',    // 신규
-  '헬스케어':    't-health',     // 신규
-  '금융주':      't-finance',    // 신규
-  '원자재':      't-commodity',
-  '글로벌 이슈': 't-global'
+  '미국 증시':       't-us',
+  '한국 증시':       't-kr',
+  '연준 금리':       't-fed',
+  '환율':            't-fx',
+  '경제지표':        't-econ',
+  'AI 빅테크':       't-ai',
+  '반도체':          't-semi',
+  '가상화폐':        't-crypto',
+  '에너지':          't-energy',
+  '방산':            't-defense',
+  '헬스케어':        't-health',
+  '금융주':          't-finance',
+  '원자재':          't-commodity',
+  '글로벌 이슈':     't-global',
+  // 영어 토픽 (Phase G-4) — 한국어 동일 카테고리 색상 재사용
+  'Reuters 시장':    't-us',     // 미국 증시 색상 (파랑)
+  'CNBC 시장':       't-us',
+  'Bloomberg 시장':  't-us',
+  '미국 매크로 EN':  't-fed'     // 연준 금리 색상 (보라)
 };
 function _newsEscape(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
