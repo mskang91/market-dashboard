@@ -866,7 +866,8 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
 
         #market-pulse .ticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
         #market-pulse .ticker-card { padding: 10px 6px; background: rgba(128, 128, 128, 0.08); border: 1px solid rgba(128, 128, 128, 0.18); border-radius: 8px; text-align: center; font-size: 12px; }
-        #market-pulse .ticker-card .ticker { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; }
+        #market-pulse .ticker-card .ticker { font-weight: 700; font-size: 13.5px; margin-bottom: 2px; }
+        #market-pulse .ticker-card .kr-name { font-size: 11px; opacity: 0.62; margin-bottom: 6px; }
         #market-pulse .ticker-card .stat { margin: 2px 0; opacity: 0.9; }
         #market-pulse .ticker-card .buzz { font-weight: 700; font-size: 13px; }
 
@@ -878,6 +879,15 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         #market-pulse .snippet-dots { display: flex; gap: 4px; }
         #market-pulse .snippet-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(128, 128, 128, 0.3); transition: background 0.3s; }
         #market-pulse .snippet-dots .dot.active { background: rgba(128, 128, 128, 0.75); }
+
+        /* 위폴 슬라이드 헤더 */
+        #market-pulse .wepoll-slide-header {
+          display: flex; justify-content: space-between; align-items: center;
+          margin-bottom: 8px; padding: 0 2px;
+        }
+        #market-pulse .wp-slide-idx {
+          font-size: 11px; opacity: 0.55; font-variant-numeric: tabular-nums;
+        }
 
         #market-pulse .wepoll-matched-card { background: rgba(128, 128, 128, 0.08); border: 1px solid rgba(128, 128, 128, 0.18); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
         #market-pulse .wp-ticker { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
@@ -1030,7 +1040,9 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         const SLIDE_INTERVAL_MS = 5000;
         const WEPOLL_GENERAL_LIMIT = 5;
 
+        // 종목 ticker → 한글명 (한국 KRX + 미국 영문 통합)
         const KR_NAME = {
+          // 한국 종목 (KRX)
           '005930':'삼성전자','000660':'SK하이닉스','035420':'네이버','035720':'카카오',
           '005380':'현대차','373220':'LG에너지솔루션','207940':'삼성바이오로직스','068270':'셀트리온',
           '028260':'삼성물산','012330':'현대모비스','105560':'KB금융','055550':'신한지주',
@@ -1040,7 +1052,26 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           '034020':'두산에너빌리티','009150':'삼성전기','006800':'미래에셋증권','377300':'카카오페이',
           '196170':'알테오젠','263750':'펄어비스','251270':'넷마블','036570':'엔씨소프트',
           '010130':'고려아연','005490':'POSCO홀딩스','064350':'현대로템','047810':'한국항공우주',
-          '079550':'LIG넥스원','017670':'SK텔레콤','011200':'HMM'
+          '079550':'LIG넥스원','017670':'SK텔레콤','011200':'HMM',
+          // 미국 종목 (영문 ticker → 한국어)
+          'NVDA':'엔비디아','TSLA':'테슬라','AAPL':'애플','MSFT':'마이크로소프트',
+          'GOOGL':'알파벳(구글)','GOOG':'알파벳(구글)','META':'메타','AMZN':'아마존',
+          'AMD':'AMD','INTC':'인텔','MU':'마이크론','GME':'게임스탑',
+          'PLTR':'팔란티어','RKLB':'로켓랩','NFLX':'넷플릭스','DIS':'디즈니',
+          'JPM':'JP모건','BAC':'뱅크오브아메리카','V':'비자','MA':'마스터카드',
+          'BRK-B':'버크셔','UNH':'유나이티드헬스','JNJ':'존슨앤존슨','PG':'P&G',
+          'XOM':'엑손모빌','CVX':'셰브론','LLY':'일라이릴리','KO':'코카콜라',
+          'WMT':'월마트','COST':'코스트코','HD':'홈디포','NKE':'나이키',
+          'BA':'보잉','CAT':'캐터필러','LMT':'록히드마틴','RTX':'레이시온',
+          'AVGO':'브로드컴','QCOM':'퀄컴','ORCL':'오라클','CRM':'세일즈포스',
+          'ADBE':'어도비','NOW':'서비스나우','ASML':'ASML','TSM':'TSMC',
+          // ETF
+          'SPY':'S&P500 ETF','VOO':'S&P500 ETF','QQQ':'나스닥100 ETF','IWM':'러셀2000 ETF',
+          'SMH':'반도체 ETF','LIT':'리튬 ETF','REMX':'희토류 ETF',
+          // 가상화폐
+          'BTC':'비트코인','ETH':'이더리움',
+          // 기타
+          'ZETA':'제타글로벌'
         };
 
         function fetchBundleHeavy() {
@@ -1098,8 +1129,10 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
             const bullIcon = bull >= 50 ? '🟢' : (bear >= 50 ? '🔴' : '⚪');
             const hasDetail = details && details[r.ticker];
             const clickClass = hasDetail ? ' clickable' : '';
+            const krName = KR_NAME[r.ticker] || '';
             return '<div class="ticker-card' + clickClass + '" data-ticker="' + esc(r.ticker) + '" title="' + esc(r.company_name || r.ticker) + (hasDetail ? ' · 클릭해서 글 더 보기' : '') + '">' +
               '<div class="ticker">' + esc(r.ticker) + '</div>' +
+              (krName ? '<div class="kr-name">' + esc(krName) + '</div>' : '') +
               '<div class="stat buzz"><span class="label">🔥 buzz</span><span class="val">' + (r.buzz_score || 0).toFixed(0) + '</span></div>' +
               '<div class="stat"><span class="label">💬 멘션</span><span class="val">' + (r.mentions || 0).toLocaleString() + '</span></div>' +
               '<div class="stat ' + bullCls + '"><span class="label">' + bullIcon + ' bull</span><span class="val">' + bull + '%</span></div>' +
@@ -1155,41 +1188,70 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           if (slideTimer) { clearInterval(slideTimer); slideTimer = null; }
         }
 
-        function renderWepoll(w) {
-          const matchedEl = document.getElementById('wepoll-matched');
-          const generalEl = document.getElementById('wepoll-general');
-          const tickers = Object.keys(w.by_ticker || {});
+        // 위폴 슬라이드 풀 (매칭 + 일반 통합, 5초 자동 슬라이드)
+        let wepollPool = [];
+        let wepollIdx = 0;
+        let wepollTimer = null;
 
-          if (tickers.length === 0) {
-            matchedEl.innerHTML = '<div style="opacity:0.5;font-size:12.5px;padding:4px 0;">오늘 종목 매칭 글 없음</div>';
-          } else {
-            matchedEl.innerHTML = '<h4>🏢 종목 관련 (' + tickers.length + ')</h4>' + tickers.map(t => {
-              const posts = w.by_ticker[t];
-              if (!posts || posts.length === 0) return '';
-              const name = KR_NAME[t] || t;
-              const p = posts[0];
-              return '<div class="wepoll-matched-card">' +
-                '<div class="wp-ticker">🏢 ' + esc(name) + ' <span style="opacity:0.5;font-size:11px;font-weight:400;">(' + esc(t) + ')</span></div>' +
-                '<div class="wp-title">' + esc(p.title) + '</div>' +
-                '<div class="wp-meta">' +
+        function buildWepollPool(w) {
+          const pool = [];
+          Object.keys(w.by_ticker || {}).forEach(t => {
+            (w.by_ticker[t] || []).forEach(p => pool.push(Object.assign({
+              category: 'matched', ticker: t, ticker_name: KR_NAME[t] || t
+            }, p)));
+          });
+          (w.general || []).slice(0, WEPOLL_GENERAL_LIMIT).forEach(p => {
+            pool.push(Object.assign({ category: 'general' }, p));
+          });
+          return pool;
+        }
+
+        function renderWepollSlide() {
+          const el = document.getElementById('wepoll-matched');
+          if (!el) return;
+          if (wepollPool.length === 0) {
+            el.innerHTML = '<div style="opacity:0.5;font-size:12.5px;padding:8px 0;">위폴 데이터 없음</div>';
+            return;
+          }
+          const idx = wepollIdx % wepollPool.length;
+          const p = wepollPool[idx];
+          const headline = p.category === 'matched'
+            ? '🏢 ' + esc(p.ticker_name) + ' <span style="opacity:0.55;font-size:11px;font-weight:400;">(' + esc(p.ticker) + ')</span>'
+            : '📰 시장 일반';
+          const dots = wepollPool.map((_, i) =>
+            '<span class="dot ' + (i === idx ? 'active' : '') + '"></span>'
+          ).join('');
+          el.innerHTML =
+            '<div class="wepoll-slide-header">' +
+              '<div class="wp-ticker">' + headline + '</div>' +
+              '<span class="wp-slide-idx">' + (idx + 1) + ' / ' + wepollPool.length + '</span>' +
+            '</div>' +
+            '<div class="wepoll-matched-card">' +
+              '<div class="wp-title">' + esc(p.title) + '</div>' +
+              '<div class="wp-meta">' +
                 '<span>⬆ ' + p.upvotes + ' · 💬 ' + p.comments + '</span>' +
                 '<a href="' + esc(p.url) + '" target="_blank" rel="noopener nofollow">위폴 열기 ↗</a>' +
-                '</div></div>';
-            }).join('');
-          }
+              '</div>' +
+            '</div>' +
+            '<div class="snippet-dots" style="justify-content:center;margin-top:8px;">' + dots + '</div>';
+        }
 
-          const general = (w.general || []).slice(0, WEPOLL_GENERAL_LIMIT);
-          if (general.length === 0) {
-            generalEl.innerHTML = '';
-          } else {
-            generalEl.innerHTML = '<h4 style="margin-top:14px;">📰 시장 일반 (Top ' + general.length + ')</h4>' +
-              '<ul class="wepoll-general-list">' + general.map(p =>
-                '<li>' +
-                '<a href="' + esc(p.url) + '" target="_blank" rel="noopener nofollow">' + esc(p.title) + '</a>' +
-                '<span class="wp-stat">⬆ ' + p.upvotes + ' · 💬 ' + p.comments + '</span>' +
-                '</li>'
-              ).join('') + '</ul>';
-          }
+        function startWepollRolling() {
+          stopWepollRolling();
+          if (wepollPool.length <= 1) return;
+          wepollTimer = setInterval(() => { wepollIdx++; renderWepollSlide(); }, SLIDE_INTERVAL_MS);
+        }
+        function stopWepollRolling() {
+          if (wepollTimer) { clearInterval(wepollTimer); wepollTimer = null; }
+        }
+
+        function renderWepoll(w) {
+          const generalEl = document.getElementById('wepoll-general');
+          wepollPool = buildWepollPool(w);
+          wepollIdx = 0;
+          renderWepollSlide();
+          startWepollRolling();
+          if (generalEl) generalEl.innerHTML = '';  // 일반 리스트는 슬라이드 풀에 흡수
         }
 
         // ── 카드 클릭 핸들러 + 상세 모달 ──────────────────────
@@ -1231,7 +1293,7 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
             '<div class="modal-content">' +
               '<div class="modal-header">' +
                 '<div>' +
-                  '<h3>' + esc(ticker) + '</h3>' +
+                  '<h3>' + esc(ticker) + (KR_NAME[ticker] ? ' <span style="font-size:14px;opacity:0.7;font-weight:500;">· ' + esc(KR_NAME[ticker]) + '</span>' : '') + '</h3>' +
                   '<div class="company">' + esc(detail.company_name || '') + '</div>' +
                 '</div>' +
                 '<button class="close" type="button">×</button>' +
