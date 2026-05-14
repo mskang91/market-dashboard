@@ -774,6 +774,347 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         </div>
       </div>
 
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <!-- B15-3 통합 시장 분위기 위젯 (Adanos + 위폴) — 5/14 추가      -->
+      <!-- self-contained: HTML + CSS + JS 한 덩어리                    -->
+      <!-- 데이터: bundle-heavy 응답의 sentiment + wepoll               -->
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <aside id="market-pulse" data-loading="true">
+        <header>
+          <div class="title-row">
+            <h2>⚡ 오늘의 시장 분위기</h2>
+            <details class="legend">
+              <summary>📖 용어</summary>
+              <dl>
+                <dt>💬 Mentions (멘션)</dt>
+                <dd>지난 24시간 Reddit 50+ 투자 서브레딧에서 그 종목이 언급된 횟수.</dd>
+                <dt>📊 Sentiment Score (감성 점수)</dt>
+                <dd>본문·댓글을 AI가 분석한 평균 감성. -1(매우 부정) ~ +1(매우 긍정).</dd>
+                <dt>🟢 Bullish % / 🔴 Bearish %</dt>
+                <dd>감성 분류된 멘션 중 긍정·부정 비율. 60%+면 분명한 분위기.</dd>
+                <dt>🔥 Buzz Score (버즈 점수)</dt>
+                <dd>0~100. 멘션·감성·품질·다양성·모멘텀 종합 화제도.</dd>
+                <dt>▲▼▬ Trend (추세)</dt>
+                <dd>최근 24h vs 이전 24h 활동 비교.</dd>
+                <dt>⬆ Total Upvotes</dt>
+                <dd>그 종목 글·댓글 추천 수 누적.</dd>
+                <dt>🏢 매칭 글 / 📰 시장 일반</dt>
+                <dd>위폴 인기글의 종목 매핑 여부.</dd>
+                <dt>출처·갱신</dt>
+                <dd>
+                  🇺🇸 Reddit: Adanos API (60분 stale, 최근 3일치)<br>
+                  🇰🇷 위폴: wepoll.kr 인기글 (6시간 stale)<br>
+                  📌 정보 제공용. 투자 추천 X.
+                </dd>
+              </dl>
+            </details>
+          </div>
+          <div class="market-line" id="market-line">로딩 중…</div>
+        </header>
+
+        <section id="reddit-section">
+          <h3>🇺🇸 미국 Reddit Top 10</h3>
+          <div class="ticker-grid" id="reddit-cards"></div>
+          <div class="rolling-snippet" id="reddit-snippet">
+            <div class="snippet-body">로딩 중…</div>
+          </div>
+        </section>
+
+        <section id="wepoll-section">
+          <h3>🇰🇷 한국 위폴 인기글</h3>
+          <div id="wepoll-matched"></div>
+          <div id="wepoll-general"></div>
+        </section>
+
+        <footer class="meta">
+          <span id="market-pulse-ts"></span>
+          <span class="disclaimer">📌 정보 제공용 · 투자 추천 X</span>
+        </footer>
+      </aside>
+
+      <style>
+        #market-pulse {
+          margin: 24px auto;
+          padding: 20px 18px;
+          border-radius: 12px;
+          border: 1px solid rgba(128, 128, 128, 0.25);
+          background: rgba(147, 51, 234, 0.04);
+          color: inherit;
+          font-size: 14px;
+          line-height: 1.6;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+        #market-pulse header { margin-bottom: 14px; }
+        #market-pulse .title-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        #market-pulse h2 { margin: 0; font-size: 18px; font-weight: 700; }
+        #market-pulse .market-line { margin-top: 8px; font-size: 13px; opacity: 0.88; }
+
+        #market-pulse .legend { border: 1px solid rgba(128, 128, 128, 0.25); border-radius: 8px; font-size: 12.5px; line-height: 1.55; }
+        #market-pulse .legend summary { cursor: pointer; padding: 5px 11px; font-weight: 600; list-style: none; color: inherit; opacity: 0.85; }
+        #market-pulse .legend summary::-webkit-details-marker { display: none; }
+        #market-pulse .legend summary::after { content: ' ▼'; font-size: 0.8em; opacity: 0.5; }
+        #market-pulse .legend[open] summary::after { content: ' ▲'; }
+        #market-pulse .legend dl { padding: 4px 14px 12px; margin: 0; border-top: 1px solid rgba(128, 128, 128, 0.2); }
+        #market-pulse .legend dt { font-weight: 700; margin-top: 10px; color: inherit; }
+        #market-pulse .legend dd { margin: 4px 0 0 0; opacity: 0.75; color: inherit; }
+
+        #market-pulse section { margin-top: 14px; padding: 14px; border-radius: 10px; }
+        #market-pulse section h3 { margin: 0 0 12px 0; font-size: 15px; font-weight: 700; }
+        #market-pulse #reddit-section { background: rgba(59, 130, 246, 0.05); }
+        #market-pulse #wepoll-section { background: rgba(239, 68, 68, 0.04); }
+
+        #market-pulse .ticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
+        #market-pulse .ticker-card { padding: 10px 6px; background: rgba(128, 128, 128, 0.08); border: 1px solid rgba(128, 128, 128, 0.18); border-radius: 8px; text-align: center; font-size: 12px; }
+        #market-pulse .ticker-card .ticker { font-weight: 700; font-size: 13.5px; margin-bottom: 4px; }
+        #market-pulse .ticker-card .stat { margin: 2px 0; opacity: 0.9; }
+        #market-pulse .ticker-card .buzz { font-weight: 700; font-size: 13px; }
+
+        #market-pulse .rolling-snippet { background: rgba(128, 128, 128, 0.08); border: 1px solid rgba(128, 128, 128, 0.20); border-radius: 10px; padding: 12px 14px; min-height: 110px; transition: background 0.2s; }
+        #market-pulse .rolling-snippet:hover { background: rgba(128, 128, 128, 0.12); }
+        #market-pulse .snippet-meta { font-size: 12px; opacity: 0.78; margin-bottom: 6px; }
+        #market-pulse .snippet-body { font-size: 13.5px; line-height: 1.55; }
+        #market-pulse .snippet-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11.5px; opacity: 0.7; }
+        #market-pulse .snippet-dots { display: flex; gap: 4px; }
+        #market-pulse .snippet-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(128, 128, 128, 0.3); transition: background 0.3s; }
+        #market-pulse .snippet-dots .dot.active { background: rgba(128, 128, 128, 0.75); }
+
+        #market-pulse .wepoll-matched-card { background: rgba(128, 128, 128, 0.08); border: 1px solid rgba(128, 128, 128, 0.18); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+        #market-pulse .wp-ticker { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+        #market-pulse .wp-title { font-size: 13.5px; line-height: 1.45; margin-bottom: 6px; }
+        #market-pulse .wp-meta { font-size: 11.5px; opacity: 0.72; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+        #market-pulse .wp-meta a { color: inherit; text-decoration: underline; opacity: 0.85; }
+
+        #market-pulse .wepoll-general-list { margin: 6px 0 0; padding: 0; list-style: none; }
+        #market-pulse .wepoll-general-list li { padding: 7px 0; border-bottom: 1px solid rgba(128, 128, 128, 0.15); display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; line-height: 1.4; }
+        #market-pulse .wepoll-general-list li:last-child { border-bottom: none; }
+        #market-pulse .wepoll-general-list a { color: inherit; text-decoration: none; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #market-pulse .wepoll-general-list a:hover { text-decoration: underline; }
+        #market-pulse .wp-stat { font-size: 11.5px; opacity: 0.65; white-space: nowrap; }
+        #market-pulse h4 { margin: 0 0 8px; font-size: 13px; font-weight: 600; opacity: 0.85; }
+
+        #market-pulse .meta { margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(128, 128, 128, 0.15); font-size: 11.5px; opacity: 0.6; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+        #market-pulse .pos { color: rgba(34, 197, 94, 0.95); }
+        #market-pulse .neg { color: rgba(239, 68, 68, 0.95); }
+        #market-pulse .neu { opacity: 0.7; }
+
+        #market-pulse[data-loading="true"] section { opacity: 0.4; pointer-events: none; }
+
+        @media (max-width: 640px) {
+          #market-pulse { padding: 14px 12px; }
+          #market-pulse h2 { font-size: 16px; }
+          #market-pulse .ticker-grid { grid-template-columns: repeat(2, 1fr); }
+          #market-pulse .ticker-card { font-size: 11.5px; }
+        }
+      </style>
+
+      <script>
+      (function() {
+        'use strict';
+        const MP_WEBAPP_URL = (typeof WEBAPP_URL !== 'undefined' && WEBAPP_URL)
+          ? WEBAPP_URL
+          : 'https://script.google.com/macros/s/AKfycbxoyGTYyDFMB5IrSkQeZJkB6GGWvJOhGdMtCRRtXP91GRsWh8__v5Nr8sGLZtx_iRWDEQ/exec';
+        const SLIDE_INTERVAL_MS = 5000;
+        const WEPOLL_GENERAL_LIMIT = 5;
+
+        const KR_NAME = {
+          '005930':'삼성전자','000660':'SK하이닉스','035420':'네이버','035720':'카카오',
+          '005380':'현대차','373220':'LG에너지솔루션','207940':'삼성바이오로직스','068270':'셀트리온',
+          '028260':'삼성물산','012330':'현대모비스','105560':'KB금융','055550':'신한지주',
+          '051910':'LG화학','006400':'삼성SDI','015760':'한국전력','267250':'HD현대',
+          '329180':'HD현대중공업','012450':'한화에어로스페이스','009540':'HD한국조선해양',
+          '034730':'SK이노베이션','003670':'포스코퓨처엠','247540':'에코프로비엠','086520':'에코프로',
+          '034020':'두산에너빌리티','009150':'삼성전기','006800':'미래에셋증권','377300':'카카오페이',
+          '196170':'알테오젠','263750':'펄어비스','251270':'넷마블','036570':'엔씨소프트',
+          '010130':'고려아연','005490':'POSCO홀딩스','064350':'현대로템','047810':'한국항공우주',
+          '079550':'LIG넥스원','017670':'SK텔레콤','011200':'HMM'
+        };
+
+        function fetchBundleHeavy() {
+          return new Promise((resolve, reject) => {
+            const cb = '__mpCb_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+            window[cb] = function(data) { delete window[cb]; s.remove(); resolve(data); };
+            const s = document.createElement('script');
+            s.src = MP_WEBAPP_URL + '?action=bundle-heavy&callback=' + cb;
+            s.onerror = () => { delete window[cb]; s.remove(); reject(new Error('JSONP failed')); };
+            document.head.appendChild(s);
+            setTimeout(() => {
+              if (window[cb]) { delete window[cb]; s.remove(); reject(new Error('timeout')); }
+            }, 30000);
+          });
+        }
+
+        function esc(s) {
+          return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function humanize(iso) {
+          try {
+            const d = new Date(iso);
+            const diff = Date.now() - d.getTime();
+            const min = Math.floor(diff / 60000);
+            if (min < 1) return '방금 전';
+            if (min < 60) return min + '분 전';
+            const h = Math.floor(min / 60);
+            if (h < 24) return h + '시간 전';
+            return Math.floor(h / 24) + '일 전';
+          } catch (e) { return ''; }
+        }
+
+        function renderMarketLine(m) {
+          const el = document.getElementById('market-line');
+          if (!m) { el.textContent = '시장 데이터 없음'; return; }
+          const bull = m.bullish_pct || 0;
+          const bear = m.bearish_pct || 0;
+          const mentions = (m.mentions || 0).toLocaleString();
+          const tone = bull > 40 ? 'pos' : (bear > 40 ? 'neg' : 'neu');
+          el.innerHTML = '🌍 Reddit 시장 전체: <span class="' + tone + '">bullish ' + bull + '% · bearish ' + bear + '%</span> · 멘션 ' + mentions + '건';
+        }
+
+        function renderTickerCards(trending) {
+          const el = document.getElementById('reddit-cards');
+          if (!trending || trending.length === 0) { el.innerHTML = ''; return; }
+          el.innerHTML = trending.map(r => {
+            const arrow = r.trend === 'rising' ? '▲' : (r.trend === 'falling' ? '▼' : '▬');
+            const arrowCls = r.trend === 'rising' ? 'pos' : (r.trend === 'falling' ? 'neg' : 'neu');
+            const bull = r.bullish_pct || 0;
+            const bear = r.bearish_pct || 0;
+            const bullCls = bull >= 50 ? 'pos' : (bear >= 50 ? 'neg' : 'neu');
+            const bullIcon = bull >= 50 ? '🟢' : (bear >= 50 ? '🔴' : '⚪');
+            return '<div class="ticker-card">' +
+              '<div class="ticker">' + esc(r.ticker) + '</div>' +
+              '<div class="stat buzz">🔥 ' + (r.buzz_score || 0).toFixed(0) + '</div>' +
+              '<div class="stat">💬 ' + (r.mentions || 0).toLocaleString() + '</div>' +
+              '<div class="stat ' + bullCls + '">' + bullIcon + ' ' + bull + '%</div>' +
+              '<div class="stat ' + arrowCls + '">' + arrow + '</div>' +
+              '</div>';
+          }).join('');
+        }
+
+        let slideTimer = null;
+        let slidePool = [];
+        let slideIdx = 0;
+
+        function buildSlidePool(details) {
+          const pool = [];
+          if (!details) return pool;
+          Object.keys(details).forEach(t => {
+            const d = details[t];
+            if (d && d.top_mentions && d.top_mentions.length > 0) {
+              pool.push(Object.assign({ ticker: t }, d.top_mentions[0]));
+            }
+          });
+          return pool;
+        }
+
+        function renderSlide() {
+          const el = document.getElementById('reddit-snippet');
+          if (!el) return;
+          if (slidePool.length === 0) {
+            el.innerHTML = '<div class="snippet-body" style="opacity:0.5">미국 종목 본문 데이터 없음</div>';
+            return;
+          }
+          const idx = slideIdx % slidePool.length;
+          const s = slidePool[idx];
+          const label = s.sentiment_label || 'neutral';
+          const labelCls = label === 'positive' ? 'pos' : (label === 'negative' ? 'neg' : 'neu');
+          const dots = slidePool.map((_, i) => '<span class="dot ' + (i === idx ? 'active' : '') + '"></span>').join('');
+          el.innerHTML =
+            '<div class="snippet-meta">💬 r/' + esc(s.subreddit || '?') + ' · ⬆ ' + (s.upvotes || 0).toLocaleString() +
+            ' · <span class="' + labelCls + '">' + label + '</span></div>' +
+            '<div class="snippet-body">"' + esc(s.text_snippet || '') + '"</div>' +
+            '<div class="snippet-footer">' +
+            '<span><strong>' + esc(s.ticker) + '</strong> · ' + humanize(s.created_utc) + '</span>' +
+            '<span class="snippet-dots">' + dots + '</span>' +
+            '</div>';
+        }
+
+        function startRolling() {
+          stopRolling();
+          if (slidePool.length <= 1) return;
+          slideTimer = setInterval(() => { slideIdx++; renderSlide(); }, SLIDE_INTERVAL_MS);
+        }
+        function stopRolling() {
+          if (slideTimer) { clearInterval(slideTimer); slideTimer = null; }
+        }
+
+        function renderWepoll(w) {
+          const matchedEl = document.getElementById('wepoll-matched');
+          const generalEl = document.getElementById('wepoll-general');
+          const tickers = Object.keys(w.by_ticker || {});
+
+          if (tickers.length === 0) {
+            matchedEl.innerHTML = '<div style="opacity:0.5;font-size:12.5px;padding:4px 0;">오늘 종목 매칭 글 없음</div>';
+          } else {
+            matchedEl.innerHTML = '<h4>🏢 종목 관련 (' + tickers.length + ')</h4>' + tickers.map(t => {
+              const posts = w.by_ticker[t];
+              if (!posts || posts.length === 0) return '';
+              const name = KR_NAME[t] || t;
+              const p = posts[0];
+              return '<div class="wepoll-matched-card">' +
+                '<div class="wp-ticker">🏢 ' + esc(name) + ' <span style="opacity:0.5;font-size:11px;font-weight:400;">(' + esc(t) + ')</span></div>' +
+                '<div class="wp-title">' + esc(p.title) + '</div>' +
+                '<div class="wp-meta">' +
+                '<span>⬆ ' + p.upvotes + ' · 💬 ' + p.comments + '</span>' +
+                '<a href="' + esc(p.url) + '" target="_blank" rel="noopener nofollow">위폴 열기 ↗</a>' +
+                '</div></div>';
+            }).join('');
+          }
+
+          const general = (w.general || []).slice(0, WEPOLL_GENERAL_LIMIT);
+          if (general.length === 0) {
+            generalEl.innerHTML = '';
+          } else {
+            generalEl.innerHTML = '<h4 style="margin-top:14px;">📰 시장 일반 (Top ' + general.length + ')</h4>' +
+              '<ul class="wepoll-general-list">' + general.map(p =>
+                '<li>' +
+                '<a href="' + esc(p.url) + '" target="_blank" rel="noopener nofollow">' + esc(p.title) + '</a>' +
+                '<span class="wp-stat">⬆ ' + p.upvotes + ' · 💬 ' + p.comments + '</span>' +
+                '</li>'
+              ).join('') + '</ul>';
+          }
+        }
+
+        async function initMarketPulse() {
+          const root = document.getElementById('market-pulse');
+          try {
+            const res = await fetchBundleHeavy();
+            const data = (res && res.data) || {};
+            const sentiment = data.sentiment || { trending: [], details: {}, market: null };
+            const wepoll = data.wepoll || { by_ticker: {}, general: [] };
+
+            renderMarketLine(sentiment.market);
+            renderTickerCards(sentiment.trending);
+            slidePool = buildSlidePool(sentiment.details);
+            slideIdx = 0;
+            renderSlide();
+            startRolling();
+            renderWepoll(wepoll);
+
+            const ts = sentiment.ts || wepoll.ts;
+            document.getElementById('market-pulse-ts').textContent = ts ? '🕐 갱신: ' + ts : '';
+
+            const snippet = document.getElementById('reddit-snippet');
+            snippet.addEventListener('mouseenter', stopRolling);
+            snippet.addEventListener('mouseleave', startRolling);
+
+            root.removeAttribute('data-loading');
+          } catch (e) {
+            console.error('[market-pulse] 로드 실패:', e);
+            root.style.display = 'none';
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initMarketPulse);
+        } else {
+          initMarketPulse();
+        }
+      })();
+      </script>
+
       <!-- 4. 주요 지수 -->
       <div class="section sec-index">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">📈 주요 지수</span><span class="section-badge">[D-1] 전 거래일 종가 대비 등락</span></div>
