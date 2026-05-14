@@ -661,6 +661,53 @@ body.light .insight-box { background: var(--bg2); }
 .market-mini-badge[data-loading="true"] .mini-text { opacity: 0.4; }
 .market-mini-badge[data-loading="true"] .mini-dot { animation: none; opacity: 0.3; }
 
+/* 데이터 탭 (Step B — IA 재구성) */
+.dashboard-tabs {
+  display: flex;
+  gap: var(--s-1);
+  border-bottom: 1px solid var(--border);
+  margin: var(--s-7) 0 var(--s-7);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.dashboard-tabs::-webkit-scrollbar { display: none; }
+.dash-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text3);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--d-base) var(--ease);
+  white-space: nowrap;
+  font-family: inherit;
+  margin-bottom: -1px;
+}
+.dash-tab:hover { color: var(--text2); }
+.dash-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 700;
+}
+.dash-tab-icon { font-size: 16px; line-height: 1; }
+.dash-tab-label { letter-spacing: -0.01em; }
+
+/* 탭 콘텐츠 display 토글 — 매핑된 요소는 active 탭만 표시 */
+[data-tab-target] { display: block; }
+[data-tab-target].tab-hidden { display: none !important; }
+
+@media (max-width: 640px) {
+  .dashboard-tabs { gap: 0; padding: 0; }
+  .dash-tab { padding: var(--s-3); font-size: 13px; }
+  .dash-tab-icon { font-size: 15px; }
+}
+
 /* 뉴스 자동 롤링 띠 (B3) — News 시트 최신 10건, topic별 색상, 60초 마퀴 */
 .news-ticker {
   position: relative;
@@ -1583,21 +1630,41 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         <span class="mini-link" id="market-mini-link">자세히 →</span>
       </div>
 
+      <!-- 4.6 데이터 탭 (Step B — IA 재구성, 5/14 추가) -->
+      <!--      매크로(default) · 자산(원자재+ETF+코인) · MDD · 섹터 · 분위기 -->
+      <nav class="dashboard-tabs" id="dashboard-tabs" role="tablist" aria-label="시장 데이터 카테고리">
+        <button class="dash-tab active" data-tab="macro" role="tab" aria-selected="true" type="button">
+          <span class="dash-tab-icon">🌐</span><span class="dash-tab-label">매크로</span>
+        </button>
+        <button class="dash-tab" data-tab="assets" role="tab" aria-selected="false" type="button">
+          <span class="dash-tab-icon">⛽</span><span class="dash-tab-label">자산</span>
+        </button>
+        <button class="dash-tab" data-tab="mdd" role="tab" aria-selected="false" type="button">
+          <span class="dash-tab-icon">📉</span><span class="dash-tab-label">MDD</span>
+        </button>
+        <button class="dash-tab" data-tab="sector" role="tab" aria-selected="false" type="button">
+          <span class="dash-tab-icon">🗺</span><span class="dash-tab-label">섹터</span>
+        </button>
+        <button class="dash-tab" data-tab="sentiment" role="tab" aria-selected="false" type="button">
+          <span class="dash-tab-icon">🔥</span><span class="dash-tab-label">분위기</span>
+        </button>
+      </nav>
+
       <!-- 5. 매크로 지표 -->
-      <div class="section sec-macro">
+      <div class="section sec-macro" data-tab-target="macro">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">🌐 매크로 지표</span><span class="section-badge">[D-1] 전일 대비 변화 · ⓘ 호버 시 참조표 확인</span></div>
         <div class="cards g-macro" id="macro-cards"></div>
         <button class="macro-toggle-btn" id="macro-toggle-btn" onclick="toggleMacroExtra()">매크로 5개 더 보기 ▼</button>
       </div>
 
       <!-- 6. 원자재 -->
-      <div class="section sec-commodity">
+      <div class="section sec-commodity" data-tab-target="assets">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">🛢️ 원자재</span><span class="section-badge">[D-1] 전 거래일 종가 대비 등락</span></div>
         <div class="cards g5" id="commodity-cards"></div>
       </div>
 
       <!-- 7. 테마 ETF + 가상화폐 -->
-      <div class="bento-row">
+      <div class="bento-row" data-tab-target="assets">
         <div class="section sec-etf">
           <div class="section-header"><div class="section-bar"></div><span class="section-title">🔬 테마 ETF</span><span class="section-badge">[D-1] 전 거래일 대비</span></div>
           <div class="cards g3" id="etf-cards"></div>
@@ -1609,13 +1676,13 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
       </div>
 
       <!-- 8. MDD 현황 -->
-      <div class="section sec-mdd">
+      <div class="section sec-mdd" data-tab-target="mdd">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">📉 MDD 현황</span><span class="section-badge">고점 대비 현재 낙폭 · 클릭 시 추이 확인</span></div>
         <div class="cards g4" id="mdd-cards"></div>
       </div>
 
       <!-- 9. 섹터 히트맵 -->
-      <div class="section" style="--sc:#fbbf24;--sc-glow:rgba(251,191,36,0.35)">
+      <div class="section" data-tab-target="sector" style="--sc:#fbbf24;--sc-glow:rgba(251,191,36,0.35)">
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🗺️ 섹터 히트맵</span>
@@ -4163,6 +4230,97 @@ window.addEventListener('resize', () => {
     }
   }, 250);
 });
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   데이터 탭 + Hash routing (Step B — IA 재구성, 5/14 추가)
+   - 5탭: macro(default) · assets · mdd · sector · sentiment
+   - URL hash 동기화 (#macro / #assets / #mdd / #sector / #sentiment)
+   - 뒤로가기·앞으로가기·공유 가능
+   - [data-tab-target] 속성 가진 섹션 토글 + #market-pulse 위젯 분기
+   ════════════════════════════════════════════════════════ */
+(function() {
+  'use strict';
+  const VALID_TABS = ['macro', 'assets', 'mdd', 'sector', 'sentiment'];
+  const DEFAULT_TAB = 'macro';
+
+  function getCurrentHashTab() {
+    const raw = (location.hash || '').replace(/^#/, '').split('?')[0];
+    return VALID_TABS.indexOf(raw) >= 0 ? raw : DEFAULT_TAB;
+  }
+
+  function setActiveTab(tabName) {
+    // 1) 탭 버튼 active 토글
+    document.querySelectorAll('.dash-tab').forEach(btn => {
+      const isActive = btn.dataset.tab === tabName;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    // 2) 매핑 섹션 display 토글
+    document.querySelectorAll('[data-tab-target]').forEach(el => {
+      el.classList.toggle('tab-hidden', el.dataset.tabTarget !== tabName);
+    });
+
+    // 3) #market-pulse 위젯은 sentiment 탭일 때만 표시
+    const widget = document.getElementById('market-pulse');
+    if (widget) {
+      widget.style.display = (tabName === 'sentiment') ? '' : 'none';
+    }
+  }
+
+  function navigateToTab(tabName) {
+    if (VALID_TABS.indexOf(tabName) < 0) tabName = DEFAULT_TAB;
+    const newHash = '#' + tabName;
+    if (location.hash !== newHash) {
+      // pushState로 뒤로가기 history에 기록
+      history.pushState({ tab: tabName }, '', newHash);
+    }
+    setActiveTab(tabName);
+  }
+
+  // 탭 버튼 클릭
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.dash-tab');
+    if (!btn) return;
+    e.preventDefault();
+    navigateToTab(btn.dataset.tab);
+  });
+
+  // 브라우저 뒤로가기·앞으로가기
+  window.addEventListener('popstate', function() {
+    setActiveTab(getCurrentHashTab());
+  });
+
+  // hashchange (외부 hash 변경 시)
+  window.addEventListener('hashchange', function() {
+    setActiveTab(getCurrentHashTab());
+  });
+
+  // mini badge "자세히 →" 클릭 → sentiment 탭으로 이동
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('#market-mini-link');
+    if (!link) return;
+    e.preventDefault();
+    navigateToTab('sentiment');
+    // 분위기 탭으로 전환 후 위젯 스크롤
+    setTimeout(function() {
+      const widget = document.getElementById('market-pulse');
+      if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  });
+
+  // 초기 진입 — DOMContentLoaded 또는 즉시
+  function init() {
+    setActiveTab(getCurrentHashTab());
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 </body>
 </html>
