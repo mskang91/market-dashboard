@@ -522,12 +522,13 @@ body.light .table-wrap { background: #fff; }
   border: 1px solid var(--border);
   border-left: 4px solid var(--accent);
   border-radius: var(--r-lg);
-  padding: var(--s-7) var(--s-6);
-  margin-bottom: var(--s-9);
+  padding: var(--s-5) var(--s-6);
+  margin-bottom: var(--s-7);
   transition: all var(--d-base) var(--ease);
 }
-.insight-box.collapsed { cursor: pointer; }
+.insight-box.collapsed { cursor: pointer; padding: var(--s-5) var(--s-6); }
 .insight-box.collapsed:hover { background: var(--surface-2); border-color: var(--border2); }
+.insight-box:not(.collapsed) { padding: var(--s-7) var(--s-6); }
 .insight-headline-row { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
 .insight-icon { font-size: 20px; line-height: 1; }
 .insight-label {
@@ -601,6 +602,64 @@ body.light .table-wrap { background: #fff; }
   background: var(--accent);
 }
 body.light .insight-box { background: var(--bg2); }
+
+/* 시장 한 줄 mini badge (Tier 4 압축) — 주요 지수 직후 */
+.market-mini-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  margin: var(--s-5) 0 var(--s-9);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  color: var(--text2);
+  flex-wrap: wrap;
+  transition: all var(--d-base) var(--ease);
+}
+.market-mini-badge:hover { background: var(--surface-2); border-color: var(--border2); }
+.market-mini-badge .mini-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: pulse-dot 1.6s var(--ease) infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.55; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.market-mini-badge .mini-label {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 3px 9px;
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.market-mini-badge .mini-text {
+  flex: 1;
+  min-width: 200px;
+  color: var(--text);
+  font-weight: 500;
+}
+.market-mini-badge .mini-text .pos { color: var(--green); font-weight: 700; }
+.market-mini-badge .mini-text .neg { color: var(--red); font-weight: 700; }
+.market-mini-badge .mini-link {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-weight: 600;
+  transition: color var(--d-fast) var(--ease);
+}
+.market-mini-badge .mini-link:hover { color: var(--accent2); text-decoration: underline; }
+.market-mini-badge[data-loading="true"] .mini-text { opacity: 0.4; }
+.market-mini-badge[data-loading="true"] .mini-dot { animation: none; opacity: 0.3; }
 
 /* 뉴스 자동 롤링 띠 (B3) — News 시트 최신 10건, topic별 색상, 60초 마퀴 */
 .news-ticker {
@@ -1199,12 +1258,44 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
 
         function renderMarketLine(m) {
           const el = document.getElementById('market-line');
-          if (!m) { el.textContent = '시장 데이터 없음'; return; }
+          const miniBadge = document.getElementById('market-mini-badge');
+          const miniText = document.getElementById('market-mini-text');
+          const miniLink = document.getElementById('market-mini-link');
+
+          if (!m) {
+            if (el) el.textContent = '시장 데이터 없음';
+            if (miniText) miniText.textContent = '데이터 없음';
+            if (miniBadge) miniBadge.removeAttribute('data-loading');
+            return;
+          }
+
           const bull = m.bullish_pct || 0;
           const bear = m.bearish_pct || 0;
           const mentions = (m.mentions || 0).toLocaleString();
           const tone = bull > 40 ? 'pos' : (bear > 40 ? 'neg' : 'neu');
-          el.innerHTML = '🌍 Reddit 시장 전체: <span class="' + tone + '">bullish ' + bull + '% · bearish ' + bear + '%</span> · 멘션 ' + mentions + '건';
+
+          // 위젯 헤더 (기존)
+          if (el) {
+            el.innerHTML = '🌍 Reddit 시장 전체: <span class="' + tone + '">bullish ' + bull + '% · bearish ' + bear + '%</span> · 멘션 ' + mentions + '건';
+          }
+
+          // mini badge (신규) — 주요 지수 아래 한 줄
+          if (miniText) {
+            miniText.innerHTML =
+              '<span class="' + tone + '">bullish ' + bull + '%</span>' +
+              ' · <span class="' + (bear > 40 ? 'neg' : 'neu') + '">bearish ' + bear + '%</span>' +
+              ' · 멘션 ' + mentions + '건';
+          }
+          if (miniBadge) miniBadge.removeAttribute('data-loading');
+
+          // mini link 클릭 → 위젯으로 스크롤 (탭 시스템 구현 전 임시)
+          if (miniLink && !miniLink.dataset.bound) {
+            miniLink.addEventListener('click', () => {
+              const widget = document.getElementById('market-pulse');
+              if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            miniLink.dataset.bound = '1';
+          }
         }
 
         function renderTickerCards(trending, details) {
@@ -1475,6 +1566,14 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
       <div class="section sec-index">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">📈 주요 지수</span><span class="section-badge">[D-1] 전 거래일 종가 대비 등락</span></div>
         <div class="cards g4" id="index-cards"></div>
+      </div>
+
+      <!-- 4.5 시장 한 줄 mini badge (Tier 4 압축 — 분위기 첫 인지) -->
+      <div id="market-mini-badge" class="market-mini-badge" data-loading="true">
+        <span class="mini-dot"></span>
+        <span class="mini-label">Reddit 시장 분위기</span>
+        <span class="mini-text" id="market-mini-text">로딩 중…</span>
+        <span class="mini-link" id="market-mini-link">자세히 →</span>
       </div>
 
       <!-- 5. 매크로 지표 -->
