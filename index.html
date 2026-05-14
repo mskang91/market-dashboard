@@ -1515,6 +1515,13 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
 
         async function initMarketPulse() {
           const root = document.getElementById('market-pulse');
+          if (!root) return;
+
+          // ── 위계 정상화 (Step A) ──────────────────────────
+          // 위젯을 부모 컨테이너 마지막으로 이동 → 본문 hero에서 페이지 하단으로
+          // 시청자 first view = 인사이트 + 주요 지수 + mini badge (분위기 한 줄)
+          if (root.parentNode) root.parentNode.appendChild(root);
+
           try {
             const res = await fetchBundleHeavy();
             // ⚙ 디버그 로그 (운영 안정화 후 제거)
