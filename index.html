@@ -4269,22 +4269,44 @@ function initPopupDirection() {
   //   부모 측 수신 스크립트는 Tistory 본문 템플릿에 포함 (origin 검증)
   let _resizeRAF = null;
   let _lastNotifiedHeight = 0;
-  function notifyParentHeight() {
+  function notifyParentHeight(force) {
     if (_resizeRAF) cancelAnimationFrame(_resizeRAF);
     _resizeRAF = requestAnimationFrame(() => {
-      // 페이지 전체 콘텐츠 높이 — Math.max 패턴 (브라우저 호환성 최대화)
-      // documentElement / body 의 scrollHeight / offsetHeight 중 가장 큰 값
-      const height = Math.max(
-        document.documentElement.scrollHeight,
-        document.documentElement.offsetHeight,
-        document.body.scrollHeight,
-        document.body.offsetHeight
-      );
-      // 변화량 < 4px이면 skip (불필요한 postMessage 방지)
-      if (Math.abs(height - _lastNotifiedHeight) < 4) return;
+      // 다각도 측정 — body·documentElement 모두 + main 영역의 마지막 자식 bottom
+      // 어느 하나에서 측정 누락돼도 다른 측정값으로 보완
+      const docEl = document.documentElement;
+      const body = document.body;
+      const candidates = [
+        body.scrollHeight,
+        body.offsetHeight,
+        docEl.scrollHeight,
+        docEl.offsetHeight
+      ];
+      const main = document.querySelector('.main');
+      if (main) {
+        const rect = main.getBoundingClientRect();
+        candidates.push(Math.ceil(rect.bottom + window.scrollY));
+        candidates.push(main.scrollHeight);
+        candidates.push(main.offsetHeight);
+        // main 안 마지막 visible 자식의 bottom — 가장 정확한 최하단 지점
+        const visibleChildren = Array.from(main.children).filter(el => {
+          const cs = window.getComputedStyle(el);
+          return cs.display !== 'none' && cs.visibility !== 'hidden';
+        });
+        if (visibleChildren.length) {
+          const last = visibleChildren[visibleChildren.length - 1];
+          candidates.push(Math.ceil(last.getBoundingClientRect().bottom + window.scrollY));
+        }
+        // 활성 탭 콘텐츠의 bottom도 추가 (탭 시스템 사용 시)
+        main.querySelectorAll('[data-tab-target]:not(.tab-hidden)').forEach(el => {
+          candidates.push(Math.ceil(el.getBoundingClientRect().bottom + window.scrollY));
+        });
+      }
+      const height = Math.max.apply(null, candidates);
+      // force가 false이고 변화량 < 2px이면 skip
+      if (!force && Math.abs(height - _lastNotifiedHeight) < 2) return;
       _lastNotifiedHeight = height;
-      // 디버그 로그 (검증 후 제거 가능)
-      console.log('[market-iframe] sending resize:', height + 'px');
+      console.log('[market-iframe] sending resize:', height + 'px', force ? '(forced)' : '', 'candidates:', candidates);
       try {
         window.parent.postMessage({
           type: 'market-iframe-resize',
@@ -4295,24 +4317,36 @@ function initPopupDirection() {
     });
   }
 
-  // 1) ResizeObserver — body 높이 변화 자동 감지
+  // 1) ResizeObserver — body·main 높이 변화 자동 감지
   if (typeof ResizeObserver === 'function') {
-    const ro = new ResizeObserver(notifyParentHeight);
+    const ro = new ResizeObserver(() => notifyParentHeight(false));
     ro.observe(document.body);
+    const main = document.querySelector('.main');
+    if (main) ro.observe(main);
   }
 
-  // 2) 탭 클릭 시 즉시 알림 (탭 전환 후 약간 지연 두고)
+  // 2) MutationObserver — DOM 변화 감지 (데이터 렌더링 시 발화)
+  if (typeof MutationObserver === 'function') {
+    const mo = new MutationObserver(() => notifyParentHeight(false));
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+  }
+
+  // 3) 탭 클릭 시 즉시 알림
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-tab]')) {
-      setTimeout(notifyParentHeight, 80);
+      setTimeout(() => notifyParentHeight(true), 80);
+      setTimeout(() => notifyParentHeight(true), 400); // 탭 트랜지션 후
     }
   });
 
-  // 3) hash routing popstate 대응
-  window.addEventListener('popstate', () => setTimeout(notifyParentHeight, 80));
+  // 4) hash routing popstate
+  window.addEventListener('popstate', () => setTimeout(() => notifyParentHeight(true), 80));
 
-  // 4) 데이터 로딩 후 (loadAll 비동기 완료 시점 대응)
-  [200, 800, 2000, 4000].forEach(ms => setTimeout(notifyParentHeight, ms));
+  // 5) 데이터 로딩 후 force 측정 (skip 우회) — bundle-light/heavy 도착 시점 대응
+  [100, 500, 1500, 3000, 5000, 8000, 12000].forEach(ms => setTimeout(() => notifyParentHeight(true), ms));
+
+  // 6) window load 이벤트 (모든 리소스 로드 완료 시)
+  window.addEventListener('load', () => setTimeout(() => notifyParentHeight(true), 200));
 })();
 
 loadAll();
