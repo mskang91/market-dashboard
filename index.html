@@ -626,6 +626,12 @@ body.light .table-wrap { background: #fff; }
 }
 body.light .insight-box { background: var(--bg2); }
 
+/* 임베드 모드 — Tistory iframe 안 중복 요소 강제 숨김 (CSS !important로 JS override 차단) */
+body.embed-mode .header,
+body.embed-mode #insight-box,
+body.embed-mode #news-ticker,
+body.embed-mode #news-list-mobile { display: none !important; }
+
 /* 시장 한 줄 mini badge (Tier 4 압축) — 주요 지수 직후 */
 .market-mini-badge {
   display: flex;
