@@ -4262,6 +4262,51 @@ function initPopupDirection() {
     main.style.paddingTop = '8px';
     main.style.paddingBottom = '16px';
   }
+
+  // ── 임베드 자동 리사이즈 (5/16 추가, 토스 임베드 패턴 차용) ──────────────
+  //   ResizeObserver로 콘텐츠 높이 변화 감지 → 부모에 postMessage
+  //   탭 전환·모달 열기·데이터 로드 후 모두 부모 iframe height가 부드럽게 조정됨
+  //   부모 측 수신 스크립트는 Tistory 본문 템플릿에 포함 (origin 검증)
+  let _resizeRAF = null;
+  let _lastNotifiedHeight = 0;
+  function notifyParentHeight() {
+    if (_resizeRAF) cancelAnimationFrame(_resizeRAF);
+    _resizeRAF = requestAnimationFrame(() => {
+      // 실제 콘텐츠 끝 지점 계산 — main 영역 기준 (탭 숨김 영역은 display:none이라 자동 제외됨)
+      const root = document.querySelector('.main') || document.body;
+      const rect = root.getBoundingClientRect();
+      const height = Math.ceil(rect.bottom + 16); // 하단 여백 16px
+      // 변화량 < 4px이면 skip (불필요한 postMessage 방지)
+      if (Math.abs(height - _lastNotifiedHeight) < 4) return;
+      _lastNotifiedHeight = height;
+      try {
+        window.parent.postMessage({
+          type: 'market-iframe-resize',
+          height: height,
+          source: 'market-dashboard'
+        }, '*');
+      } catch (e) { /* cross-origin 차단 시 silent */ }
+    });
+  }
+
+  // 1) ResizeObserver — body 높이 변화 자동 감지
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(notifyParentHeight);
+    ro.observe(document.body);
+  }
+
+  // 2) 탭 클릭 시 즉시 알림 (탭 전환 후 약간 지연 두고)
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-tab]')) {
+      setTimeout(notifyParentHeight, 80);
+    }
+  });
+
+  // 3) hash routing popstate 대응
+  window.addEventListener('popstate', () => setTimeout(notifyParentHeight, 80));
+
+  // 4) 데이터 로딩 후 (loadAll 비동기 완료 시점 대응)
+  [200, 800, 2000, 4000].forEach(ms => setTimeout(notifyParentHeight, ms));
 })();
 
 loadAll();
