@@ -626,10 +626,11 @@ body.light .table-wrap { background: #fff; }
 }
 body.light .insight-box { background: var(--bg2); }
 
-/* 임베드 모드 — Tistory iframe 안 중복 요소 강제 숨김 (CSS !important로 JS override 차단) */
+/* 임베드 모드 — Tistory iframe 안 중복 요소 강제 숨김 (CSS !important로 JS override 차단)
+   주의: #news-ticker(마퀴)는 동적 실시간 요소라 본문 정적 뉴스 리스트와 보완관계 → 노출 유지
+   #news-list-mobile(모바일 카드)는 본문 "참고 뉴스" 섹션과 중복이라 숨김 */
 body.embed-mode .header,
 body.embed-mode #insight-box,
-body.embed-mode #news-ticker,
 body.embed-mode #news-list-mobile { display: none !important; }
 
 /* 시장 한 줄 mini badge (Tier 4 압축) — 주요 지수 직후 */
@@ -4250,9 +4251,8 @@ function initPopupDirection() {
   const insight = document.getElementById('insight-box');
   if (insight) insight.style.display = 'none';
 
-  // 뉴스 마퀴 숨김 (게시글 본문에 참고 뉴스 섹션 있음)
-  const newsTicker = document.getElementById('news-ticker');
-  if (newsTicker) newsTicker.style.display = 'none';
+  // 뉴스 마퀴(#news-ticker)는 동적 실시간 요소라 유지 — 본문 참고 뉴스(정적)와 보완재
+  // 모바일 뉴스 카드 리스트는 본문과 중복이라 숨김
   const newsListMobile = document.getElementById('news-list-mobile');
   if (newsListMobile) newsListMobile.style.display = 'none';
 
