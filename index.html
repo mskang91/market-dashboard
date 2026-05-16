@@ -530,6 +530,29 @@ body.light .table-wrap { background: #fff; }
 .insight-box.collapsed:hover { background: var(--surface-2); border-color: var(--border2); }
 .insight-box:not(.collapsed) { padding: var(--s-7) var(--s-6); }
 .insight-headline-row { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+
+/* 좁은 화면(1024px 이하)에서 헤드라인을 별도 줄로 분리 — 박스 깨짐 방지 */
+@media (max-width: 1024px) {
+  .insight-headline-row {
+    align-items: flex-start;
+    row-gap: var(--s-3);
+  }
+  .insight-headline {
+    order: 99;
+    flex-basis: 100%;
+    width: 100%;
+    font-size: 17px !important;
+    margin-top: var(--s-2);
+  }
+  .insight-toggle { margin-left: auto; }
+}
+/* 모바일(640px 이하)에서 헤드라인 더 작게 */
+@media (max-width: 640px) {
+  .insight-headline { font-size: 15px !important; line-height: 1.4; }
+  .insight-icon { font-size: 16px; }
+  .insight-label { font-size: 10px; padding: 2px 7px; }
+  .insight-time { font-size: 11px; }
+}
 .insight-icon { font-size: 20px; line-height: 1; }
 .insight-label {
   font-size: 11px;
