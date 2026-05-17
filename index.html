@@ -892,6 +892,10 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
   .news-ticker { display: none !important; }
   .news-list-mobile.has-news { display: block; }
 
+  /* 임베드 모드 예외 (5/17): 본문에 정적 뉴스 있으므로 마퀴만 노출 (모바일 카드는 중복) */
+  body.embed-mode .news-ticker { display: block !important; }
+  body.embed-mode .news-list-mobile { display: none !important; }
+
   /* 모바일 카드 컴팩트 (지수 + 매크로 + 원자재 등 모든 카드 적용) */
   .card { padding: 10px 12px; }
   .card-label { font-size: 10px; margin-bottom: 4px; }
