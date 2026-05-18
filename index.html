@@ -694,6 +694,22 @@ body.light .table-wrap { background: #fff; }
   margin-top: var(--s-5);
   padding-top: var(--s-5);
   border-top: 1px solid var(--border);
+  /* B25 (5/18) — 부드러운 펼침/접힘 (토스 패턴) */
+  overflow: hidden;
+  max-height: 4000px;
+  opacity: 1;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              padding-top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-top-color 0.35s ease;
+}
+.insight-body.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  padding-top: 0;
+  border-top-color: transparent;
 }
 .insight-subsection { margin-bottom: var(--s-5); }
 .insight-subsection:last-child { margin-bottom: 0; }
@@ -1093,7 +1109,7 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           <span class="insight-time" id="insight-time"></span>
           <span class="insight-toggle" id="insight-toggle">▼</span>
         </div>
-        <div class="insight-body" id="insight-body" style="display:none" onclick="event.stopPropagation()">
+        <div class="insight-body is-collapsed" id="insight-body" onclick="event.stopPropagation()">
           <div class="insight-subsection">
             <div class="insight-subtitle">시장 요약</div>
             <p class="insight-text" id="insight-summary"></p>
@@ -3738,11 +3754,36 @@ function _renderDetailChart(key, cfg, points) {
 
   // Live data 있으면 "현재" 값 override (실시간 가격)
   // RAW_DATA_COL_MAP을 통해 key(예: 'kospi') → 컬럼명(예: 'KOSPI') 매핑
-  // MDD 카드(mdd_sp500 등)는 pct 기반이라 Live 적용 X
   if (!cfg.pct && cache['Live']) {
     const liveCol = RAW_DATA_COL_MAP[key];
     if (liveCol && cache['Live'][liveCol] !== undefined && cache['Live'][liveCol] !== null) {
       cur = cache['Live'][liveCol];
+    }
+  }
+
+  // MDD 카드 — "현재" 박스를 카드와 일치시키기 (5/18 fix)
+  //   기존: MDD Chart 시트 마지막 행 값 (월 1회 갱신 → stale)
+  //   수정: Raw Data 일별 max 기반으로 재계산 (B32 카드 로직과 일치)
+  if (cfg.pct && key.indexOf('mdd_') === 0 && cache['Raw Data']) {
+    const colMap = { 'mdd_sp500': 'S&P500', 'mdd_nasdaq': 'NASDAQ', 'mdd_kospi': 'KOSPI', 'mdd_kosdaq': 'KOSDAQ' };
+    const col = colMap[key];
+    if (col) {
+      const rawRows = toRows(cache['Raw Data']);
+      let maxFromRaw = 0;
+      let lastClose = null;
+      for (let i = 0; i < rawRows.length; i++) {
+        const v = parseFloat(rawRows[i][col]);
+        if (!isNaN(v) && v > 0) {
+          if (v > maxFromRaw) maxFromRaw = v;
+          lastClose = v; // 시간순 정렬 가정 — 마지막이 최신
+        }
+      }
+      const liveVal = (cache['Live'] && cache['Live'][col] != null) ? parseFloat(cache['Live'][col]) : null;
+      const currentVal = (liveVal != null && !isNaN(liveVal)) ? liveVal : lastClose;
+      if (currentVal && maxFromRaw) {
+        const effectiveMax = Math.max(maxFromRaw, currentVal);
+        cur = (currentVal - effectiveMax) / effectiveMax * 100;
+      }
     }
   }
 
@@ -4212,12 +4253,16 @@ function toggleInsight() {
   const box = document.getElementById('insight-box');
   const body = document.getElementById('insight-body');
   const toggle = document.getElementById('insight-toggle');
-  if (body.style.display === 'none') {
-    body.style.display = 'block';
+  // B25 (5/18) — class 기반 토글로 변경 (max-height/opacity transition 작동)
+  // 기존 style="display:none" 잔존 시 제거 (호환성)
+  if (body.style.display === 'none') body.style.display = '';
+  const isCollapsed = body.classList.contains('is-collapsed');
+  if (isCollapsed) {
+    body.classList.remove('is-collapsed');
     toggle.classList.add('expanded');
     box.classList.remove('collapsed');
   } else {
-    body.style.display = 'none';
+    body.classList.add('is-collapsed');
     toggle.classList.remove('expanded');
     box.classList.add('collapsed');
   }
