@@ -2210,11 +2210,23 @@ function mkCard(label, value, chg, pct, key, dec=2, infoKey='', dateStr='') {
   </div>`;
 }
 
-function mkMdd(label, mdd, key, dateStr='', isAth=false) {
+function mkMdd(label, mdd, key, dateStr='', isAth=false, isStale=false) {
   const info = infoBtn('mdd');
   // MDD는 시점 의미가 다른 카드들과 다름 — "30년 누적 max 기준 + Live 현재가" 명시
   const dateHtml = `<div class="card-date">📅 30년 누적 기준 (1996~현재)</div>`;
   if (mdd==null) return `<div class="card no-drill"><div class="card-label">MDD · ${label}${info}</div><div class="mdd-value" style="color:var(--text3)">–</div></div>`;
+
+  // Stale 시 — ATH 라벨 잘못 표시 차단 (5/18 B28-3 추가)
+  // Live 데이터가 5분 이상 stale이면 신고가 판정 신뢰 불가 → "갱신 중" 표시
+  if (isStale) {
+    return `<div class="card no-drill" style="opacity:0.55">
+      <div class="card-label">MDD · ${label}${info}</div>
+      <div class="mdd-value" style="color:var(--text3);font-size:16px">갱신 중…</div>
+      <div class="mdd-track"><div class="mdd-fill" style="width:30%;background:var(--text3)"></div></div>
+      <div class="mdd-status" style="color:var(--text3)">실시간 데이터 대기</div>
+      ${dateHtml}
+    </div>`;
+  }
 
   // 신고가 갱신 시 — 안전 색 + "역대 최고치 갱신" 라벨
   if (isAth) {
@@ -2329,11 +2341,14 @@ function renderMdd(rows) {
   const kospi  = computeMdd('KOSPI');
   const kosdaq = computeMdd('KOSDAQ');
 
+  // Stale 감지 (B28-3) — Live 데이터 5분 이상 stale이면 ATH 라벨 차단
+  const stale = (typeof _isDataStale === 'function') ? _isDataStale() : false;
+
   document.getElementById('mdd-cards').innerHTML =
-    mkMdd('S&P 500', sp500.mdd,  'mdd_sp500',  mddDate, sp500.isAth) +
-    mkMdd('NASDAQ',  nasdaq.mdd, 'mdd_nasdaq', mddDate, nasdaq.isAth) +
-    mkMdd('KOSPI',   kospi.mdd,  'mdd_kospi',  mddDate, kospi.isAth) +
-    mkMdd('KOSDAQ',  kosdaq.mdd, 'mdd_kosdaq', mddDate, kosdaq.isAth);
+    mkMdd('S&P 500', sp500.mdd,  'mdd_sp500',  mddDate, sp500.isAth, stale) +
+    mkMdd('NASDAQ',  nasdaq.mdd, 'mdd_nasdaq', mddDate, nasdaq.isAth, stale) +
+    mkMdd('KOSPI',   kospi.mdd,  'mdd_kospi',  mddDate, kospi.isAth, stale) +
+    mkMdd('KOSDAQ',  kosdaq.mdd, 'mdd_kosdaq', mddDate, kosdaq.isAth, stale);
 }
 
 // ── RENDER: SECTOR HEATMAP ─────────────────────────────
@@ -4135,12 +4150,13 @@ async function loadAll() {
     cache['MDD Chart'] = mddT;
     cache['Live'] = liveData;
 
+    // 데이터 신선도 timestamp 저장 (B28-3) — bundle.ts 우선, 없으면 현재 시각
+    _lastFreshTs = bundle.ts ? new Date(bundle.ts).getTime() : Date.now();
+
     // 4. 시장 카드 + MDD 즉시 렌더
     try {
       renderRaw(toRows(rawT), liveData);
-      const now = new Date();
-      document.getElementById('last-updated').textContent =
-        `업데이트: ${now.toLocaleDateString('ko-KR')} ${now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`;
+      _updateLastUpdatedLabel();
       initPopupDirection();
     } catch (e) {
       console.error('[renderRaw]', e);
@@ -4171,10 +4187,101 @@ async function loadAll() {
       try { loadNews(); }    catch (e) { console.error('[News]', e); }
     }).catch(e => { console.error('[Bundle heavy]', e); });
   }, 300);
+
+  // 6. 자동 갱신 polling 시작 (B28-1, 5/18 추가)
+  //    60초마다 bundle-light 재fetch → cache 갱신 → 카드 재렌더
+  //    페이지 hidden 시 중단, visible 복귀 시 즉시 1회 + 재개
+  setTimeout(_startPolling, 3000); // 초기 로딩 끝나고 3초 후 시작
+}
+
+// ── 자동 갱신 polling (B28-1, 5/18 추가) ───────────────────────
+// 60초마다 bundle-light 재fetch (Live + Raw + MDD + Sector)
+// 페이지 hidden일 때 중단 (배터리 절약), visible 복귀 시 즉시 1회 + 재개
+let _pollTimer = null;
+let _lastFreshTs = Date.now();
+const POLL_INTERVAL_MS = 60 * 1000;
+const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5분 이상 stale이면 경고
+
+function _refreshLight() {
+  fetchBundle('light').then(bundle => {
+    if (!bundle || (!bundle.raw && !bundle.mdd)) return;
+    _stashBundleToCache(bundle);
+    const rawT  = _arrToTable(bundle.raw);
+    const mddT  = _arrToTable(bundle.mdd);
+    cache['Raw Data'] = rawT;
+    cache['MDD Chart'] = mddT;
+    cache['Live'] = bundle.live || null;
+    _lastFreshTs = bundle.ts ? new Date(bundle.ts).getTime() : Date.now();
+    try {
+      renderRaw(toRows(rawT), bundle.live);
+      _updateLastUpdatedLabel();
+    } catch (e) { console.error('[poll renderRaw]', e); }
+    try { if (bundle.mdd) renderMdd(toRows(mddT)); } catch (e) { console.error('[poll renderMdd]', e); }
+  }).catch(e => console.error('[poll]', e));
+}
+
+function _updateLastUpdatedLabel() {
+  const upd = document.getElementById('last-updated');
+  if (!upd) return;
+  // 상대 시간 표시 ("방금 갱신" / "3분 전 갱신") + 자동 60초 안내
+  const elapsedMs = Date.now() - _lastFreshTs;
+  const min = Math.floor(elapsedMs / 60000);
+  let label;
+  if (elapsedMs < 0 || min === 0) label = '방금 갱신';
+  else if (min < 60) label = `${min}분 전 갱신`;
+  else label = `${Math.floor(min / 60)}시간 전 · 갱신 지연`;
+  // 5분 이상 stale이면 색상 경고
+  const stale = elapsedMs > STALE_THRESHOLD_MS;
+  const color = stale ? 'var(--red, #ef4444)' : '';
+  const dot = stale ? '⚠' : '📡';
+  upd.style.color = color;
+  upd.textContent = `${dot} ${label} · 자동 60초`;
+}
+
+// 신선도 표시 ticker — 30초마다 "X분 전" 갱신
+let _lastUpdatedTicker = null;
+function _startLastUpdatedTicker() {
+  if (_lastUpdatedTicker) return;
+  _lastUpdatedTicker = setInterval(_updateLastUpdatedLabel, 30 * 1000);
+}
+
+function _startPolling() {
+  if (_pollTimer) return;
+  _pollTimer = setInterval(_refreshLight, POLL_INTERVAL_MS);
+  _updateLastUpdatedLabel();
+  _startLastUpdatedTicker();
+}
+function _stopPolling() {
+  if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
+}
+
+// 페이지 visibility 변화 대응 — 백그라운드 탭에선 polling 중단
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    _stopPolling();
+  } else {
+    // 복귀 시 즉시 1회 + polling 재개
+    _refreshLight();
+    _startPolling();
+  }
+});
+
+// 현재 데이터가 stale 한지 (마지막 fresh fetch 후 시간 경과)
+function _isDataStale() {
+  return (Date.now() - _lastFreshTs) > STALE_THRESHOLD_MS;
 }
 
 function _renderAreaError(ids, msg) {
   const html = `<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--red);font-size:12px"><span style="font-size:18px;display:block;margin-bottom:4px">⚠️</span>${msg} — <button onclick="loadAll()" style="background:transparent;border:1px solid var(--red);color:var(--red);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:4px">↻ 다시 시도</button></div>`;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+}
+
+// 빈 상태 표시 (B28-4, 5/18 추가) — 데이터 0건일 때
+function _renderAreaEmpty(ids, msg) {
+  const html = `<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--text3);font-size:13px"><span style="font-size:20px;display:block;margin-bottom:6px;opacity:0.6">📊</span>${msg}</div>`;
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = html;
