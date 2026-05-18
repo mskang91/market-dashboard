@@ -1939,7 +1939,7 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           <span class="dash-tab-icon">🌐</span><span class="dash-tab-label">매크로</span>
         </button>
         <button class="dash-tab" data-tab="assets" role="tab" aria-selected="false" type="button">
-          <span class="dash-tab-icon">⛽</span><span class="dash-tab-label">자산</span>
+          <span class="dash-tab-icon">⛽</span><span class="dash-tab-label">원자재·ETF·코인</span>
         </button>
         <button class="dash-tab" data-tab="mdd" role="tab" aria-selected="false" type="button">
           <span class="dash-tab-icon">📉</span><span class="dash-tab-label">MDD</span>
@@ -2005,18 +2005,7 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         <div class="compare-note">💡 시작 시점을 100으로 환산 · 어느 지수가 더 빠르게 상승/하락했는지 한눈에 비교</div>
       </div>
 
-      <!-- 9-0. 섹터 회전 (B54, 5/18) — GICS 11개 ETF -->
-      <div class="section" data-tab-target="sector" style="--sc:#6366f1;--sc-glow:rgba(99,102,241,0.35)">
-        <div class="section-header">
-          <div class="section-bar"></div>
-          <span class="section-title">🔄 섹터 회전</span>
-          <span class="section-badge">GICS 11 · 1D · 1W · 1M 상대 성과</span>
-        </div>
-        <div class="cards g3" id="sector-rotation-cards" style="margin-bottom:16px"></div>
-        <div id="sector-rotation-matrix"></div>
-      </div>
-
-      <!-- 9. 섹터 히트맵 -->
+      <!-- 9. 섹터 히트맵 (5/18 순서 변경: 시각적 직관 우선 → 위) -->
       <div class="section" data-tab-target="sector" style="--sc:#fbbf24;--sc-glow:rgba(251,191,36,0.35)">
         <div class="section-header">
           <div class="section-bar"></div>
@@ -2026,6 +2015,17 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         <div id="sector-heatmap-content">
           <div class="hm-loading"><div class="spinner sm" style="display:inline-block;vertical-align:middle;margin-right:8px"></div>섹터 데이터 로딩 중...</div>
         </div>
+      </div>
+
+      <!-- 9-0. 섹터 회전 (B54, 5/18) — GICS 11개 ETF -->
+      <div class="section" data-tab-target="sector" style="--sc:#6366f1;--sc-glow:rgba(99,102,241,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🔄 섹터 회전</span>
+          <span class="section-badge">GICS 11 · 1D · 1W · 1M 상대 성과</span>
+        </div>
+        <div class="cards g3" id="sector-rotation-cards" style="margin-bottom:16px"></div>
+        <div id="sector-rotation-matrix"></div>
       </div>
 
     </div><!-- /tab-market -->
