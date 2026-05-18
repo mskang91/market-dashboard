@@ -1436,8 +1436,9 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           const miniLink = document.getElementById('market-mini-link');
 
           if (!m) {
-            if (el) el.textContent = '시장 데이터 없음';
-            if (miniText) miniText.textContent = '데이터 없음';
+            // B36 (5/18) — 빈 상태 친근 카피
+            if (el) el.textContent = '시장 분위기 데이터를 수집하고 있어요 · 매일 오전 6시 갱신';
+            if (miniText) miniText.textContent = '수집 중…';
             if (miniBadge) miniBadge.removeAttribute('data-loading');
             return;
           }
@@ -1473,7 +1474,15 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
 
         function renderTickerCards(trending, details) {
           const el = document.getElementById('reddit-cards');
-          if (!trending || trending.length === 0) { el.innerHTML = ''; return; }
+          // B36 (5/18) — 빈 상태 친근 카피
+          if (!trending || trending.length === 0) {
+            el.innerHTML = '<div style="grid-column:1/-1;opacity:0.6;font-size:13px;padding:28px 16px;text-align:center;line-height:1.7;">' +
+              '<div style="font-size:22px;margin-bottom:6px;opacity:0.7;">📊</div>' +
+              'Reddit 감성 데이터를 수집하고 있어요.<br>' +
+              '<span style="font-size:11.5px;opacity:0.7;">매일 오전 6시 자동 갱신 · 잠시 후 다시 확인해주세요</span>' +
+              '</div>';
+            return;
+          }
           el.innerHTML = trending.map(r => {
             const arrow = r.trend === 'rising' ? '▲' : (r.trend === 'falling' ? '▼' : '▬');
             const arrowCls = r.trend === 'rising' ? 'pos' : (r.trend === 'falling' ? 'neg' : 'neu');
@@ -1564,8 +1573,13 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         function renderWepollSlide() {
           const el = document.getElementById('wepoll-matched');
           if (!el) return;
+          // B36 (5/18) — 빈 상태 친근 카피
           if (wepollPool.length === 0) {
-            el.innerHTML = '<div style="opacity:0.5;font-size:12.5px;padding:8px 0;">위폴 데이터 없음</div>';
+            el.innerHTML = '<div style="opacity:0.6;font-size:13px;padding:20px 12px;text-align:center;line-height:1.7;">' +
+              '<div style="font-size:20px;margin-bottom:4px;opacity:0.7;">🇰🇷</div>' +
+              '한국 종목 핫게 수집 중이에요.<br>' +
+              '<span style="font-size:11.5px;opacity:0.7;">매일 오전 9시 자동 갱신 · 시장이 한산할 땐 비어 있을 수 있어요</span>' +
+              '</div>';
             return;
           }
           const idx = wepollIdx % wepollPool.length;
