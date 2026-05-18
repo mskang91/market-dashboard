@@ -14,6 +14,25 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ko.js"></script>
+<script>
+/* ━━━ 디버그 토글 (B37, 5/18) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   URL ?debug=1로 진입 시에만 dlog() 출력. 운영 환경 콘솔 노이즈 0.
+   사용: dlog('[prefix]', value);  ─ console.log 대신
+   임베드 모드 호환: ?embed=1&debug=1 형식 가능 */
+(function() {
+  try {
+    var p = new URLSearchParams(window.location.search);
+    window.__DEBUG__ = p.get('debug') === '1';
+  } catch (e) { window.__DEBUG__ = false; }
+  window.dlog = function() {
+    if (!window.__DEBUG__) return;
+    try { console.log.apply(console, arguments); } catch (e) {}
+  };
+  if (window.__DEBUG__) {
+    console.log('[debug] enabled — ?debug=1 mode. dlog() outputs visible.');
+  }
+})();
+</script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 /* ════════════════════════════════════════════════════════════
@@ -199,8 +218,52 @@ body.light .section-header { border-bottom-color: var(--border); }
   transform: translateY(-2px);
   z-index: 350;
 }
+/* 토스 마이크로인터랙션 (B35, 5/18) — 모든 클릭 가능 요소 press 시 살짝 눌림 */
+.card:active:not(.no-drill) { transform: scale(0.97); transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1); }
 .card.no-drill { cursor: default; }
 .card.no-drill:hover { transform: none; border-color: var(--border); box-shadow: none; background: var(--bg2); }
+
+/* 카드 진입 stagger fade-in (B33, 5/18) — 페이지 첫 로드 시 순차 노출 */
+@keyframes card-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.cards .card { animation: card-enter 0.35s cubic-bezier(0.4, 0, 0.2, 1) backwards; }
+.cards .card:nth-child(1) { animation-delay: 0ms; }
+.cards .card:nth-child(2) { animation-delay: 40ms; }
+.cards .card:nth-child(3) { animation-delay: 80ms; }
+.cards .card:nth-child(4) { animation-delay: 120ms; }
+.cards .card:nth-child(5) { animation-delay: 160ms; }
+.cards .card:nth-child(6) { animation-delay: 200ms; }
+.cards .card:nth-child(7) { animation-delay: 240ms; }
+.cards .card:nth-child(8) { animation-delay: 280ms; }
+.cards .card:nth-child(9) { animation-delay: 320ms; }
+
+/* 다크/라이트 모드 토글 부드러운 컬러 전환 (B33) */
+body, .card, .header, .section, .insight-box, .news-ticker, .dash-tab {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* card hover/active transition 분리하여 다크모드 전환과 충돌 방지 */
+.card { transition: transform var(--d-base) var(--ease), box-shadow var(--d-base) var(--ease), background-color 0.3s, border-color 0.3s; }
+
+/* 모든 버튼 active scale (B35) */
+button:active, .refresh-btn:active, .theme-btn:active, .privacy-btn:active, .dash-tab:active {
+  transform: scale(0.96);
+  transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 탭 hover/active 미세 효과 (B33+B35) */
+.dash-tab { transition: color 0.2s, background 0.2s, transform 0.08s; }
+.dash-tab:hover { background: rgba(255, 255, 255, 0.04); }
+body.light .dash-tab:hover { background: rgba(0, 0, 0, 0.04); }
+
+/* 탭 콘텐츠 전환 fade-in (B33) — [data-tab-target] 활성 시 */
+@keyframes tab-content-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+[data-tab-target]:not(.tab-hidden) { animation: tab-content-enter 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* mini 분위기 뱃지 hover 미세 확대 (B35) */
+.market-mini-badge { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s; }
+.market-mini-badge:hover { transform: translateY(-1px) scale(1.005); }
+.market-mini-badge:active { transform: scale(0.99); transition: transform 0.08s; }
 body.light .card { background: var(--bg2); }
 .card-label { font-size: 12px; color: #94a3b8; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.2px; display: flex; align-items: center; gap: 5px; }
 .card-value { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
@@ -1188,6 +1251,12 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         }
 
         /* ── 상세 모달 ─────────────────────────────────────────── */
+        /* 토스 모달 패턴 (B29, 5/18) — slide-up + fade-in + 모바일 풀스크린 + scroll lock */
+        @keyframes modal-fadein { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modal-fadeout { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes modal-slideup { from { transform: translateY(24px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        @keyframes modal-slidedown { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(24px) scale(0.98); opacity: 0; } }
+        body.modal-open { overflow: hidden; }
         #ticker-modal {
           position: fixed; inset: 0;
           z-index: 9999;
@@ -1196,8 +1265,13 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         #ticker-modal .modal-bg {
           position: absolute; inset: 0;
           background: rgba(0, 0, 0, 0.65);
-          backdrop-filter: blur(4px);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
           cursor: pointer;
+          animation: modal-fadein 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #ticker-modal.closing .modal-bg {
+          animation: modal-fadeout 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
         #ticker-modal .modal-content {
           position: relative;
@@ -1211,6 +1285,24 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           padding: 24px 28px 28px;
           border: 1px solid rgba(255, 255, 255, 0.12);
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+          animation: modal-slideup 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          will-change: transform, opacity;
+        }
+        #ticker-modal.closing .modal-content {
+          animation: modal-slidedown 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        /* 모바일 풀스크린 변환 — 토스 앱 패턴 */
+        @media (max-width: 640px) {
+          #ticker-modal .modal-content {
+            width: 100vw;
+            max-width: 100vw;
+            max-height: 100vh;
+            height: 100vh;
+            border-radius: 16px 16px 0 0;
+            padding: 20px 18px 24px;
+            animation: modal-slideup 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          #ticker-modal { align-items: flex-end; }
         }
         body.light #ticker-modal .modal-content { background: rgba(255, 255, 255, 0.98); color: #1a202c; border-color: rgba(0, 0, 0, 0.1); }
         #ticker-modal .modal-header {
@@ -1577,6 +1669,12 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           modal.querySelector('.close').addEventListener('click', closeTickerModal);
           document.addEventListener('keydown', escCloseHandler);
           document.body.appendChild(modal);
+          // 토스 패턴 (B29) — scroll lock + 자동 focus
+          document.body.classList.add('modal-open');
+          setTimeout(() => {
+            const closeBtn = modal.querySelector('.close');
+            if (closeBtn) closeBtn.focus();
+          }, 50);
 
           // 자동 롤링 정지 (모달 보는 동안)
           stopRolling();
@@ -1584,7 +1682,14 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
 
         function closeTickerModal() {
           const m = document.getElementById('ticker-modal');
-          if (m) m.remove();
+          if (!m) return;
+          // 토스 패턴 (B29) — 닫는 애니메이션 후 제거 (200ms slide-down + fade-out)
+          if (m.classList.contains('closing')) return; // 중복 방지
+          m.classList.add('closing');
+          setTimeout(() => {
+            if (m.parentNode) m.parentNode.removeChild(m);
+            document.body.classList.remove('modal-open');
+          }, 220);
           document.removeEventListener('keydown', escCloseHandler);
           // 롤링 재개
           if (slidePool.length > 1) startRolling();
@@ -1605,15 +1710,15 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
 
           try {
             const res = await fetchBundleHeavy();
-            // ⚙ 디버그 로그 (운영 안정화 후 제거)
-            console.log('[market-pulse] response:', res);
-            console.log('[market-pulse] data keys:', res && res.data ? Object.keys(res.data) : 'no data');
+            // 디버그 로그 (B37 — ?debug=1 모드만 출력)
+            dlog('[market-pulse] response:', res);
+            dlog('[market-pulse] data keys:', res && res.data ? Object.keys(res.data) : 'no data');
             const data = (res && res.data) || {};
-            console.log('[market-pulse] sentiment:', data.sentiment);
-            console.log('[market-pulse] wepoll:', data.wepoll);
-            console.log('[market-pulse] sentiment.trending count:', (data.sentiment && data.sentiment.trending) ? data.sentiment.trending.length : 'undefined');
-            console.log('[market-pulse] sentiment.details keys:', (data.sentiment && data.sentiment.details) ? Object.keys(data.sentiment.details) : 'undefined');
-            console.log('[market-pulse] wepoll.by_ticker keys:', (data.wepoll && data.wepoll.by_ticker) ? Object.keys(data.wepoll.by_ticker) : 'undefined');
+            dlog('[market-pulse] sentiment:', data.sentiment);
+            dlog('[market-pulse] wepoll:', data.wepoll);
+            dlog('[market-pulse] sentiment.trending count:', (data.sentiment && data.sentiment.trending) ? data.sentiment.trending.length : 'undefined');
+            dlog('[market-pulse] sentiment.details keys:', (data.sentiment && data.sentiment.details) ? Object.keys(data.sentiment.details) : 'undefined');
+            dlog('[market-pulse] wepoll.by_ticker keys:', (data.wepoll && data.wepoll.by_ticker) ? Object.keys(data.wepoll.by_ticker) : 'undefined');
             const sentiment = data.sentiment || { trending: [], details: {}, market: null };
             const wepoll = data.wepoll || { by_ticker: {}, general: [] };
 
@@ -2321,11 +2426,14 @@ function renderMdd(rows) {
   const mddDate = fmtDateShort(findDate(rows));
   const live = cache['Live'] || {};
 
-  // Raw Data 전체에서 indexCol 최대값 계산 (B32 정공법, 5/18)
-  //   기존: MDD Chart RollingMax (월 1회 갱신) → 월 중 ATH 갱신 누락
-  //   변경: Raw Data 일별 종가 전체 스캔 → 매일 최신 ATH 자동 반영
+  // Raw Data 전체에서 indexCol 최대값 계산 (B32 정공법 + B38 fallback, 5/18)
+  //   B32: Raw Data 일별 종가 전체 스캔 → 매일 최신 ATH 자동 반영
+  //   B38: Raw Data 부족 시 MDD Chart RollingMax도 보조 후보로 포함 (이중 안전판)
   //   bundle-light가 이미 Raw Data 전체를 보내므로 추가 네트워크 비용 0
   const rawRows = (typeof cache !== 'undefined' && cache['Raw Data']) ? toRows(cache['Raw Data']) : [];
+  if (typeof dlog === 'function') {
+    dlog('[mdd] rawRows.length:', rawRows.length, '(>= 250 권장 = 약 1년 거래일)');
+  }
   function computeMdd(indexCol) {
     // Raw Data 전체에서 indexCol 일별 종가 최대값
     let maxFromRaw = 0;
@@ -2335,15 +2443,27 @@ function renderMdd(rows) {
     }
     const liveVal = live[indexCol];
     const sheetClose = parseFloat(last[indexCol + ' 종가']);
+    const rollingMaxBackup = parseFloat(last[indexCol + ' RollingMax']);
     const currentVal = (liveVal != null && !isNaN(parseFloat(liveVal))) ? parseFloat(liveVal) : sheetClose;
-    if (!currentVal || isNaN(currentVal) || !maxFromRaw) {
+    if (!currentVal || isNaN(currentVal)) {
       return { mdd: null, isAth: false };
     }
-    // effectiveMax: Raw Data 일별 max + Live 현재가 중 max
-    //   Live가 일중 신고가 갱신 시 즉시 반영 (시트 저장 전이라도)
-    const effectiveMax = Math.max(maxFromRaw, currentVal);
+    // effectiveMax 후보 — 양쪽 데이터 다 활용 (B38)
+    //   - maxFromRaw (Raw Data 일별 max, 30년)
+    //   - rollingMaxBackup (MDD Chart 시트 월별, Raw 부족 시 보조)
+    //   - sheetClose (직전일 종가)
+    //   - currentVal (Live 일중 가격, ATH 갱신 즉시 반영)
+    const candidates = [currentVal];
+    if (maxFromRaw > 0) candidates.push(maxFromRaw);
+    if (!isNaN(rollingMaxBackup) && rollingMaxBackup > 0) candidates.push(rollingMaxBackup);
+    if (!isNaN(sheetClose) && sheetClose > 0) candidates.push(sheetClose);
+    const effectiveMax = Math.max.apply(null, candidates);
+    if (effectiveMax === 0) return { mdd: null, isAth: false };
     const mdd = (currentVal - effectiveMax) / effectiveMax * 100;
-    const isAth = currentVal >= maxFromRaw;
+    const isAth = currentVal >= effectiveMax;
+    if (typeof dlog === 'function') {
+      dlog('[mdd]', indexCol, { maxFromRaw, rollingMaxBackup, sheetClose, currentVal, effectiveMax, mdd: mdd.toFixed(2), isAth });
+    }
     return { mdd, isAth };
   }
 
