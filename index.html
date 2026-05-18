@@ -2624,6 +2624,41 @@ const DETAIL = {
   dxy:        { title:'DXY',             sub:'달러 인덱스 · 20년 추이',            sheet:'Macro History', dateCol:'날짜', valCol:'DXY',            color:'#a3e635' },
   feargreed:  { title:'Fear & Greed',    sub:'CNN 공포탐욕 지수 · 20년 추이',     sheet:'Macro History', dateCol:'날짜', valCol:'Fear&Greed',     color:'#fb923c' },
   wti:        { title:'WTI 유가',         sub:'WTI 원유 선물 · 20년 추이',         sheet:'Macro History', dateCol:'날짜', valCol:'WTI(USD)',       color:'#fbbf24' },
+
+  // ── B73 (5/18) — 단기 추적 카드들 (Raw Data 35일~누적 중) ──
+  // 모든 카드 클릭 시 차트 표시. Raw Data 기반이라 매일 1행씩 누적 → 시간 지나면 풍부해짐.
+  // 원자재 (Raw Data)
+  gas:        { title:'천연가스',          sub:'천연가스 선물 · 데이터 누적 중',      sheet:'Raw Data', dateCol:'날짜', valCol:'천연가스',        color:'#fbbf24' },
+  copper:     { title:'구리',              sub:'구리 선물 · 데이터 누적 중',          sheet:'Raw Data', dateCol:'날짜', valCol:'구리',            color:'#f97316' },
+  gold:       { title:'금 (GC)',           sub:'금 선물 · 데이터 누적 중',            sheet:'Raw Data', dateCol:'날짜', valCol:'금(GC)',          color:'#facc15' },
+  silver:     { title:'은 (USD/oz)',       sub:'은 선물 · 데이터 누적 중',            sheet:'Raw Data', dateCol:'날짜', valCol:'은(USD/oz)',      color:'#94a3b8' },
+  // 테마 ETF (Raw Data)
+  smh:        { title:'SMH (반도체 ETF)',  sub:'반도체 섹터 ETF · 데이터 누적 중',    sheet:'Raw Data', dateCol:'날짜', valCol:'SMH',             color:'#22d3ee' },
+  lit:        { title:'LIT (전지 ETF)',     sub:'리튬 / 배터리 ETF · 데이터 누적 중',  sheet:'Raw Data', dateCol:'날짜', valCol:'LIT',             color:'#a78bfa' },
+  remx:       { title:'REMX (희토류 ETF)',  sub:'희토류 ETF · 데이터 누적 중',         sheet:'Raw Data', dateCol:'날짜', valCol:'희토류(REMX)',    color:'#fb923c' },
+  // 인기 미국 ETF (Raw Data, B43)
+  qqq:        { title:'QQQ (나스닥100)',    sub:'Invesco QQQ · 데이터 누적 중',        sheet:'Raw Data', dateCol:'날짜', valCol:'QQQ',             color:'#a78bfa' },
+  voo:        { title:'VOO (S&P 500)',      sub:'Vanguard S&P 500 · 데이터 누적 중',   sheet:'Raw Data', dateCol:'날짜', valCol:'VOO',             color:'#60a5fa' },
+  spy:        { title:'SPY (S&P 500)',      sub:'SPDR S&P 500 · 데이터 누적 중',       sheet:'Raw Data', dateCol:'날짜', valCol:'SPY',             color:'#34d399' },
+  // 코인 (Raw Data)
+  btc:        { title:'BTC (USD)',          sub:'비트코인 · 데이터 누적 중',           sheet:'Raw Data', dateCol:'날짜', valCol:'BTC(USD)',        color:'#f59e0b' },
+  eth:        { title:'ETH (USD)',          sub:'이더리움 · 데이터 누적 중',           sheet:'Raw Data', dateCol:'날짜', valCol:'ETH(USD)',        color:'#818cf8' },
+  // FRED 매크로 (Raw Data, B44) — 월별 발표라 차트 거의 평평
+  pce_core:   { title:'Core PCE',           sub:'근원 PCE 인플레이션 · 월별 발표',     sheet:'Raw Data', dateCol:'날짜', valCol:'Core PCE',        color:'#f43f5e' },
+  unemp:      { title:'미국 실업률',         sub:'BLS UNRATE · 월별 발표',              sheet:'Raw Data', dateCol:'날짜', valCol:'실업률(%)',       color:'#ef4444', pct:true },
+  bok_rate:   { title:'BoK 기준금리',       sub:'한국은행 기준금리 · 변경 시에만',     sheet:'Raw Data', dateCol:'날짜', valCol:'BoK 기준금리',    color:'#22c55e', pct:true },
+  // 섹터 ETF (Raw Data, B54) — GICS 11개
+  xlk:        { title:'XLK · 기술',         sub:'Technology Select Sector SPDR',       sheet:'Raw Data', dateCol:'날짜', valCol:'XLK 기술',          color:'#22d3ee' },
+  xlf:        { title:'XLF · 금융',         sub:'Financial Select Sector SPDR',        sheet:'Raw Data', dateCol:'날짜', valCol:'XLF 금융',          color:'#10b981' },
+  xlv:        { title:'XLV · 헬스',         sub:'Health Care Select Sector SPDR',      sheet:'Raw Data', dateCol:'날짜', valCol:'XLV 헬스',          color:'#f472b6' },
+  xly:        { title:'XLY · 경기소비',     sub:'Consumer Discretionary SPDR',         sheet:'Raw Data', dateCol:'날짜', valCol:'XLY 경기소비재',    color:'#fb923c' },
+  xlp:        { title:'XLP · 필수소비',     sub:'Consumer Staples SPDR',               sheet:'Raw Data', dateCol:'날짜', valCol:'XLP 필수소비재',    color:'#a3e635' },
+  xle:        { title:'XLE · 에너지',       sub:'Energy Select Sector SPDR',           sheet:'Raw Data', dateCol:'날짜', valCol:'XLE 에너지',        color:'#facc15' },
+  xli:        { title:'XLI · 산업재',       sub:'Industrial Select Sector SPDR',       sheet:'Raw Data', dateCol:'날짜', valCol:'XLI 산업재',        color:'#94a3b8' },
+  xlb:        { title:'XLB · 소재',         sub:'Materials Select Sector SPDR',        sheet:'Raw Data', dateCol:'날짜', valCol:'XLB 소재',          color:'#fb7185' },
+  xlu:        { title:'XLU · 유틸리티',     sub:'Utilities Select Sector SPDR',        sheet:'Raw Data', dateCol:'날짜', valCol:'XLU 유틸리티',      color:'#60a5fa' },
+  xlre:       { title:'XLRE · 부동산',      sub:'Real Estate Select Sector SPDR',      sheet:'Raw Data', dateCol:'날짜', valCol:'XLRE 부동산',       color:'#f59e0b' },
+  xlc:        { title:'XLC · 통신',         sub:'Communication Services SPDR',         sheet:'Raw Data', dateCol:'날짜', valCol:'XLC 커뮤니케이션',  color:'#a78bfa' },
 };
 
 const KEY_NAMES = { gas:'천연가스', copper:'구리', gold:'금', silver:'은', smh:'SMH (반도체 ETF)', lit:'LIT (전지 ETF)', remx:'REMX (희토류 ETF)', btc:'BTC (비트코인)', eth:'ETH (이더리움)' };
@@ -2799,10 +2834,10 @@ function renderRaw(rows, liveData) {
     c('CNN Fear&Greed', 'Fear&Greed',  'feargreed', 0, 'feargreed') +
     c('한국 Fear&Greed', 'KR Fear&Greed', '', 0, 'feargreed') +
     c('Crypto Fear&Greed', 'Crypto F&G', '', 0, '') +
-    // B44 (5/18) — FRED 매크로 지표 3종
-    c('Core PCE',        'Core PCE',      '', 2) +
-    c('미국 실업률 (%)', '실업률(%)',     '', 1) +
-    c('BoK 기준금리',    'BoK 기준금리',  '', 2);
+    // B44 (5/18) — FRED 매크로 지표 3종 (B73: 상세보기 key 활성화)
+    c('Core PCE',        'Core PCE',      'pce_core', 2) +
+    c('미국 실업률 (%)', '실업률(%)',     'unemp',    1) +
+    c('BoK 기준금리',    'BoK 기준금리',  'bok_rate', 2);
 
   document.getElementById('commodity-cards').innerHTML =
     c('WTI 유가',   'WTI유가',    'wti',    2) + c('천연가스', '천연가스',   'gas',    3) +
@@ -4296,6 +4331,12 @@ const RAW_DATA_COL_MAP = {
   // B54 (5/18) — GICS 11개 섹터 ETF
   xlk:'XLK 기술', xlf:'XLF 금융', xlv:'XLV 헬스', xly:'XLY 경기소비재', xlp:'XLP 필수소비재',
   xle:'XLE 에너지', xli:'XLI 산업재', xlb:'XLB 소재', xlu:'XLU 유틸리티', xlre:'XLRE 부동산', xlc:'XLC 커뮤니케이션',
+  // B73 (5/18) — 모든 카드 상세보기 활성화용 매핑 추가
+  gas:'천연가스', copper:'구리', gold:'금(GC)', silver:'은(USD/oz)',
+  smh:'SMH', lit:'LIT', remx:'희토류(REMX)',
+  qqq:'QQQ', voo:'VOO', spy:'SPY',
+  btc:'BTC(USD)', eth:'ETH(USD)',
+  pce_core:'Core PCE', unemp:'실업률(%)', bok_rate:'BoK 기준금리',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
