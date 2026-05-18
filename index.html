@@ -1924,8 +1924,8 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
           <span class="section-badge">같은 기간 시작점 100 기준 상대 강도</span>
         </div>
         <div class="compare-controls">
-          <button class="period-tab active" data-cmp-period="3m" type="button">3M</button>
-          <button class="period-tab" data-cmp-period="6m" type="button">6M</button>
+          <button class="period-tab active" data-cmp-period="1m" type="button">1M</button>
+          <button class="period-tab" data-cmp-period="3m" type="button">3M</button>
           <button class="period-tab" data-cmp-period="1y" type="button">1Y</button>
           <button class="period-tab" data-cmp-period="3y" type="button">3Y</button>
           <button class="period-tab" data-cmp-period="5y" type="button">5Y</button>
@@ -2636,56 +2636,85 @@ function renderMdd(rows) {
     mkMdd('KOSPI',   kospi.mdd,  'mdd_kospi',  mddDate, kospi.isAth, stale) +
     mkMdd('KOSDAQ',  kosdaq.mdd, 'mdd_kosdaq', mddDate, kosdaq.isAth, stale);
 
-  // B53 (5/18) — 4개 지수 정규화 비교 차트도 함께 렌더
-  try { renderCompareChart('3m'); } catch (e) { console.error('[compare]', e); }
+  // B53 (5/18) — 4개 지수 정규화 비교 차트도 함께 렌더 (1M 기본)
+  try { renderCompareChart('1m'); } catch (e) { console.error('[compare]', e); }
 }
 
 // B53 (5/18) — 4개 지수 정규화 비교 차트
+//   단기 (1M/3M) → Raw Data 일별
+//   장기 (1Y/3Y/5Y/전체) → MDD Chart 월별 (30년 보관)
 //   같은 기간 시작점을 100으로 환산 → 상대 강도 시각화
-//   Raw Data 일별 종가 활용 (bundle-light에 이미 포함, 추가 비용 0)
 let _compareChart = null;
-let _compareCurrentPeriod = '3m';
+let _compareCurrentPeriod = '1m';
 
 const COMPARE_INDICES = [
-  { col: 'S&P500', label: 'S&P 500', color: '#3b82f6' },
-  { col: 'NASDAQ', label: 'NASDAQ',  color: '#8b5cf6' },
-  { col: 'KOSPI',  label: 'KOSPI',   color: '#22c55e' },
-  { col: 'KOSDAQ', label: 'KOSDAQ',  color: '#f59e0b' },
+  { col: 'S&P500', mddCol: 'S&P500 종가', label: 'S&P 500', color: '#3b82f6' },
+  { col: 'NASDAQ', mddCol: 'NASDAQ 종가', label: 'NASDAQ',  color: '#8b5cf6' },
+  { col: 'KOSPI',  mddCol: 'KOSPI 종가',  label: 'KOSPI',   color: '#22c55e' },
+  { col: 'KOSDAQ', mddCol: 'KOSDAQ 종가', label: 'KOSDAQ',  color: '#f59e0b' },
 ];
 
+// 기간별 cutoff days. null = 전체
 const COMPARE_PERIOD_DAYS = {
-  '3m':  90, '6m':  180, '1y':  365,
-  '3y':  365 * 3, '5y':  365 * 5, 'all': null
+  '1m': 30, '3m': 90,
+  '1y': 365, '3y': 365 * 3, '5y': 365 * 5, 'all': null
 };
+// 단기 (Raw Data 일별 사용) vs 장기 (MDD Chart 월별 사용)
+const COMPARE_LONG_TERM = new Set(['1y', '3y', '5y', 'all']);
 
-function renderCompareChart(period) {
-  period = period || _compareCurrentPeriod || '3m';
+async function renderCompareChart(period) {
+  period = period || _compareCurrentPeriod || '1m';
   _compareCurrentPeriod = period;
+  const longTerm = COMPARE_LONG_TERM.has(period);
 
   // 활성 버튼 갱신
   document.querySelectorAll('[data-cmp-period]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.cmpPeriod === period);
   });
 
-  const rawRows = (typeof cache !== 'undefined' && cache['Raw Data']) ? toRows(cache['Raw Data']) : [];
-  if (!rawRows.length) {
-    document.getElementById('compare-legend').innerHTML = '<span style="opacity:0.6;font-size:12px;">데이터 로딩 중…</span>';
+  let rows, colKey;
+  const legendEl = document.getElementById('compare-legend');
+
+  if (longTerm) {
+    // 장기 — MDD Chart 전체 (30년 월별) 사용 (cache 또는 fetch)
+    if (legendEl) legendEl.innerHTML = '<span style="opacity:0.6;font-size:12px;">📊 월별 데이터 로딩 중…</span>';
+    try {
+      let table = cache['MDD Chart_full'];
+      if (!table) {
+        table = await fetchSheet('MDD Chart');
+        cache['MDD Chart_full'] = table;
+      }
+      rows = toRows(table);
+      colKey = 'mddCol';
+    } catch (e) {
+      console.error('[compare] MDD Chart fetch 실패', e);
+      if (legendEl) legendEl.innerHTML = '<span style="opacity:0.6;font-size:12px;color:var(--red);">월별 데이터 로드 실패</span>';
+      return;
+    }
+  } else {
+    // 단기 — Raw Data 일별
+    rows = (typeof cache !== 'undefined' && cache['Raw Data']) ? toRows(cache['Raw Data']) : [];
+    colKey = 'col';
+  }
+
+  if (!rows.length) {
+    if (legendEl) legendEl.innerHTML = '<span style="opacity:0.6;font-size:12px;">데이터 로딩 중…</span>';
     return;
   }
 
   // 기간 필터링
   const days = COMPARE_PERIOD_DAYS[period];
-  let filtered = rawRows;
+  let filtered = rows;
   if (days) {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    filtered = rawRows.filter(r => {
+    filtered = rows.filter(r => {
       const d = new Date(r['날짜'] || r['date'] || '');
       return !isNaN(d.getTime()) && d >= cutoff;
     });
   }
   if (filtered.length < 2) {
-    document.getElementById('compare-legend').innerHTML = '<span style="opacity:0.6;font-size:12px;">해당 기간 데이터 부족</span>';
+    if (legendEl) legendEl.innerHTML = '<span style="opacity:0.6;font-size:12px;">해당 기간 데이터 부족 (' + filtered.length + '개 행)</span>';
     return;
   }
 
@@ -2695,8 +2724,9 @@ function renderCompareChart(period) {
   COMPARE_INDICES.forEach(idx => {
     const series = [];
     let base = null;
+    const col = idx[colKey];
     filtered.forEach(r => {
-      const v = parseFloat(r[idx.col]);
+      const v = parseFloat(r[col]);
       if (!isNaN(v) && v > 0) {
         if (base === null) base = v;
         series.push({ x: r['날짜'] || r['date'], y: (v / base) * 100 });
@@ -2716,7 +2746,6 @@ function renderCompareChart(period) {
       tension: 0.15,
       spanGaps: true
     });
-    // 레전드 — 최종 % 표시
     const last = series.filter(s => s.y !== null).pop();
     const pct = last ? (last.y - 100).toFixed(2) : '0.00';
     const sign = parseFloat(pct) >= 0 ? '+' : '';
@@ -2728,8 +2757,11 @@ function renderCompareChart(period) {
     );
   });
 
-  // 레전드 렌더
-  document.getElementById('compare-legend').innerHTML = legendItems.join('');
+  // 데이터 소스 안내 (장기 = 월별)
+  const sourceNote = longTerm
+    ? '<span style="opacity:0.55;font-size:11px;margin-left:auto;">📅 월별 · ' + filtered.length + '개</span>'
+    : '<span style="opacity:0.55;font-size:11px;margin-left:auto;">📅 일별 · ' + filtered.length + '개</span>';
+  if (legendEl) legendEl.innerHTML = legendItems.join('') + sourceNote;
 
   // 차트 그리기
   const ctx = document.getElementById('compare-chart');
