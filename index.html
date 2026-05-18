@@ -2646,7 +2646,8 @@ const DETAIL = {
   // FRED 매크로 (Raw Data, B44) — 월별 발표라 차트 거의 평평
   pce_core:   { title:'Core PCE',           sub:'근원 PCE 인플레이션 · 월별 발표',     sheet:'Raw Data', dateCol:'날짜', valCol:'Core PCE',        color:'#f43f5e' },
   unemp:      { title:'미국 실업률',         sub:'BLS UNRATE · 월별 발표',              sheet:'Raw Data', dateCol:'날짜', valCol:'실업률(%)',       color:'#ef4444', pct:true },
-  bok_rate:   { title:'BoK 기준금리',       sub:'한국은행 기준금리 · 변경 시에만',     sheet:'Raw Data', dateCol:'날짜', valCol:'BoK 기준금리',    color:'#22c55e', pct:true },
+  fed_rate:   { title:'미국 기준금리',       sub:'Fed Funds Rate · 월별 발표',          sheet:'Raw Data', dateCol:'날짜', valCol:'미국 기준금리',    color:'#3b82f6', pct:true },
+  bok_rate:   { title:'BoK 기준금리',       sub:'한국은행 정책금리 · 월별 발표',       sheet:'Raw Data', dateCol:'날짜', valCol:'BoK 기준금리',    color:'#22c55e', pct:true },
   // 섹터 ETF (Raw Data, B54) — GICS 11개
   xlk:        { title:'XLK · 기술',         sub:'Technology Select Sector SPDR',       sheet:'Raw Data', dateCol:'날짜', valCol:'XLK 기술',          color:'#22d3ee' },
   xlf:        { title:'XLF · 금융',         sub:'Financial Select Sector SPDR',        sheet:'Raw Data', dateCol:'날짜', valCol:'XLF 금융',          color:'#10b981' },
@@ -2834,10 +2835,11 @@ function renderRaw(rows, liveData) {
     c('CNN Fear&Greed', 'Fear&Greed',  'feargreed', 0, 'feargreed') +
     c('한국 Fear&Greed', 'KR Fear&Greed', '', 0, 'feargreed') +
     c('Crypto Fear&Greed', 'Crypto F&G', '', 0, '') +
-    // B44 (5/18) — FRED 매크로 지표 3종 (B73: 상세보기 key 활성화)
-    c('Core PCE',        'Core PCE',      'pce_core', 2) +
-    c('미국 실업률 (%)', '실업률(%)',     'unemp',    1) +
-    c('BoK 기준금리',    'BoK 기준금리',  'bok_rate', 2);
+    // B44 (5/18) — FRED 매크로 지표 (B73: 상세보기 key 활성화 + 5/18 저녁 미국 기준금리 추가)
+    c('Core PCE',        'Core PCE',       'pce_core', 2) +
+    c('미국 실업률 (%)', '실업률(%)',      'unemp',    1) +
+    c('미국 기준금리',   '미국 기준금리',  'fed_rate', 2) +
+    c('BoK 기준금리',    'BoK 기준금리',   'bok_rate', 2);
 
   document.getElementById('commodity-cards').innerHTML =
     c('WTI 유가',   'WTI유가',    'wti',    2) + c('천연가스', '천연가스',   'gas',    3) +
@@ -4336,7 +4338,7 @@ const RAW_DATA_COL_MAP = {
   smh:'SMH', lit:'LIT', remx:'희토류(REMX)',
   qqq:'QQQ', voo:'VOO', spy:'SPY',
   btc:'BTC(USD)', eth:'ETH(USD)',
-  pce_core:'Core PCE', unemp:'실업률(%)', bok_rate:'BoK 기준금리',
+  pce_core:'Core PCE', unemp:'실업률(%)', bok_rate:'BoK 기준금리', fed_rate:'미국 기준금리',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
@@ -4745,9 +4747,10 @@ const SEARCH_INDEX = [
   { label:'VIX',             key:'vix',        tags:['변동성','공포지수','volatility'] },
   { label:'DXY',             key:'dxy',        tags:['달러인덱스','달러강세','dollar index'] },
   { label:'CNN Fear&Greed',  key:'feargreed',  tags:['공포탐욕','fng','cnn','분위기'] },
-  { label:'Core PCE',        key:'',           tags:['pce','인플레','인플레이션','core'] },
-  { label:'미국 실업률',      key:'',           tags:['unrate','실업','고용','unemployment'] },
-  { label:'BoK 기준금리',     key:'',           tags:['한국금리','bok','기준금리','한국은행'] },
+  { label:'Core PCE',        key:'pce_core',   tags:['pce','인플레','인플레이션','core'] },
+  { label:'미국 실업률',      key:'unemp',      tags:['unrate','실업','고용','unemployment'] },
+  { label:'미국 기준금리',    key:'fed_rate',   tags:['미국금리','fed','연준','fomc','정책금리','fedfunds'] },
+  { label:'BoK 기준금리',     key:'bok_rate',   tags:['한국금리','bok','기준금리','한국은행','정책금리'] },
   // 원자재
   { label:'WTI 유가',         key:'wti',        tags:['유가','석유','oil','crude','wti'] },
   { label:'천연가스',         key:'gas',        tags:['ng','natgas','가스','natural'] },
