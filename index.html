@@ -2564,7 +2564,10 @@ function renderRaw(rows, liveData) {
     c('은 (USD/oz)','은(USD/oz)', 'silver', 2);
 
   document.getElementById('etf-cards').innerHTML =
-    c('SMH (반도체)','SMH','smh',2) + c('LIT (전지)','LIT','lit',2) + c('REMX (희토류)','희토류(REMX)','remx',2);
+    // 테마 ETF
+    c('SMH (반도체)','SMH','smh',2) + c('LIT (전지)','LIT','lit',2) + c('REMX (희토류)','희토류(REMX)','remx',2) +
+    // B43 (5/18) — 인기 미국 ETF
+    c('QQQ (나스닥100)','QQQ','qqq',2) + c('VOO (S&P 500)','VOO','voo',2) + c('SPY (S&P 500)','SPY','spy',2);
 
   document.getElementById('crypto-cards').innerHTML =
     c('BTC (USD)','BTC(USD)','btc',0) + c('ETH (USD)','ETH(USD)','eth',2);
