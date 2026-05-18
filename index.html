@@ -305,6 +305,26 @@ body.light .card { background: var(--bg2); }
 @media (max-width: 768px) { .compare-box { height: 320px; padding: var(--s-3); } }
 .compare-note { font-size: 11.5px; color: var(--text3); margin-top: var(--s-3); opacity: 0.75; }
 
+/* 즐겨찾기 (B55, 5/18) — localStorage 기반 ⭐ 토글 */
+.card-fav-btn {
+  position: absolute; top: 8px; right: 8px;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; cursor: pointer;
+  font-size: 14px; line-height: 1;
+  color: var(--text3); opacity: 0.35;
+  transition: opacity 0.15s, transform 0.1s, color 0.15s;
+  z-index: 10;
+}
+.card-fav-btn:hover { opacity: 0.8; transform: scale(1.15); }
+.card-fav-btn:active { transform: scale(0.92); }
+.card-fav-btn.is-fav { color: #facc15; opacity: 1; }
+.card.is-favorite {
+  border-color: rgba(250, 204, 21, 0.4) !important;
+  box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.25), 0 4px 16px rgba(250, 204, 21, 0.08);
+}
+.card.is-favorite:hover { box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.5), 0 8px 24px rgba(250, 204, 21, 0.15); }
+
 /* 카드 sparkline (B52, 5/18) — 7일 미니 트렌드 차트 */
 .card-spark { margin: 6px -4px 4px; opacity: 0.65; pointer-events: none; }
 .card-spark svg { width: 100%; max-width: 110px; height: 22px; display: block; }
@@ -2442,6 +2462,29 @@ function sparkline(values, opts) {
     '</svg>';
 }
 
+// B55 (5/18) — 즐겨찾기 시스템 (localStorage)
+const FAVORITES_KEY = 'market_dashboard_favorites_v1';
+function getFavorites() {
+  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function toggleFavorite(cardKey, btn) {
+  if (!cardKey) return;
+  const favs = getFavorites();
+  const idx = favs.indexOf(cardKey);
+  if (idx >= 0) favs.splice(idx, 1);
+  else favs.push(cardKey);
+  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs)); } catch (e) {}
+  // 즉시 UI 갱신
+  const isFav = idx < 0;
+  if (btn) {
+    btn.classList.toggle('is-fav', isFav);
+    btn.textContent = isFav ? '★' : '☆';
+    const card = btn.closest('.card');
+    if (card) card.classList.toggle('is-favorite', isFav);
+  }
+}
+
 function mkCard(label, value, chg, pct, key, dec=2, infoKey='', dateStr='', sparkData=null) {
   const c = cls(pct); const a = arrow(pct);
   const pctStr = pct!=null ? `<span class="card-pct ${c}">${a} ${Math.abs(pct).toFixed(2)}%</span>` : '';
@@ -2451,7 +2494,14 @@ function mkCard(label, value, chg, pct, key, dec=2, infoKey='', dateStr='', spar
   const info   = infoKey ? infoBtn(infoKey) : '';
   const dateHtml = dateStr ? `<div class="card-date">🕒 ${dateStr}</div>` : '';
   const sparkHtml = sparkData ? `<div class="card-spark">${sparkline(sparkData, {w:100, h:22})}</div>` : '';
-  return `<div class="card${noD}" ${click}>
+  // B55 — 즐겨찾기 ⭐ 버튼
+  const isFav = key && getFavorites().indexOf(key) >= 0;
+  const favCls = isFav ? ' is-favorite' : '';
+  const favBtnHtml = key
+    ? `<button class="card-fav-btn${isFav ? ' is-fav' : ''}" onclick="event.stopPropagation(); toggleFavorite('${key}', this)" title="즐겨찾기" aria-label="즐겨찾기">${isFav ? '★' : '☆'}</button>`
+    : '';
+  return `<div class="card${noD}${favCls}" ${click}>
+    ${favBtnHtml}
     <div class="card-label">${label}${info}</div>
     <div class="card-value">${value}</div>
     <div class="card-change">${pctStr}${chgStr}</div>
@@ -2556,7 +2606,11 @@ function renderRaw(rows, liveData) {
     c('USD / CNY',    'USD/CNY',    'usdcny', 3, 'usdcny') +
     c('CNN Fear&Greed', 'Fear&Greed',  'feargreed', 0, 'feargreed') +
     c('한국 Fear&Greed', 'KR Fear&Greed', '', 0, 'feargreed') +
-    c('Crypto Fear&Greed', 'Crypto F&G', '', 0, '');
+    c('Crypto Fear&Greed', 'Crypto F&G', '', 0, '') +
+    // B44 (5/18) — FRED 매크로 지표 3종
+    c('Core PCE',        'Core PCE',      '', 2) +
+    c('미국 실업률 (%)', '실업률(%)',     '', 1) +
+    c('BoK 기준금리',    'BoK 기준금리',  '', 2);
 
   document.getElementById('commodity-cards').innerHTML =
     c('WTI 유가',   'WTI유가',    'wti',    2) + c('천연가스', '천연가스',   'gas',    3) +
