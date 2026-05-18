@@ -2321,18 +2321,29 @@ function renderMdd(rows) {
   const mddDate = fmtDateShort(findDate(rows));
   const live = cache['Live'] || {};
 
+  // Raw Data 전체에서 indexCol 최대값 계산 (B32 정공법, 5/18)
+  //   기존: MDD Chart RollingMax (월 1회 갱신) → 월 중 ATH 갱신 누락
+  //   변경: Raw Data 일별 종가 전체 스캔 → 매일 최신 ATH 자동 반영
+  //   bundle-light가 이미 Raw Data 전체를 보내므로 추가 네트워크 비용 0
+  const rawRows = (typeof cache !== 'undefined' && cache['Raw Data']) ? toRows(cache['Raw Data']) : [];
   function computeMdd(indexCol) {
-    const rollingMax = parseFloat(last[indexCol + ' RollingMax']);
+    // Raw Data 전체에서 indexCol 일별 종가 최대값
+    let maxFromRaw = 0;
+    for (let i = 0; i < rawRows.length; i++) {
+      const v = parseFloat(rawRows[i][indexCol]);
+      if (!isNaN(v) && v > maxFromRaw) maxFromRaw = v;
+    }
     const liveVal = live[indexCol];
     const sheetClose = parseFloat(last[indexCol + ' 종가']);
     const currentVal = (liveVal != null && !isNaN(parseFloat(liveVal))) ? parseFloat(liveVal) : sheetClose;
-    if (!currentVal || isNaN(currentVal) || !rollingMax || isNaN(rollingMax)) {
+    if (!currentVal || isNaN(currentVal) || !maxFromRaw) {
       return { mdd: null, isAth: false };
     }
-    // 신고가 처리: Live가 RollingMax 초과면 max를 Live로 갱신 → MDD = 0%
-    const effectiveMax = Math.max(rollingMax, currentVal);
+    // effectiveMax: Raw Data 일별 max + Live 현재가 중 max
+    //   Live가 일중 신고가 갱신 시 즉시 반영 (시트 저장 전이라도)
+    const effectiveMax = Math.max(maxFromRaw, currentVal);
     const mdd = (currentVal - effectiveMax) / effectiveMax * 100;
-    const isAth = currentVal >= rollingMax;
+    const isAth = currentVal >= maxFromRaw;
     return { mdd, isAth };
   }
 
