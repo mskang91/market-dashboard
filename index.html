@@ -4310,7 +4310,6 @@ function initPopupDirection() {
       // force가 false이고 변화량 < 2px이면 skip
       if (!force && Math.abs(height - _lastNotifiedHeight) < 2) return;
       _lastNotifiedHeight = height;
-      console.log('[market-iframe] sending resize:', height + 'px', force ? '(forced)' : '', 'candidates:', candidates);
       try {
         window.parent.postMessage({
           type: 'market-iframe-resize',
