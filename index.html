@@ -2625,41 +2625,42 @@ const DETAIL = {
   feargreed:  { title:'Fear & Greed',    sub:'CNN 공포탐욕 지수 · 20년 추이',     sheet:'Macro History', dateCol:'날짜', valCol:'Fear&Greed',     color:'#fb923c' },
   wti:        { title:'WTI 유가',         sub:'WTI 원유 선물 · 20년 추이',         sheet:'Macro History', dateCol:'날짜', valCol:'WTI(USD)',       color:'#fbbf24' },
 
-  // ── B73 (5/18) — 단기 추적 카드들 (Raw Data 35일~누적 중) ──
-  // 모든 카드 클릭 시 차트 표시. Raw Data 기반이라 매일 1행씩 누적 → 시간 지나면 풍부해짐.
-  // 원자재 (Raw Data)
-  gas:        { title:'천연가스',          sub:'천연가스 선물 · 데이터 누적 중',      sheet:'Raw Data', dateCol:'날짜', valCol:'천연가스',        color:'#fbbf24' },
-  copper:     { title:'구리',              sub:'구리 선물 · 데이터 누적 중',          sheet:'Raw Data', dateCol:'날짜', valCol:'구리',            color:'#f97316' },
-  gold:       { title:'금 (GC)',           sub:'금 선물 · 데이터 누적 중',            sheet:'Raw Data', dateCol:'날짜', valCol:'금(GC)',          color:'#facc15' },
-  silver:     { title:'은 (USD/oz)',       sub:'은 선물 · 데이터 누적 중',            sheet:'Raw Data', dateCol:'날짜', valCol:'은(USD/oz)',      color:'#94a3b8' },
-  // 테마 ETF (Raw Data)
-  smh:        { title:'SMH (반도체 ETF)',  sub:'반도체 섹터 ETF · 데이터 누적 중',    sheet:'Raw Data', dateCol:'날짜', valCol:'SMH',             color:'#22d3ee' },
-  lit:        { title:'LIT (전지 ETF)',     sub:'리튬 / 배터리 ETF · 데이터 누적 중',  sheet:'Raw Data', dateCol:'날짜', valCol:'LIT',             color:'#a78bfa' },
-  remx:       { title:'REMX (희토류 ETF)',  sub:'희토류 ETF · 데이터 누적 중',         sheet:'Raw Data', dateCol:'날짜', valCol:'희토류(REMX)',    color:'#fb923c' },
-  // 인기 미국 ETF (Raw Data, B43)
-  qqq:        { title:'QQQ (나스닥100)',    sub:'Invesco QQQ · 데이터 누적 중',        sheet:'Raw Data', dateCol:'날짜', valCol:'QQQ',             color:'#a78bfa' },
-  voo:        { title:'VOO (S&P 500)',      sub:'Vanguard S&P 500 · 데이터 누적 중',   sheet:'Raw Data', dateCol:'날짜', valCol:'VOO',             color:'#60a5fa' },
-  spy:        { title:'SPY (S&P 500)',      sub:'SPDR S&P 500 · 데이터 누적 중',       sheet:'Raw Data', dateCol:'날짜', valCol:'SPY',             color:'#34d399' },
-  // 코인 (Raw Data)
-  btc:        { title:'BTC (USD)',          sub:'비트코인 · 데이터 누적 중',           sheet:'Raw Data', dateCol:'날짜', valCol:'BTC(USD)',        color:'#f59e0b' },
-  eth:        { title:'ETH (USD)',          sub:'이더리움 · 데이터 누적 중',           sheet:'Raw Data', dateCol:'날짜', valCol:'ETH(USD)',        color:'#818cf8' },
-  // FRED 매크로 (Raw Data, B44) — 월별 발표라 차트 거의 평평
+  // ── B73 + B75 (5/18) — 모든 카드 상세보기 ──
+  // 장기 차트 가능 종목: Macro History (30년 주별, B75 백필)
+  // FRED 매크로 (월별 발표): Raw Data (35일~누적, 차트 평평)
+  // 원자재 (Macro History)
+  gas:        { title:'천연가스',          sub:'천연가스 선물 · 30년 추이',          sheet:'Macro History', dateCol:'날짜', valCol:'천연가스',        color:'#fbbf24' },
+  copper:     { title:'구리',              sub:'구리 선물 · 30년 추이',              sheet:'Macro History', dateCol:'날짜', valCol:'구리',            color:'#f97316' },
+  gold:       { title:'금 (GC)',           sub:'금 선물 · 30년 추이',                sheet:'Macro History', dateCol:'날짜', valCol:'금(GC)',          color:'#facc15' },
+  silver:     { title:'은 (USD/oz)',       sub:'은 선물 · 30년 추이',                sheet:'Macro History', dateCol:'날짜', valCol:'은(USD/oz)',      color:'#94a3b8' },
+  // 테마 ETF (Macro History)
+  smh:        { title:'SMH (반도체 ETF)',  sub:'반도체 섹터 ETF · 20년+ 추이',       sheet:'Macro History', dateCol:'날짜', valCol:'SMH',             color:'#22d3ee' },
+  lit:        { title:'LIT (전지 ETF)',     sub:'리튬 / 배터리 ETF · 15년+ 추이',     sheet:'Macro History', dateCol:'날짜', valCol:'LIT',             color:'#a78bfa' },
+  remx:       { title:'REMX (희토류 ETF)',  sub:'희토류 ETF · 15년+ 추이',            sheet:'Macro History', dateCol:'날짜', valCol:'희토류(REMX)',    color:'#fb923c' },
+  // 인기 미국 ETF (Macro History, B43)
+  qqq:        { title:'QQQ (나스닥100)',    sub:'Invesco QQQ · 25년+ 추이',           sheet:'Macro History', dateCol:'날짜', valCol:'QQQ',             color:'#a78bfa' },
+  voo:        { title:'VOO (S&P 500)',      sub:'Vanguard S&P 500 · 15년+ 추이',      sheet:'Macro History', dateCol:'날짜', valCol:'VOO',             color:'#60a5fa' },
+  spy:        { title:'SPY (S&P 500)',      sub:'SPDR S&P 500 · 30년+ 추이',          sheet:'Macro History', dateCol:'날짜', valCol:'SPY',             color:'#34d399' },
+  // 코인 (Macro History — BTC 2014~, ETH 2017~)
+  btc:        { title:'BTC (USD)',          sub:'비트코인 · 10년+ 추이',              sheet:'Macro History', dateCol:'날짜', valCol:'BTC(USD)',        color:'#f59e0b' },
+  eth:        { title:'ETH (USD)',          sub:'이더리움 · 8년+ 추이',               sheet:'Macro History', dateCol:'날짜', valCol:'ETH(USD)',        color:'#818cf8' },
+  // FRED 매크로 (Raw Data 유지 — 월별 발표라 짧은 차트로 충분)
   pce_core:   { title:'Core PCE',           sub:'근원 PCE 인플레이션 · 월별 발표',     sheet:'Raw Data', dateCol:'날짜', valCol:'Core PCE',        color:'#f43f5e' },
   unemp:      { title:'미국 실업률',         sub:'BLS UNRATE · 월별 발표',              sheet:'Raw Data', dateCol:'날짜', valCol:'실업률(%)',       color:'#ef4444', pct:true },
   fed_rate:   { title:'미국 기준금리',       sub:'Fed Funds Rate · 월별 발표',          sheet:'Raw Data', dateCol:'날짜', valCol:'미국 기준금리',    color:'#3b82f6', pct:true },
   bok_rate:   { title:'BoK 기준금리',       sub:'한국은행 정책금리 · 월별 발표',       sheet:'Raw Data', dateCol:'날짜', valCol:'BoK 기준금리',    color:'#22c55e', pct:true },
-  // 섹터 ETF (Raw Data, B54) — GICS 11개
-  xlk:        { title:'XLK · 기술',         sub:'Technology Select Sector SPDR',       sheet:'Raw Data', dateCol:'날짜', valCol:'XLK 기술',          color:'#22d3ee' },
-  xlf:        { title:'XLF · 금융',         sub:'Financial Select Sector SPDR',        sheet:'Raw Data', dateCol:'날짜', valCol:'XLF 금융',          color:'#10b981' },
-  xlv:        { title:'XLV · 헬스',         sub:'Health Care Select Sector SPDR',      sheet:'Raw Data', dateCol:'날짜', valCol:'XLV 헬스',          color:'#f472b6' },
-  xly:        { title:'XLY · 경기소비',     sub:'Consumer Discretionary SPDR',         sheet:'Raw Data', dateCol:'날짜', valCol:'XLY 경기소비재',    color:'#fb923c' },
-  xlp:        { title:'XLP · 필수소비',     sub:'Consumer Staples SPDR',               sheet:'Raw Data', dateCol:'날짜', valCol:'XLP 필수소비재',    color:'#a3e635' },
-  xle:        { title:'XLE · 에너지',       sub:'Energy Select Sector SPDR',           sheet:'Raw Data', dateCol:'날짜', valCol:'XLE 에너지',        color:'#facc15' },
-  xli:        { title:'XLI · 산업재',       sub:'Industrial Select Sector SPDR',       sheet:'Raw Data', dateCol:'날짜', valCol:'XLI 산업재',        color:'#94a3b8' },
-  xlb:        { title:'XLB · 소재',         sub:'Materials Select Sector SPDR',        sheet:'Raw Data', dateCol:'날짜', valCol:'XLB 소재',          color:'#fb7185' },
-  xlu:        { title:'XLU · 유틸리티',     sub:'Utilities Select Sector SPDR',        sheet:'Raw Data', dateCol:'날짜', valCol:'XLU 유틸리티',      color:'#60a5fa' },
-  xlre:       { title:'XLRE · 부동산',      sub:'Real Estate Select Sector SPDR',      sheet:'Raw Data', dateCol:'날짜', valCol:'XLRE 부동산',       color:'#f59e0b' },
-  xlc:        { title:'XLC · 통신',         sub:'Communication Services SPDR',         sheet:'Raw Data', dateCol:'날짜', valCol:'XLC 커뮤니케이션',  color:'#a78bfa' },
+  // 섹터 ETF (Macro History, B54) — GICS 11개
+  xlk:        { title:'XLK · 기술',         sub:'Technology SPDR · 25년+ 추이',       sheet:'Macro History', dateCol:'날짜', valCol:'XLK 기술',          color:'#22d3ee' },
+  xlf:        { title:'XLF · 금융',         sub:'Financial SPDR · 25년+ 추이',        sheet:'Macro History', dateCol:'날짜', valCol:'XLF 금융',          color:'#10b981' },
+  xlv:        { title:'XLV · 헬스',         sub:'Health Care SPDR · 25년+ 추이',      sheet:'Macro History', dateCol:'날짜', valCol:'XLV 헬스',          color:'#f472b6' },
+  xly:        { title:'XLY · 경기소비',     sub:'Consumer Discretionary SPDR · 25년+', sheet:'Macro History', dateCol:'날짜', valCol:'XLY 경기소비재',    color:'#fb923c' },
+  xlp:        { title:'XLP · 필수소비',     sub:'Consumer Staples SPDR · 25년+',       sheet:'Macro History', dateCol:'날짜', valCol:'XLP 필수소비재',    color:'#a3e635' },
+  xle:        { title:'XLE · 에너지',       sub:'Energy SPDR · 25년+ 추이',           sheet:'Macro History', dateCol:'날짜', valCol:'XLE 에너지',        color:'#facc15' },
+  xli:        { title:'XLI · 산업재',       sub:'Industrial SPDR · 25년+ 추이',       sheet:'Macro History', dateCol:'날짜', valCol:'XLI 산업재',        color:'#94a3b8' },
+  xlb:        { title:'XLB · 소재',         sub:'Materials SPDR · 25년+ 추이',        sheet:'Macro History', dateCol:'날짜', valCol:'XLB 소재',          color:'#fb7185' },
+  xlu:        { title:'XLU · 유틸리티',     sub:'Utilities SPDR · 25년+ 추이',        sheet:'Macro History', dateCol:'날짜', valCol:'XLU 유틸리티',      color:'#60a5fa' },
+  xlre:       { title:'XLRE · 부동산',      sub:'Real Estate SPDR · 10년+ 추이',      sheet:'Macro History', dateCol:'날짜', valCol:'XLRE 부동산',       color:'#f59e0b' },
+  xlc:        { title:'XLC · 통신',         sub:'Communication Services SPDR · 8년+', sheet:'Macro History', dateCol:'날짜', valCol:'XLC 커뮤니케이션',  color:'#a78bfa' },
 };
 
 const KEY_NAMES = { gas:'천연가스', copper:'구리', gold:'금', silver:'은', smh:'SMH (반도체 ETF)', lit:'LIT (전지 ETF)', remx:'REMX (희토류 ETF)', btc:'BTC (비트코인)', eth:'ETH (이더리움)' };
