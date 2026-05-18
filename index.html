@@ -1099,6 +1099,53 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
   .insight-headline { font-size: 13px; }
   .insight-text, .insight-issue-item { font-size: 12px; }
 }
+
+/* B54 (5/18) — 섹터 회전 매트릭스 */
+.sec-rot-matrix {
+  display: grid;
+  grid-template-columns: 1fr 90px 80px 80px 80px;
+  gap: 1px;
+  background: var(--border-tertiary, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.sec-rot-row { display: contents; }
+.sec-rot-cell {
+  background: var(--bg-tertiary, var(--bg-card, #1a1a1a));
+  padding: 10px 12px;
+  text-align: right;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.sec-rot-cell.sec-rot-label {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-secondary, #9ca3af);
+}
+.sec-rot-head .sec-rot-cell {
+  background: var(--bg-secondary, rgba(255,255,255,0.04));
+  color: var(--text-tertiary, #6b7280);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.sec-rot-note {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-tertiary, #9ca3af);
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .sec-rot-matrix {
+    grid-template-columns: 1fr 65px 55px 55px 55px;
+    font-size: 11px;
+  }
+  .sec-rot-cell { padding: 8px 4px; }
+  .sec-rot-cell.sec-rot-label { padding-left: 8px; }
+}
 </style>
 </head>
 <body>
@@ -1958,6 +2005,17 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
         <div class="compare-note">💡 시작 시점을 100으로 환산 · 어느 지수가 더 빠르게 상승/하락했는지 한눈에 비교</div>
       </div>
 
+      <!-- 9-0. 섹터 회전 (B54, 5/18) — GICS 11개 ETF -->
+      <div class="section" data-tab-target="sector" style="--sc:#6366f1;--sc-glow:rgba(99,102,241,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🔄 섹터 회전</span>
+          <span class="section-badge">GICS 11 · 1D · 1W · 1M 상대 성과</span>
+        </div>
+        <div class="cards g3" id="sector-rotation-cards" style="margin-bottom:16px"></div>
+        <div id="sector-rotation-matrix"></div>
+      </div>
+
       <!-- 9. 섹터 히트맵 -->
       <div class="section" data-tab-target="sector" style="--sc:#fbbf24;--sc-glow:rgba(251,191,36,0.35)">
         <div class="section-header">
@@ -2625,6 +2683,128 @@ function renderRaw(rows, liveData) {
 
   document.getElementById('crypto-cards').innerHTML =
     c('BTC (USD)','BTC(USD)','btc',0) + c('ETH (USD)','ETH(USD)','eth',2);
+
+  // B54 (5/18) — 섹터 회전 (카드 11개 + 매트릭스)
+  renderSectorRotation(rows);
+}
+
+// ── RENDER: 섹터 회전 (B54, 5/18) ────────────────────────
+// GICS 11개 섹터 ETF — 1D/1W/1M 상대 성과 매트릭스
+const SECTOR_LIST = [
+  { key:'xlk',  col:'XLK 기술',         label:'XLK · 기술' },
+  { key:'xlf',  col:'XLF 금융',         label:'XLF · 금융' },
+  { key:'xlv',  col:'XLV 헬스',         label:'XLV · 헬스' },
+  { key:'xly',  col:'XLY 경기소비재',   label:'XLY · 경기소비' },
+  { key:'xlp',  col:'XLP 필수소비재',   label:'XLP · 필수소비' },
+  { key:'xle',  col:'XLE 에너지',       label:'XLE · 에너지' },
+  { key:'xli',  col:'XLI 산업재',       label:'XLI · 산업재' },
+  { key:'xlb',  col:'XLB 소재',         label:'XLB · 소재' },
+  { key:'xlu',  col:'XLU 유틸리티',     label:'XLU · 유틸' },
+  { key:'xlre', col:'XLRE 부동산',      label:'XLRE · 부동산' },
+  { key:'xlc',  col:'XLC 커뮤니케이션', label:'XLC · 통신' },
+];
+
+function renderSectorRotation(rows) {
+  if (!rows || rows.length < 2) return;
+  const last = rows[rows.length - 1];
+  const rawDate = fmtDateShort(findDate(rows));
+
+  function lastVal(col) { const v = parseFloat(last[col]); return isNaN(v) ? null : v; }
+  function spark(col, n=7) {
+    const result = [];
+    for (let i = rows.length - 1; i >= 0 && result.length < n; i--) {
+      const v = parseFloat(rows[i][col]);
+      if (!isNaN(v) && v !== 0) result.unshift(v);
+    }
+    return result.length >= 2 ? result : null;
+  }
+  function chg(col) {
+    const b = lastVal(col);
+    const a = rows.length >= 2 ? parseFloat(rows[rows.length-2][col]) : NaN;
+    return (!isNaN(a) && b !== null) ? (b - a) : null;
+  }
+  function pct(col) {
+    const b = lastVal(col);
+    const a = rows.length >= 2 ? parseFloat(rows[rows.length-2][col]) : NaN;
+    return (!isNaN(a) && b !== null && a !== 0) ? ((b - a) / a * 100) : null;
+  }
+  // N거래일 전 vs 현재 % 변화 (null이면 데이터 부족)
+  function pctNDaysAgo(col, n) {
+    const cur = lastVal(col);
+    if (cur === null) return null;
+    const idx = rows.length - 1 - n;
+    if (idx < 0) return null;
+    const past = parseFloat(rows[idx][col]);
+    return (!isNaN(past) && past !== 0) ? ((cur - past) / past * 100) : null;
+  }
+
+  // 1) 카드 11개
+  const cardsHtml = SECTOR_LIST.map(s => {
+    const v = lastVal(s.col);
+    const valStr = v !== null ? fmt(v, 2) : '–';
+    return mkCard(s.label, valStr, chg(s.col), pct(s.col), s.key, 2, '', rawDate, spark(s.col, 7));
+  }).join('');
+  const cardsEl = document.getElementById('sector-rotation-cards');
+  if (cardsEl) cardsEl.innerHTML = cardsHtml;
+
+  // 2) 매트릭스 — 1M 기준 내림차순
+  const matrixData = SECTOR_LIST.map(s => ({
+    label: s.label,
+    cur: lastVal(s.col),
+    d1: pct(s.col),
+    w1: pctNDaysAgo(s.col, 7),
+    m1: pctNDaysAgo(s.col, 30),
+  }));
+  matrixData.sort((a, b) => {
+    if (a.m1 === null && b.m1 === null) return 0;
+    if (a.m1 === null) return 1;
+    if (b.m1 === null) return -1;
+    return b.m1 - a.m1;
+  });
+
+  function pctColor(p) {
+    if (p === null || isNaN(p)) return 'var(--text-tertiary)';
+    if (p > 3)  return '#059669';
+    if (p > 1)  return '#10b981';
+    if (p > 0)  return '#34d399';
+    if (p > -1) return '#fb7185';
+    if (p > -3) return '#f43f5e';
+    return '#dc2626';
+  }
+  function pctBg(p) {
+    if (p === null || isNaN(p)) return 'transparent';
+    const abs = Math.min(Math.abs(p), 5) / 5;
+    const rgb = p >= 0 ? '16,185,129' : '239,68,68';
+    return `rgba(${rgb}, ${0.05 + abs * 0.25})`;
+  }
+  function pctStr(p) {
+    if (p === null || isNaN(p)) return '–';
+    return (p >= 0 ? '+' : '') + p.toFixed(2) + '%';
+  }
+
+  const matrixHtml = `
+    <div class="sec-rot-matrix">
+      <div class="sec-rot-row sec-rot-head">
+        <div class="sec-rot-cell sec-rot-label">섹터</div>
+        <div class="sec-rot-cell">현재가</div>
+        <div class="sec-rot-cell">1D</div>
+        <div class="sec-rot-cell">1W</div>
+        <div class="sec-rot-cell">1M ↓</div>
+      </div>
+      ${matrixData.map(d => `
+        <div class="sec-rot-row">
+          <div class="sec-rot-cell sec-rot-label">${d.label}</div>
+          <div class="sec-rot-cell">${d.cur !== null ? fmt(d.cur, 2) : '–'}</div>
+          <div class="sec-rot-cell" style="background:${pctBg(d.d1)};color:${pctColor(d.d1)}">${pctStr(d.d1)}</div>
+          <div class="sec-rot-cell" style="background:${pctBg(d.w1)};color:${pctColor(d.w1)}">${pctStr(d.w1)}</div>
+          <div class="sec-rot-cell" style="background:${pctBg(d.m1)};color:${pctColor(d.m1)};font-weight:700">${pctStr(d.m1)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="sec-rot-note">💡 1M 기준 내림차순 정렬 · 색이 진할수록 변동폭 큼 · 데이터 부족 시 "–" · GICS 11 SPDR Sector ETF 기준</div>
+  `;
+  const matrixEl = document.getElementById('sector-rotation-matrix');
+  if (matrixEl) matrixEl.innerHTML = matrixHtml;
 }
 
 // ── RENDER: MDD ────────────────────────────────────────
@@ -3979,6 +4159,9 @@ const RAW_DATA_COL_MAP = {
   usdkrw:'USD/KRW', usdjpy:'USD/JPY', usdcny:'USD/CNY',
   us10y:'미10년물(%)', vix:'VIX', dxy:'DXY',
   feargreed:'Fear&Greed', wti:'WTI유가',
+  // B54 (5/18) — GICS 11개 섹터 ETF
+  xlk:'XLK 기술', xlf:'XLF 금융', xlv:'XLV 헬스', xly:'XLY 경기소비재', xlp:'XLP 필수소비재',
+  xle:'XLE 에너지', xli:'XLI 산업재', xlb:'XLB 소재', xlu:'XLU 유틸리티', xlre:'XLRE 부동산', xlc:'XLC 커뮤니케이션',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
