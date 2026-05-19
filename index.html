@@ -4098,7 +4098,7 @@ function _renderDetailChart(key, cfg, points) {
         borderColor: cfg.color,
         backgroundColor: cfg.color + '18',
         borderWidth: 1.8,
-        fill: true,
+        fill: 'origin',   // 5/19 fix: 0선 기준 채우기 — 양수=line 위, 음수=line 아래
         pointRadius: 0,
         tension: 0.1,
       }]
