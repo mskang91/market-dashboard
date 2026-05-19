@@ -2084,6 +2084,16 @@ body.embed-mode .search-btn { display: none !important; }
         <div class="cards g5" id="commodity-cards"></div>
       </div>
 
+      <!-- 7-0. 한국 인기 ETF (B42, 5/19) — 국내 + 미국 한국형 + 레버리지/인버스 + 커버드콜 -->
+      <div class="section sec-kretf" data-tab-target="assets" style="--sc:#f43f5e;--sc-glow:rgba(244,63,94,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🇰🇷 한국 인기 ETF</span>
+          <span class="section-badge">국내 · 해외 · 레버리지/인버스 · 커버드콜 · [D-1] 전 거래일 종가 대비</span>
+        </div>
+        <div class="cards g5" id="kr-etf-cards"></div>
+      </div>
+
       <!-- 7. 테마 ETF + 가상화폐 -->
       <div class="bento-row" data-tab-target="assets">
         <div class="section sec-etf">
@@ -2646,6 +2656,19 @@ const DETAIL = {
   xlu:        { title:'XLU · 유틸리티',     sub:'Utilities SPDR · 25년+ 추이',        sheet:'Macro History', dateCol:'날짜', valCol:'XLU 유틸리티',      color:'#60a5fa' },
   xlre:       { title:'XLRE · 부동산',      sub:'Real Estate SPDR · 10년+ 추이',      sheet:'Macro History', dateCol:'날짜', valCol:'XLRE 부동산',       color:'#f59e0b' },
   xlc:        { title:'XLC · 통신',         sub:'Communication Services SPDR · 8년+', sheet:'Macro History', dateCol:'날짜', valCol:'XLC 커뮤니케이션',  color:'#a78bfa' },
+
+  // ── B42 (5/19) — 한국 인기 ETF 10종 (Raw Data 35일~누적) ──
+  // 신상 커버드콜은 상장일 이후만 데이터 존재. 0144L0(미국성장CC)은 Naver 전용이라 오늘부터 누적.
+  kodex_200:           { title:'KODEX 200',                    sub:'KOSPI 200 추종 · 한국 대표 ETF',         sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 200',                   color:'#34d399' },
+  kodex_kosdaq150:     { title:'KODEX 코스닥150',              sub:'KOSDAQ 150 추종',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 코스닥150',             color:'#fb923c' },
+  kodex_2ndbat:        { title:'KODEX 2차전지',                sub:'한국 2차전지 산업 테마',                 sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 2차전지',               color:'#a78bfa' },
+  kodex_lev:           { title:'KODEX 레버리지',               sub:'KOSPI 200 일간 ×2 추종',                 sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 레버리지',              color:'#ef4444' },
+  kodex_inv:           { title:'KODEX 인버스',                 sub:'KOSPI 200 일간 ×-1 추종',                sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 인버스',                color:'#0ea5e9' },
+  tiger_nasdaq100:     { title:'TIGER 미국나스닥100',          sub:'나스닥 100 한국형 (KRW 환산)',           sheet:'Raw Data', dateCol:'날짜', valCol:'TIGER 미국나스닥100',         color:'#c084fc' },
+  tiger_sp500:         { title:'TIGER 미국S&P500',             sub:'S&P 500 한국형 (KRW 환산)',              sheet:'Raw Data', dateCol:'날짜', valCol:'TIGER 미국S&P500',            color:'#60a5fa' },
+  kodex_us_growth_cc:  { title:'KODEX 미국성장커버드콜',       sub:'미국 성장주 + 콜옵션 매도 (Naver 전용)', sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 미국성장커버드콜',      color:'#f472b6' },
+  kodex_us_div_cc:     { title:'KODEX 미국배당커버드콜',       sub:'미국 배당주 + 콜옵션 매도',              sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 미국배당커버드콜',      color:'#facc15' },
+  kodex_200wk_cc:      { title:'KODEX 200타겟위클리커버드콜',  sub:'KOSPI 200 + 주간 콜옵션 매도',           sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 200타겟위클리커버드콜', color:'#22d3ee' },
 };
 
 const KEY_NAMES = { gas:'천연가스', copper:'구리', gold:'금', silver:'은', smh:'SMH (반도체 ETF)', lit:'LIT (전지 ETF)', remx:'REMX (희토류 ETF)', btc:'BTC (비트코인)', eth:'ETH (이더리움)' };
@@ -2831,6 +2854,21 @@ function renderRaw(rows, liveData) {
     c('WTI 유가',   'WTI유가',    'wti',    2) + c('천연가스', '천연가스',   'gas',    3) +
     c('구리',       '구리',       'copper', 2) + c('금 (GC)', '금(GC)',      'gold',   1) +
     c('은 (USD/oz)','은(USD/oz)', 'silver', 2);
+
+  // B42 (5/19) — 한국 인기 ETF 10종 (g5 그리드 × 2줄)
+  // 1줄: 국내 기본 5 (KODEX 200/코스닥150/2차전지/레버리지/인버스)
+  // 2줄: 해외 + 커버드콜 5 (TIGER 나스닥/S&P500, KODEX 미국성장CC/미국배당CC/200타겟위클리CC)
+  document.getElementById('kr-etf-cards').innerHTML =
+    c('KODEX 200',                'KODEX 200',                   'kodex_200',          0, 'kodex_200') +
+    c('KODEX 코스닥150',          'KODEX 코스닥150',             'kodex_kosdaq150',    0, 'kodex_kosdaq150') +
+    c('KODEX 2차전지',            'KODEX 2차전지',               'kodex_2ndbat',       0, 'kodex_2ndbat') +
+    c('KODEX 레버리지',           'KODEX 레버리지',              'kodex_lev',          0, 'kodex_lev') +
+    c('KODEX 인버스',             'KODEX 인버스',                'kodex_inv',          0, 'kodex_inv') +
+    c('TIGER 미국나스닥100',      'TIGER 미국나스닥100',         'tiger_nasdaq100',    0, 'tiger_nasdaq100') +
+    c('TIGER 미국S&P500',         'TIGER 미국S&P500',            'tiger_sp500',        0, 'tiger_sp500') +
+    c('KODEX 미국성장커버드콜',   'KODEX 미국성장커버드콜',      'kodex_us_growth_cc', 0, 'kodex_us_growth_cc') +
+    c('KODEX 미국배당커버드콜',   'KODEX 미국배당커버드콜',      'kodex_us_div_cc',    0, 'kodex_us_div_cc') +
+    c('KODEX 200타겟위클리CC',    'KODEX 200타겟위클리커버드콜', 'kodex_200wk_cc',     0, 'kodex_200wk_cc');
 
   document.getElementById('etf-cards').innerHTML =
     // 테마 ETF
@@ -3565,6 +3603,17 @@ const RAW_DATA_COL_MAP = {
   qqq:'QQQ', voo:'VOO', spy:'SPY',
   btc:'BTC(USD)', eth:'ETH(USD)',
   pce_core:'Core PCE', unemp:'실업률(%)', bok_rate:'BoK 기준금리', fed_rate:'미국 기준금리',
+  // B42 (5/19) — 한국 인기 ETF 10종
+  kodex_200:'KODEX 200',
+  kodex_kosdaq150:'KODEX 코스닥150',
+  kodex_2ndbat:'KODEX 2차전지',
+  kodex_lev:'KODEX 레버리지',
+  kodex_inv:'KODEX 인버스',
+  tiger_nasdaq100:'TIGER 미국나스닥100',
+  tiger_sp500:'TIGER 미국S&P500',
+  kodex_us_growth_cc:'KODEX 미국성장커버드콜',
+  kodex_us_div_cc:'KODEX 미국배당커버드콜',
+  kodex_200wk_cc:'KODEX 200타겟위클리커버드콜',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
@@ -3994,6 +4043,17 @@ const SEARCH_INDEX = [
   { label:'XLU · 유틸',       key:'xlu',  tags:['utilities','유틸리티','전력','xlu'] },
   { label:'XLRE · 부동산',    key:'xlre', tags:['real estate','부동산','reit','xlre'] },
   { label:'XLC · 통신',       key:'xlc',  tags:['communication','커뮤니케이션','통신','xlc'] },
+  // B42 (5/19) — 한국 인기 ETF 10종
+  { label:'KODEX 200',                    key:'kodex_200',          tags:['kodex','200','코덱스','069500','국내','kospi200','코스피200'] },
+  { label:'KODEX 코스닥150',              key:'kodex_kosdaq150',    tags:['kodex','코스닥','kosdaq150','229200','국내'] },
+  { label:'KODEX 2차전지',                key:'kodex_2ndbat',       tags:['kodex','2차전지','배터리','305720','battery','테마'] },
+  { label:'KODEX 레버리지',               key:'kodex_lev',          tags:['kodex','레버리지','leverage','122630','국내'] },
+  { label:'KODEX 인버스',                 key:'kodex_inv',          tags:['kodex','인버스','inverse','114800','국내'] },
+  { label:'TIGER 미국나스닥100',          key:'tiger_nasdaq100',    tags:['tiger','미국나스닥','나스닥','133690','국내해외'] },
+  { label:'TIGER 미국S&P500',             key:'tiger_sp500',        tags:['tiger','미국','sp500','s&p','360750','국내해외'] },
+  { label:'KODEX 미국성장커버드콜',       key:'kodex_us_growth_cc', tags:['kodex','미국성장','커버드콜','covered call','0144L0'] },
+  { label:'KODEX 미국배당커버드콜',       key:'kodex_us_div_cc',    tags:['kodex','미국배당','커버드콜','dividend','441640'] },
+  { label:'KODEX 200타겟위클리커버드콜',  key:'kodex_200wk_cc',     tags:['kodex','200','타겟위클리','커버드콜','weekly','498400'] },
 ];
 
 let _searchOpen = false;
@@ -4297,7 +4357,7 @@ async function loadAll() {
     '<div class="skeleton skeleton-line w-80"></div>' +
     '</div>';
   const cardLoadingHtml = skeletonCard + skeletonCard + skeletonCard + skeletonCard;
-  ['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
+  ['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = cardLoadingHtml;
   });
@@ -4308,7 +4368,7 @@ async function loadAll() {
   // 2. bundle-light fetch (1 라운드트립) — raw + mdd30 + sector + live
   fetchBundle('light').then(bundle => {
     if (!bundle || (!bundle.raw && !bundle.mdd)) {
-      _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+      _renderAreaError(['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
       return;
     }
 
@@ -4333,7 +4393,7 @@ async function loadAll() {
       initPopupDirection();
     } catch (e) {
       console.error('[renderRaw]', e);
-      _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
+      _renderAreaError(['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
     }
 
     try {
@@ -4348,7 +4408,7 @@ async function loadAll() {
     try { renderSectorHeatmap(); } catch (e) { console.error('[Sector]', e); }
   }).catch(e => {
     console.error('[Bundle light]', e);
-    _renderAreaError(['index-cards','macro-cards','commodity-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+    _renderAreaError(['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
   });
 
   // 5. 300ms 후 bundle-heavy (Insight + News) — 인지 속도 분리
