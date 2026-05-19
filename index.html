@@ -2143,6 +2143,34 @@ body.embed-mode .bento-row {
         <button class="macro-toggle-btn" id="macro-toggle-btn" onclick="toggleMacroExtra()">매크로 5개 더 보기 ▼</button>
       </div>
 
+      <!-- B46 (5/19) — 한국 시장 종합 (KRX 공식) — 매크로 탭 안 3개 sub-섹션 -->
+      <div class="section" data-tab-target="macro" style="--sc:#3b82f6;--sc-glow:rgba(59,130,246,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🇰🇷 한국 시장 밸류에이션</span>
+          <span class="section-badge">KOSPI/KOSDAQ PER · PBR · 시총가중 (D-1) · KRX 공식</span>
+        </div>
+        <div class="cards g4" id="kr-valuation-cards"></div>
+      </div>
+
+      <div class="section" data-tab-target="macro" style="--sc:#06b6d4;--sc-glow:rgba(6,182,212,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">💰 한국 수급</span>
+          <span class="section-badge">외국인 · 기관 순매수 (억원) · KRX 공식 (D-1)</span>
+        </div>
+        <div class="cards g4" id="kr-flow-cards"></div>
+      </div>
+
+      <div class="section" data-tab-target="macro" style="--sc:#8b5cf6;--sc-glow:rgba(139,92,246,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">📊 한국 시장 지표</span>
+          <span class="section-badge">시가총액 · 외국인 보유율 · 공매도 · KRX 공식 (D-1)</span>
+        </div>
+        <div class="cards g3" id="kr-market-cards"></div>
+      </div>
+
       <!-- 6. 원자재 -->
       <div class="section sec-commodity" data-tab-target="assets">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">🛢️ 원자재</span><span class="section-badge">[D-1] 전 거래일 종가 대비 등락</span></div>
@@ -2734,6 +2762,22 @@ const DETAIL = {
   kodex_us_growth_cc:  { title:'KODEX 미국성장커버드콜',       sub:'미국 성장주 + 콜옵션 매도 (Naver 전용)', sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 미국성장커버드콜',      color:'#f472b6' },
   kodex_us_div_cc:     { title:'KODEX 미국배당커버드콜',       sub:'미국 배당주 + 콜옵션 매도',              sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 미국배당커버드콜',      color:'#facc15' },
   kodex_200wk_cc:      { title:'KODEX 200타겟위클리커버드콜',  sub:'KOSPI 200 + 주간 콜옵션 매도',           sheet:'Raw Data', dateCol:'날짜', valCol:'KODEX 200타겟위클리커버드콜', color:'#22d3ee' },
+
+  // ── B46 (5/19) — KRX 한국 시장 종합 14종 ────────────────────────────
+  kospi_per:        { title:'KOSPI PER',              sub:'시총가중 PER · KRX 공식 (D-1)',           sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI PER',              color:'#60a5fa' },
+  kospi_pbr:        { title:'KOSPI PBR',              sub:'시총가중 PBR · KRX 공식 (D-1)',           sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI PBR',              color:'#34d399' },
+  kosdaq_per:       { title:'KOSDAQ PER',             sub:'시총가중 PER · KRX 공식 (D-1)',           sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ PER',             color:'#a78bfa' },
+  kosdaq_pbr:       { title:'KOSDAQ PBR',             sub:'시총가중 PBR · KRX 공식 (D-1)',           sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ PBR',             color:'#fb923c' },
+  kospi_forn_net:   { title:'KOSPI 외국인 순매수',    sub:'억원 · KRX 공식 (D-1)',                   sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 외국인순매수',     color:'#22d3ee' },
+  kospi_inst_net:   { title:'KOSPI 기관 순매수',      sub:'억원 · 금융투자~연기금 합산 (D-1)',       sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 기관순매수',       color:'#facc15' },
+  kosdaq_forn_net:  { title:'KOSDAQ 외국인 순매수',   sub:'억원 · KRX 공식 (D-1)',                   sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 외국인순매수',    color:'#06b6d4' },
+  kosdaq_inst_net:  { title:'KOSDAQ 기관 순매수',     sub:'억원 · 기관 합산 (D-1)',                  sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 기관순매수',      color:'#eab308' },
+  kospi_mcap:       { title:'KOSPI 시가총액',         sub:'조원 · 전종목 합산 (D-1)',                sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 시총(조원)',       color:'#10b981' },
+  kosdaq_mcap:      { title:'KOSDAQ 시가총액',        sub:'조원 · 전종목 합산 (D-1)',                sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 시총(조원)',      color:'#f59e0b' },
+  kospi_forn_rate:  { title:'KOSPI 외국인 보유율',    sub:'% · 시총가중 (D-1)',                      sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 외국인보유율(%)',  color:'#3b82f6', pct:true },
+  kosdaq_forn_rate: { title:'KOSDAQ 외국인 보유율',   sub:'% · 시총가중 (D-1)',                      sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 외국인보유율(%)', color:'#8b5cf6', pct:true },
+  kospi_short:      { title:'KOSPI 공매도 거래대금',  sub:'억원 · 투자자별 합계 (D-1)',              sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 공매도(억원)',     color:'#ef4444' },
+  kosdaq_short:     { title:'KOSDAQ 공매도 거래대금', sub:'억원 · 투자자별 합계 (D-1)',              sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 공매도(억원)',    color:'#dc2626' },
 };
 
 const KEY_NAMES = { gas:'천연가스', copper:'구리', gold:'금', silver:'은', smh:'SMH (반도체 ETF)', lit:'LIT (전지 ETF)', remx:'REMX (희토류 ETF)', btc:'BTC (비트코인)', eth:'ETH (이더리움)' };
@@ -2914,6 +2958,30 @@ function renderRaw(rows, liveData) {
     c('미국 실업률 (%)', '실업률(%)',      'unemp',    1) +
     c('미국 기준금리',   '미국 기준금리',  'fed_rate', 2) +
     c('BoK 기준금리',    'BoK 기준금리',   'bok_rate', 2);
+
+  // B46 (5/19) — 한국 시장 종합 (KRX 공식) — 3개 sub-섹션
+  // 1) 한국 밸류에이션 (PER/PBR 4)
+  document.getElementById('kr-valuation-cards').innerHTML =
+    c('KOSPI PER',  'KOSPI PER',  'kospi_per',  2, 'kospi_per') +
+    c('KOSPI PBR',  'KOSPI PBR',  'kospi_pbr',  2, 'kospi_pbr') +
+    c('KOSDAQ PER', 'KOSDAQ PER', 'kosdaq_per', 2, 'kosdaq_per') +
+    c('KOSDAQ PBR', 'KOSDAQ PBR', 'kosdaq_pbr', 2, 'kosdaq_pbr');
+
+  // 2) 한국 수급 (외국인/기관 순매수 4)
+  document.getElementById('kr-flow-cards').innerHTML =
+    c('KOSPI 외국인 순매수',  'KOSPI 외국인순매수',  'kospi_forn_net',  0, 'kospi_forn_net') +
+    c('KOSPI 기관 순매수',    'KOSPI 기관순매수',    'kospi_inst_net',  0, 'kospi_inst_net') +
+    c('KOSDAQ 외국인 순매수', 'KOSDAQ 외국인순매수', 'kosdaq_forn_net', 0, 'kosdaq_forn_net') +
+    c('KOSDAQ 기관 순매수',   'KOSDAQ 기관순매수',   'kosdaq_inst_net', 0, 'kosdaq_inst_net');
+
+  // 3) 한국 시장 지표 (시총 2 + 외국인 보유 2 + 공매도 2 = 6)
+  document.getElementById('kr-market-cards').innerHTML =
+    c('KOSPI 시총(조원)',         'KOSPI 시총(조원)',       'kospi_mcap',       1, 'kospi_mcap') +
+    c('KOSDAQ 시총(조원)',        'KOSDAQ 시총(조원)',      'kosdaq_mcap',      1, 'kosdaq_mcap') +
+    c('KOSPI 외국인 보유율',      'KOSPI 외국인보유율(%)',  'kospi_forn_rate',  2, 'kospi_forn_rate') +
+    c('KOSDAQ 외국인 보유율',     'KOSDAQ 외국인보유율(%)', 'kosdaq_forn_rate', 2, 'kosdaq_forn_rate') +
+    c('KOSPI 공매도(억원)',       'KOSPI 공매도(억원)',     'kospi_short',      0, 'kospi_short') +
+    c('KOSDAQ 공매도(억원)',      'KOSDAQ 공매도(억원)',    'kosdaq_short',     0, 'kosdaq_short');
 
   document.getElementById('commodity-cards').innerHTML =
     c('WTI 유가',   'WTI유가',    'wti',    2) + c('천연가스', '천연가스',   'gas',    3) +
@@ -3679,6 +3747,14 @@ const RAW_DATA_COL_MAP = {
   kodex_us_growth_cc:'KODEX 미국성장커버드콜',
   kodex_us_div_cc:'KODEX 미국배당커버드콜',
   kodex_200wk_cc:'KODEX 200타겟위클리커버드콜',
+  // B46 (5/19) — KRX 한국 시장 종합 14개
+  kospi_per:'KOSPI PER', kospi_pbr:'KOSPI PBR',
+  kosdaq_per:'KOSDAQ PER', kosdaq_pbr:'KOSDAQ PBR',
+  kospi_forn_net:'KOSPI 외국인순매수', kospi_inst_net:'KOSPI 기관순매수',
+  kosdaq_forn_net:'KOSDAQ 외국인순매수', kosdaq_inst_net:'KOSDAQ 기관순매수',
+  kospi_mcap:'KOSPI 시총(조원)', kosdaq_mcap:'KOSDAQ 시총(조원)',
+  kospi_forn_rate:'KOSPI 외국인보유율(%)', kosdaq_forn_rate:'KOSDAQ 외국인보유율(%)',
+  kospi_short:'KOSPI 공매도(억원)', kosdaq_short:'KOSDAQ 공매도(억원)',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
@@ -4119,6 +4195,21 @@ const SEARCH_INDEX = [
   { label:'KODEX 미국성장커버드콜',       key:'kodex_us_growth_cc', tags:['kodex','미국성장','커버드콜','covered call','0144L0'] },
   { label:'KODEX 미국배당커버드콜',       key:'kodex_us_div_cc',    tags:['kodex','미국배당','커버드콜','dividend','441640'] },
   { label:'KODEX 200타겟위클리커버드콜',  key:'kodex_200wk_cc',     tags:['kodex','200','타겟위클리','커버드콜','weekly','498400'] },
+  // B46 (5/19) — KRX 한국 시장 종합 14종
+  { label:'KOSPI PER',              key:'kospi_per',        tags:['kospi','per','코스피','밸류에이션','valuation','krx'] },
+  { label:'KOSPI PBR',              key:'kospi_pbr',        tags:['kospi','pbr','코스피','밸류에이션','krx'] },
+  { label:'KOSDAQ PER',             key:'kosdaq_per',       tags:['kosdaq','per','코스닥','밸류에이션','krx'] },
+  { label:'KOSDAQ PBR',             key:'kosdaq_pbr',       tags:['kosdaq','pbr','코스닥','밸류에이션','krx'] },
+  { label:'KOSPI 외국인 순매수',    key:'kospi_forn_net',   tags:['kospi','외국인','순매수','수급','foreign','krx'] },
+  { label:'KOSPI 기관 순매수',      key:'kospi_inst_net',   tags:['kospi','기관','순매수','수급','institution','krx'] },
+  { label:'KOSDAQ 외국인 순매수',   key:'kosdaq_forn_net',  tags:['kosdaq','외국인','순매수','수급','krx'] },
+  { label:'KOSDAQ 기관 순매수',     key:'kosdaq_inst_net',  tags:['kosdaq','기관','순매수','수급','krx'] },
+  { label:'KOSPI 시가총액',         key:'kospi_mcap',       tags:['kospi','시총','시가총액','marketcap','krx'] },
+  { label:'KOSDAQ 시가총액',        key:'kosdaq_mcap',      tags:['kosdaq','시총','시가총액','marketcap','krx'] },
+  { label:'KOSPI 외국인 보유율',    key:'kospi_forn_rate',  tags:['kospi','외국인','보유율','foreign','holding','krx'] },
+  { label:'KOSDAQ 외국인 보유율',   key:'kosdaq_forn_rate', tags:['kosdaq','외국인','보유율','krx'] },
+  { label:'KOSPI 공매도',           key:'kospi_short',      tags:['kospi','공매도','short','매도','krx'] },
+  { label:'KOSDAQ 공매도',          key:'kosdaq_short',     tags:['kosdaq','공매도','short','krx'] },
 ];
 
 let _searchOpen = false;
@@ -4422,7 +4513,7 @@ async function loadAll() {
     '<div class="skeleton skeleton-line w-80"></div>' +
     '</div>';
   const cardLoadingHtml = skeletonCard + skeletonCard + skeletonCard + skeletonCard;
-  ['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
+  ['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = cardLoadingHtml;
   });
@@ -4433,7 +4524,7 @@ async function loadAll() {
   // 2. bundle-light fetch (1 라운드트립) — raw + mdd30 + sector + live
   fetchBundle('light').then(bundle => {
     if (!bundle || (!bundle.raw && !bundle.mdd)) {
-      _renderAreaError(['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
       return;
     }
 
@@ -4458,7 +4549,7 @@ async function loadAll() {
       initPopupDirection();
     } catch (e) {
       console.error('[renderRaw]', e);
-      _renderAreaError(['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
     }
 
     try {
@@ -4473,7 +4564,7 @@ async function loadAll() {
     try { renderSectorHeatmap(); } catch (e) { console.error('[Sector]', e); }
   }).catch(e => {
     console.error('[Bundle light]', e);
-    _renderAreaError(['index-cards','macro-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+    _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
   });
 
   // 5. 300ms 후 bundle-heavy (Insight + News) — 인지 속도 분리
