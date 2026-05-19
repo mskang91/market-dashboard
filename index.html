@@ -1484,6 +1484,8 @@ body.embed-mode .bento-row {
         #market-pulse .legend dl { padding: 4px 14px 12px; margin: 0; border-top: 1px solid rgba(128, 128, 128, 0.2); }
         #market-pulse .legend dt { font-weight: 700; margin-top: 10px; color: inherit; }
         #market-pulse .legend dd { margin: 4px 0 0 0; opacity: 0.75; color: inherit; }
+        /* B46-fix (5/19) — 펼치면 자연스럽게 다음 줄에 풀폭, 오른쪽 박스 갇힘 방지 */
+        #market-pulse .legend[open] { flex-basis: 100%; width: 100%; margin-top: 8px; background: rgba(255,255,255,0.02); }
 
         #market-pulse section { margin-top: var(--s-5); padding: var(--s-5); border-radius: var(--r-md); background: var(--surface-1); }
         #market-pulse section h3 { margin: 0 0 var(--s-3) 0; font-size: 15px; font-weight: 700; color: var(--text); }
@@ -2967,12 +2969,12 @@ function renderRaw(rows, liveData) {
     c('KOSDAQ PER', 'KOSDAQ PER', 'kosdaq_per', 2, 'kosdaq_per') +
     c('KOSDAQ PBR', 'KOSDAQ PBR', 'kosdaq_pbr', 2, 'kosdaq_pbr');
 
-  // 2) 한국 수급 (외국인/기관 순매수 4)
+  // 2) 한국 수급 (외국인/기관 순매수 4) — 라벨에 (억원) 단위 명시
   document.getElementById('kr-flow-cards').innerHTML =
-    c('KOSPI 외국인 순매수',  'KOSPI 외국인순매수',  'kospi_forn_net',  0, 'kospi_forn_net') +
-    c('KOSPI 기관 순매수',    'KOSPI 기관순매수',    'kospi_inst_net',  0, 'kospi_inst_net') +
-    c('KOSDAQ 외국인 순매수', 'KOSDAQ 외국인순매수', 'kosdaq_forn_net', 0, 'kosdaq_forn_net') +
-    c('KOSDAQ 기관 순매수',   'KOSDAQ 기관순매수',   'kosdaq_inst_net', 0, 'kosdaq_inst_net');
+    c('KOSPI 외국인순매수(억)',  'KOSPI 외국인순매수',  'kospi_forn_net',  0, 'kospi_forn_net') +
+    c('KOSPI 기관순매수(억)',    'KOSPI 기관순매수',    'kospi_inst_net',  0, 'kospi_inst_net') +
+    c('KOSDAQ 외국인순매수(억)', 'KOSDAQ 외국인순매수', 'kosdaq_forn_net', 0, 'kosdaq_forn_net') +
+    c('KOSDAQ 기관순매수(억)',   'KOSDAQ 기관순매수',   'kosdaq_inst_net', 0, 'kosdaq_inst_net');
 
   // 3) 한국 시장 지표 (시총 2 + 외국인 보유 2 + 공매도 2 = 6)
   document.getElementById('kr-market-cards').innerHTML =
