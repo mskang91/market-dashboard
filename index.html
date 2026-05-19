@@ -1216,6 +1216,71 @@ body.embed-mode .search-btn { display: none !important; }
   .search-input { font-size: 16px; }
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   B79 (5/19) — Tistory 임베드 폰트 확대 + 좌우 여백 축소
+   Tistory 사이드바 때문에 iframe 가용 폭이 약 980px → 카드 폰트 작아 보임.
+   임베드 모드에서 main padding 축소 + 카드 폰트 floor 보장 + 그리드 반응형 보강.
+   데스크탑/모바일 단독 사이트는 영향 없음.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* 1. main 좌우 padding 축소 — 가용 폭 +~40px 확보 */
+body.embed-mode .main {
+  padding: 12px 8px 40px !important;
+  max-width: 100% !important;
+}
+
+/* 2. 카드 내부 padding 축소 — 콘텐츠 영역 확장 */
+body.embed-mode .card {
+  padding: var(--s-3, 12px) var(--s-4, 14px) !important;
+}
+
+/* 3. 카드 폰트 floor 보장 — 임베드에서도 가독성 유지 */
+body.embed-mode .card-label  { font-size: 13px !important; margin-bottom: 6px !important; }
+body.embed-mode .card-value  { font-size: 19px !important; margin-bottom: 4px !important; line-height: 1.2; }
+body.embed-mode .card-change { font-size: 12.5px !important; }
+body.embed-mode .card-abs    { font-size: 11.5px !important; }
+body.embed-mode .card-date   { font-size: 10.5px !important; margin-top: 4px !important; }
+
+/* 4. 섹션 헤더 폰트 살짝 키움 — 가독성 + 위계 강화 */
+body.embed-mode .section-title { font-size: 16px !important; }
+body.embed-mode .section-badge { font-size: 11.5px !important; }
+
+/* 5. 그리드 반응형 보강 — 좁은 iframe에서 자동 wrap 후 카드 너비 보장 */
+/*    floor 155px → 980px에서 5~6열, 모바일에서 2~3열로 자연 wrap */
+body.embed-mode .cards.g4,
+body.embed-mode .cards.g5,
+body.embed-mode .cards.g7 {
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)) !important;
+}
+body.embed-mode .cards.g3 {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+}
+body.embed-mode .cards.g2 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+}
+
+/* 6. 섹션 사이 간격 약간 축소 — 임베드에서 한 화면에 더 많이 보이도록 */
+body.embed-mode .section { margin-bottom: 20px !important; }
+body.embed-mode .section-header { margin-bottom: 12px !important; padding-bottom: 8px !important; }
+
+/* 7. bento-row (테마 ETF + 가상화폐) 좁은 폭에서 세로 stack */
+body.embed-mode .bento-row {
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+}
+
+/* 8. 모바일 임베드 (iframe < 600px) — 추가 폰트 보강 */
+@media (max-width: 600px) {
+  body.embed-mode .main { padding: 8px 6px 32px !important; }
+  body.embed-mode .card { padding: 10px 12px !important; }
+  body.embed-mode .card-value { font-size: 17px !important; }
+  body.embed-mode .cards.g4,
+  body.embed-mode .cards.g5,
+  body.embed-mode .cards.g7 {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+  }
+}
+
 /* B54 (5/18) — 섹터 회전 매트릭스 */
 .sec-rot-matrix {
   display: grid;
