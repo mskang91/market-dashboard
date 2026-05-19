@@ -2271,6 +2271,16 @@ body.embed-mode .bento-row {
         <div class="cards g3" id="kr-market-cards"></div>
       </div>
 
+      <!-- B45 (5/19) — 한국 채권수익률 (KRX 장외 11개) -->
+      <div class="section" data-tab-target="macro" style="--sc:#22d3ee;--sc-glow:rgba(34,211,238,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🏦 한국 채권수익률</span>
+          <span class="section-badge">국고채 · 회사채 · CD · 장외 시장 (D-1) · KRX 공식</span>
+        </div>
+        <div class="cards g4" id="kr-bond-cards"></div>
+      </div>
+
       <!-- 6. 원자재 -->
       <div class="section sec-commodity" data-tab-target="assets">
         <div class="section-header"><div class="section-bar"></div><span class="section-title">🛢️ 원자재</span><span class="section-badge">[D-1] 전 거래일 종가 대비 등락</span></div>
@@ -2884,6 +2894,19 @@ const DETAIL = {
   kospi_other_net:  { title:'KOSPI 기타법인 순매수',  sub:'억원 · 일별 추이',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 기타법인순매수',   color:'#84cc16' },
   kosdaq_indiv_net: { title:'KOSDAQ 개인 순매수',     sub:'억원 · 일별 추이',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 개인순매수',      color:'#fb7185' },
   kosdaq_other_net: { title:'KOSDAQ 기타법인 순매수', sub:'억원 · 일별 추이',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 기타법인순매수',  color:'#a3e635' },
+
+  // ── B45 (5/19) — KRX 장외 채권수익률 11개 ──
+  ktb_1y:   { title:'국고채 1년',    sub:'장외 채권수익률 (D-1) · KRX 공식',  sheet:'Raw Data', dateCol:'날짜', valCol:'국고채 1Y',   color:'#60a5fa', pct:true },
+  ktb_2y:   { title:'국고채 2년',    sub:'장외 채권수익률 (D-1) · KRX 공식',  sheet:'Raw Data', dateCol:'날짜', valCol:'국고채 2Y',   color:'#3b82f6', pct:true },
+  ktb_3y:   { title:'국고채 3년',    sub:'장외 채권수익률 (D-1) · KRX 공식',  sheet:'Raw Data', dateCol:'날짜', valCol:'국고채 3Y',   color:'#2563eb', pct:true },
+  ktb_5y:   { title:'국고채 5년',    sub:'장외 채권수익률 (D-1) · KRX 공식',  sheet:'Raw Data', dateCol:'날짜', valCol:'국고채 5Y',   color:'#1d4ed8', pct:true },
+  ktb_10y:  { title:'국고채 10년',   sub:'장외 채권수익률 (D-1) · 한국 시장 벤치마크', sheet:'Raw Data', dateCol:'날짜', valCol:'국고채 10Y',  color:'#a78bfa', pct:true },
+  ktb_20y:  { title:'국고채 20년',   sub:'장외 채권수익률 (D-1) · 장기',      sheet:'Raw Data', dateCol:'날짜', valCol:'국고채 20Y',  color:'#9333ea', pct:true },
+  ktb_30y:  { title:'국고채 30년',   sub:'장외 채권수익률 (D-1) · 초장기',    sheet:'Raw Data', dateCol:'날짜', valCol:'국고채 30Y',  color:'#7e22ce', pct:true },
+  nhf_5y:   { title:'국민주택 5년',  sub:'1종 5년 · 장외 채권수익률 (D-1)',   sheet:'Raw Data', dateCol:'날짜', valCol:'국민주택 5Y', color:'#22d3ee', pct:true },
+  corp_aa:  { title:'회사채 AA-',    sub:'무보증 3년 · 신용 우량',            sheet:'Raw Data', dateCol:'날짜', valCol:'회사채 AA-',  color:'#34d399', pct:true },
+  corp_bbb: { title:'회사채 BBB-',   sub:'무보증 3년 · 투기등급 직전',        sheet:'Raw Data', dateCol:'날짜', valCol:'회사채 BBB-', color:'#f59e0b', pct:true },
+  cd_91d:   { title:'CD 91일',       sub:'단기 자금 시장 금리 · 기준금리 반영', sheet:'Raw Data', dateCol:'날짜', valCol:'CD 91D',     color:'#fbbf24', pct:true },
 };
 
 const KEY_NAMES = { gas:'천연가스', copper:'구리', gold:'금', silver:'은', smh:'SMH (반도체 ETF)', lit:'LIT (전지 ETF)', remx:'REMX (희토류 ETF)', btc:'BTC (비트코인)', eth:'ETH (이더리움)' };
@@ -3150,6 +3173,21 @@ function renderRaw(rows, liveData) {
     c('KOSDAQ 외국인 보유율',     'KOSDAQ 외국인보유율(%)', 'kosdaq_forn_rate', 2, 'kosdaq_forn_rate') +
     c('KOSPI 공매도(억원)',       'KOSPI 공매도(억원)',     'kospi_short',      0, 'kospi_short') +
     c('KOSDAQ 공매도(억원)',      'KOSDAQ 공매도(억원)',    'kosdaq_short',     0, 'kosdaq_short');
+
+  // B45 (5/19) — 한국 채권수익률 11개 (g4 그리드 × 3줄: 11개 → 마지막 줄 3개 wrap)
+  // 단기 → 장기 순서: CD → 국고채 1Y → ... → 국고채 30Y → 국민주택 5Y → 회사채 AA- → 회사채 BBB-
+  document.getElementById('kr-bond-cards').innerHTML =
+    c('CD 91일',         'CD 91D',        'cd_91d',   2, 'cd_91d') +
+    c('국고채 1년',      '국고채 1Y',     'ktb_1y',   2, 'ktb_1y') +
+    c('국고채 2년',      '국고채 2Y',     'ktb_2y',   2, 'ktb_2y') +
+    c('국고채 3년',      '국고채 3Y',     'ktb_3y',   2, 'ktb_3y') +
+    c('국고채 5년',      '국고채 5Y',     'ktb_5y',   2, 'ktb_5y') +
+    c('국고채 10년',     '국고채 10Y',    'ktb_10y',  2, 'ktb_10y') +
+    c('국고채 20년',     '국고채 20Y',    'ktb_20y',  2, 'ktb_20y') +
+    c('국고채 30년',     '국고채 30Y',    'ktb_30y',  2, 'ktb_30y') +
+    c('국민주택 5년',    '국민주택 5Y',   'nhf_5y',   2, 'nhf_5y') +
+    c('회사채 AA-',      '회사채 AA-',    'corp_aa',  2, 'corp_aa') +
+    c('회사채 BBB-',     '회사채 BBB-',   'corp_bbb', 2, 'corp_bbb');
 
   document.getElementById('commodity-cards').innerHTML =
     c('WTI 유가',   'WTI유가',    'wti',    2) + c('천연가스', '천연가스',   'gas',    3) +
@@ -3926,6 +3964,10 @@ const RAW_DATA_COL_MAP = {
   // B46 매트릭스 확장 (5/19) — 개인/기타법인 순매수
   kospi_indiv_net:'KOSPI 개인순매수',   kospi_other_net:'KOSPI 기타법인순매수',
   kosdaq_indiv_net:'KOSDAQ 개인순매수', kosdaq_other_net:'KOSDAQ 기타법인순매수',
+  // B45 (5/19) — KRX 채권수익률 11개
+  ktb_1y:'국고채 1Y',  ktb_2y:'국고채 2Y',  ktb_3y:'국고채 3Y',
+  ktb_5y:'국고채 5Y',  ktb_10y:'국고채 10Y', ktb_20y:'국고채 20Y', ktb_30y:'국고채 30Y',
+  nhf_5y:'국민주택 5Y', corp_aa:'회사채 AA-', corp_bbb:'회사채 BBB-', cd_91d:'CD 91D',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
@@ -4386,6 +4428,18 @@ const SEARCH_INDEX = [
   { label:'KOSPI 기타법인 순매수',  key:'kospi_other_net',  tags:['kospi','기타법인','순매수','other','krx'] },
   { label:'KOSDAQ 개인 순매수',     key:'kosdaq_indiv_net', tags:['kosdaq','개인','순매수','individual','krx'] },
   { label:'KOSDAQ 기타법인 순매수', key:'kosdaq_other_net', tags:['kosdaq','기타법인','순매수','other','krx'] },
+  // B45 (5/19) — 채권수익률
+  { label:'국고채 1년',     key:'ktb_1y',   tags:['국고채','채권','bond','1년','treasury','krx'] },
+  { label:'국고채 2년',     key:'ktb_2y',   tags:['국고채','채권','2년','krx'] },
+  { label:'국고채 3년',     key:'ktb_3y',   tags:['국고채','채권','3년','krx'] },
+  { label:'국고채 5년',     key:'ktb_5y',   tags:['국고채','채권','5년','krx'] },
+  { label:'국고채 10년',    key:'ktb_10y',  tags:['국고채','채권','10년','벤치마크','krx'] },
+  { label:'국고채 20년',    key:'ktb_20y',  tags:['국고채','채권','20년','장기','krx'] },
+  { label:'국고채 30년',    key:'ktb_30y',  tags:['국고채','채권','30년','초장기','krx'] },
+  { label:'국민주택 5년',   key:'nhf_5y',   tags:['국민주택','채권','5년','krx'] },
+  { label:'회사채 AA-',     key:'corp_aa',  tags:['회사채','aa','우량','corp','krx'] },
+  { label:'회사채 BBB-',    key:'corp_bbb', tags:['회사채','bbb','투기','high yield','krx'] },
+  { label:'CD 91일',        key:'cd_91d',   tags:['cd','91일','단기금리','krx'] },
 ];
 
 let _searchOpen = false;
@@ -4689,7 +4743,7 @@ async function loadAll() {
     '<div class="skeleton skeleton-line w-80"></div>' +
     '</div>';
   const cardLoadingHtml = skeletonCard + skeletonCard + skeletonCard + skeletonCard;
-  ['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
+  ['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = cardLoadingHtml;
   });
@@ -4700,7 +4754,7 @@ async function loadAll() {
   // 2. bundle-light fetch (1 라운드트립) — raw + mdd30 + sector + live
   fetchBundle('light').then(bundle => {
     if (!bundle || (!bundle.raw && !bundle.mdd)) {
-      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
       return;
     }
 
@@ -4725,7 +4779,7 @@ async function loadAll() {
       initPopupDirection();
     } catch (e) {
       console.error('[renderRaw]', e);
-      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
     }
 
     try {
@@ -4740,7 +4794,7 @@ async function loadAll() {
     try { renderSectorHeatmap(); } catch (e) { console.error('[Sector]', e); }
   }).catch(e => {
     console.error('[Bundle light]', e);
-    _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+    _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
   });
 
   // 5. 300ms 후 bundle-heavy (Insight + News) — 인지 속도 분리
