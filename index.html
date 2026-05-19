@@ -201,6 +201,94 @@ body.light .section-header { border-bottom-color: var(--border); }
 .bento-row { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; margin-bottom: 28px; }
 .bento-row .section { margin-bottom: 0; }
 
+/* ════════════════════════════════════════════════════════════════════
+   B46 매트릭스 카드 (5/19) — 한국 수급 (외국인/기관/개인/기타법인)
+   - 중앙축 좌우 막대로 매수(우)/매도(좌) 방향 한눈에
+   - 각 row 클릭 → 해당 카테고리 detail 차트
+   - 모바일(<600px): 막대 숨김 + 텍스트만 (가독성 우선)
+   ════════════════════════════════════════════════════════════════════ */
+.flow-matrix-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--s-5) var(--s-5) var(--s-4);
+  transition: all var(--d-base) var(--ease);
+  position: relative;
+  cursor: default;
+}
+.flow-matrix-card:hover { border-color: var(--border2); }
+body.light .flow-matrix-card { background: var(--bg2); }
+
+.flow-matrix-card .flow-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: var(--text2); margin-bottom: 12px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.flow-matrix-card .flow-title { font-weight: 700; font-size: 13px; color: var(--text); }
+.flow-matrix-card .flow-badge { font-size: 10.5px; color: var(--text3); }
+
+.flow-matrix-card .flow-rows { display: flex; flex-direction: column; gap: 6px; }
+
+.flow-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 1px 1fr 92px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.flow-row:hover { background: rgba(255,255,255,0.04); }
+body.light .flow-row:hover { background: rgba(0,0,0,0.03); }
+.flow-row:active { transform: scale(0.98); transition: transform 0.08s; }
+
+.flow-row .flow-label { font-size: 12.5px; color: var(--text2); font-weight: 500; }
+.flow-row .flow-axis { width: 1px; height: 16px; background: var(--border2); }
+.flow-row .flow-value { font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 좌측 막대 (매도, 음수) */
+.flow-row .flow-bar-left {
+  height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  position: relative; justify-self: stretch; align-self: center;
+  overflow: hidden;
+}
+.flow-row .flow-bar-left .flow-fill {
+  position: absolute; right: 0; top: 0; height: 100%;
+  background: var(--red); border-radius: 3px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 우측 막대 (매수, 양수) */
+.flow-row .flow-bar-right {
+  height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  position: relative; justify-self: stretch; align-self: center;
+  overflow: hidden;
+}
+.flow-row .flow-bar-right .flow-fill {
+  position: absolute; left: 0; top: 0; height: 100%;
+  background: var(--green); border-radius: 3px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.light .flow-row .flow-bar-left,
+body.light .flow-row .flow-bar-right { background: rgba(0,0,0,0.04); }
+
+.flow-row.up .flow-value { color: var(--green); }
+.flow-row.down .flow-value { color: var(--red); }
+.flow-row.neutral .flow-value { color: var(--text3); }
+
+/* 모바일: 막대 숨김 + 텍스트만 */
+@media (max-width: 600px) {
+  .flow-row { grid-template-columns: 56px 1fr; gap: 8px; padding: 8px 4px; }
+  .flow-row .flow-bar-left,
+  .flow-row .flow-axis,
+  .flow-row .flow-bar-right { display: none; }
+  .flow-row .flow-value { font-size: 14px; }
+}
+
 /* CARD */
 .card {
   background: var(--bg2);
@@ -2159,9 +2247,9 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">💰 한국 수급</span>
-          <span class="section-badge">외국인 · 기관 순매수 (억원) · KRX 공식 (D-1)</span>
+          <span class="section-badge">외국인 · 기관 · 개인 · 기타법인 순매수 (억원) · KRX 공식 (D-1) · 각 줄 클릭 시 추이 확인</span>
         </div>
-        <div class="cards g4" id="kr-flow-cards"></div>
+        <div class="cards g2" id="kr-flow-cards"></div>
       </div>
 
       <div class="section" data-tab-target="macro" style="--sc:#8b5cf6;--sc-glow:rgba(139,92,246,0.35)">
@@ -2780,6 +2868,12 @@ const DETAIL = {
   kosdaq_forn_rate: { title:'KOSDAQ 외국인 보유율',   sub:'% · 시총가중 (D-1)',                      sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 외국인보유율(%)', color:'#8b5cf6', pct:true },
   kospi_short:      { title:'KOSPI 공매도 거래대금',  sub:'억원 · 투자자별 합계 (D-1)',              sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 공매도(억원)',     color:'#ef4444' },
   kosdaq_short:     { title:'KOSDAQ 공매도 거래대금', sub:'억원 · 투자자별 합계 (D-1)',              sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 공매도(억원)',    color:'#dc2626' },
+
+  // ── B46 매트릭스 확장 (5/19) — 개인/기타법인 순매수 (row 클릭 시 detail) ──
+  kospi_indiv_net:  { title:'KOSPI 개인 순매수',      sub:'억원 · 일별 추이',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 개인순매수',       color:'#f97316' },
+  kospi_other_net:  { title:'KOSPI 기타법인 순매수',  sub:'억원 · 일별 추이',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KOSPI 기타법인순매수',   color:'#84cc16' },
+  kosdaq_indiv_net: { title:'KOSDAQ 개인 순매수',     sub:'억원 · 일별 추이',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 개인순매수',      color:'#fb7185' },
+  kosdaq_other_net: { title:'KOSDAQ 기타법인 순매수', sub:'억원 · 일별 추이',                        sheet:'Raw Data', dateCol:'날짜', valCol:'KOSDAQ 기타법인순매수',  color:'#a3e635' },
 };
 
 const KEY_NAMES = { gas:'천연가스', copper:'구리', gold:'금', silver:'은', smh:'SMH (반도체 ETF)', lit:'LIT (전지 ETF)', remx:'REMX (희토류 ETF)', btc:'BTC (비트코인)', eth:'ETH (이더리움)' };
@@ -2938,6 +3032,59 @@ function renderRaw(rows, liveData) {
     return mkCard(label, val, chg(col), pct(col), key, dec, infoKey, rawDate, spark(col, 7));
   }
 
+  // B46 매트릭스 카드 (5/19) — KOSPI/KOSDAQ 수급
+  // categories: [{ label, col, key }, ...] — 4행 (외국인/기관/개인/기타법인)
+  function flowMatrixCard(title, dateStr, categories) {
+    // 각 row 값 (last) 추출
+    const vals = categories.map(c => ({
+      label: c.label,
+      key: c.key,
+      val: last(c.col),
+    }));
+    // 카드 내부 max 절댓값 (막대 길이 기준)
+    const maxAbs = Math.max.apply(null, vals.map(v => Math.abs(v.val || 0))) || 1;
+
+    const rows = vals.map(v => {
+      const num = v.val;
+      if (num == null || isNaN(num)) {
+        return '<div class="flow-row neutral">' +
+          '<span class="flow-label">' + v.label + '</span>' +
+          '<div class="flow-bar-left"></div>' +
+          '<div class="flow-axis"></div>' +
+          '<div class="flow-bar-right"></div>' +
+          '<span class="flow-value">—</span>' +
+          '</div>';
+      }
+      const isUp = num > 0;
+      const isDown = num < 0;
+      const cls = isUp ? 'up' : (isDown ? 'down' : 'neutral');
+      const pct = (Math.abs(num) / maxAbs) * 100;
+      const arrow = isUp ? '▲' : (isDown ? '▼' : '–');
+      const sign = isUp ? '+' : '';
+      const formatted = arrow + ' ' + sign + Math.round(num).toLocaleString();
+
+      // 매도(음수)는 좌측 막대만, 매수(양수)는 우측 막대만
+      const leftFill  = isDown ? '<div class="flow-fill" style="width:' + pct.toFixed(1) + '%"></div>' : '';
+      const rightFill = isUp   ? '<div class="flow-fill" style="width:' + pct.toFixed(1) + '%"></div>' : '';
+
+      return '<div class="flow-row ' + cls + '" onclick="showDetail(\'' + v.key + '\')">' +
+        '<span class="flow-label">' + v.label + '</span>' +
+        '<div class="flow-bar-left">' + leftFill + '</div>' +
+        '<div class="flow-axis"></div>' +
+        '<div class="flow-bar-right">' + rightFill + '</div>' +
+        '<span class="flow-value">' + formatted + '</span>' +
+        '</div>';
+    }).join('');
+
+    return '<div class="flow-matrix-card">' +
+      '<div class="flow-header">' +
+        '<span class="flow-title">' + title + '</span>' +
+        '<span class="flow-badge">' + (dateStr || '') + ' · 억원</span>' +
+      '</div>' +
+      '<div class="flow-rows">' + rows + '</div>' +
+    '</div>';
+  }
+
   document.getElementById('index-cards').innerHTML =
     c('S&P 500','S&P500','sp500') + c('NASDAQ','NASDAQ','nasdaq') +
     c('KOSPI','KOSPI','kospi')    + c('KOSDAQ','KOSDAQ','kosdaq');
@@ -2969,12 +3116,20 @@ function renderRaw(rows, liveData) {
     c('KOSDAQ PER', 'KOSDAQ PER', 'kosdaq_per', 2, 'kosdaq_per') +
     c('KOSDAQ PBR', 'KOSDAQ PBR', 'kosdaq_pbr', 2, 'kosdaq_pbr');
 
-  // 2) 한국 수급 (외국인/기관 순매수 4) — 라벨에 (억원) 단위 명시
+  // 2) 한국 수급 매트릭스 (B46 매트릭스, 5/19) — KOSPI/KOSDAQ 각 1개 카드, 4 카테고리 row
   document.getElementById('kr-flow-cards').innerHTML =
-    c('KOSPI 외국인순매수(억)',  'KOSPI 외국인순매수',  'kospi_forn_net',  0, 'kospi_forn_net') +
-    c('KOSPI 기관순매수(억)',    'KOSPI 기관순매수',    'kospi_inst_net',  0, 'kospi_inst_net') +
-    c('KOSDAQ 외국인순매수(억)', 'KOSDAQ 외국인순매수', 'kosdaq_forn_net', 0, 'kosdaq_forn_net') +
-    c('KOSDAQ 기관순매수(억)',   'KOSDAQ 기관순매수',   'kosdaq_inst_net', 0, 'kosdaq_inst_net');
+    flowMatrixCard('🇰🇷 KOSPI 수급', rawDate, [
+      { label:'외국인',    col:'KOSPI 외국인순매수',    key:'kospi_forn_net' },
+      { label:'기관',      col:'KOSPI 기관순매수',      key:'kospi_inst_net' },
+      { label:'개인',      col:'KOSPI 개인순매수',      key:'kospi_indiv_net' },
+      { label:'기타법인',  col:'KOSPI 기타법인순매수',  key:'kospi_other_net' },
+    ]) +
+    flowMatrixCard('🇰🇷 KOSDAQ 수급', rawDate, [
+      { label:'외국인',    col:'KOSDAQ 외국인순매수',    key:'kosdaq_forn_net' },
+      { label:'기관',      col:'KOSDAQ 기관순매수',      key:'kosdaq_inst_net' },
+      { label:'개인',      col:'KOSDAQ 개인순매수',      key:'kosdaq_indiv_net' },
+      { label:'기타법인',  col:'KOSDAQ 기타법인순매수',  key:'kosdaq_other_net' },
+    ]);
 
   // 3) 한국 시장 지표 (시총 2 + 외국인 보유 2 + 공매도 2 = 6)
   document.getElementById('kr-market-cards').innerHTML =
@@ -3757,6 +3912,9 @@ const RAW_DATA_COL_MAP = {
   kospi_mcap:'KOSPI 시총(조원)', kosdaq_mcap:'KOSDAQ 시총(조원)',
   kospi_forn_rate:'KOSPI 외국인보유율(%)', kosdaq_forn_rate:'KOSDAQ 외국인보유율(%)',
   kospi_short:'KOSPI 공매도(억원)', kosdaq_short:'KOSDAQ 공매도(억원)',
+  // B46 매트릭스 확장 (5/19) — 개인/기타법인 순매수
+  kospi_indiv_net:'KOSPI 개인순매수',   kospi_other_net:'KOSPI 기타법인순매수',
+  kosdaq_indiv_net:'KOSDAQ 개인순매수', kosdaq_other_net:'KOSDAQ 기타법인순매수',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
@@ -4212,6 +4370,11 @@ const SEARCH_INDEX = [
   { label:'KOSDAQ 외국인 보유율',   key:'kosdaq_forn_rate', tags:['kosdaq','외국인','보유율','krx'] },
   { label:'KOSPI 공매도',           key:'kospi_short',      tags:['kospi','공매도','short','매도','krx'] },
   { label:'KOSDAQ 공매도',          key:'kosdaq_short',     tags:['kosdaq','공매도','short','krx'] },
+  // B46 매트릭스 확장 (5/19) — 개인/기타법인
+  { label:'KOSPI 개인 순매수',      key:'kospi_indiv_net',  tags:['kospi','개인','순매수','individual','krx'] },
+  { label:'KOSPI 기타법인 순매수',  key:'kospi_other_net',  tags:['kospi','기타법인','순매수','other','krx'] },
+  { label:'KOSDAQ 개인 순매수',     key:'kosdaq_indiv_net', tags:['kosdaq','개인','순매수','individual','krx'] },
+  { label:'KOSDAQ 기타법인 순매수', key:'kosdaq_other_net', tags:['kosdaq','기타법인','순매수','other','krx'] },
 ];
 
 let _searchOpen = false;
