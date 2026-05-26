@@ -299,6 +299,94 @@ body.light .flow-row .flow-bar-right { background: rgba(0,0,0,0.04); }
   letter-spacing: 0.1px;
 }
 
+/* B92 (5/20) — 수급 Top 10 카드 */
+.flow-top-card {
+  background: var(--bg2-card, var(--bg2));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.flow-top-card.theme-buy   { border-top: 3px solid #10b981; }
+.flow-top-card.theme-short { border-top: 3px solid #ef4444; }
+.flow-top-card.empty       { opacity: 0.7; }
+body.light .flow-top-card { background: var(--bg2); }
+.flow-top-card .flow-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.flow-top-card .flow-top-title { font-weight: 700; font-size: 13px; color: var(--text); }
+.flow-top-card .flow-top-badge { font-size: 10.5px; color: var(--text2); }
+.flow-top-card .flow-top-empty {
+  font-size: 12px;
+  color: var(--text3);
+  padding: 16px 0;
+  text-align: center;
+  font-style: italic;
+}
+.flow-top-card .flow-top-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.flow-top-card .ft-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 1fr 80px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+.flow-top-card .ft-row:last-child { border-bottom: none; }
+.flow-top-card .ft-rank {
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--text2);
+  text-align: center;
+}
+.flow-top-card .ft-name {
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flow-top-card .ft-barwrap {
+  position: relative;
+  height: 10px;
+  background: var(--bg3, rgba(255,255,255,0.04));
+  border-radius: 5px;
+  overflow: hidden;
+}
+.flow-top-card .ft-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 5px;
+}
+.flow-top-card.theme-short .ft-bar {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+.flow-top-card .ft-val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 11.5px;
+}
+@media (max-width: 640px) {
+  .flow-top-card .ft-row {
+    grid-template-columns: 18px 1fr 60px;
+  }
+  .flow-top-card .ft-barwrap { display: none; }
+}
+
 /* CARD */
 .card {
   background: var(--bg2);
@@ -2387,6 +2475,26 @@ body.embed-mode .bento-row {
         <div class="cards g3" id="kr-market-cards"></div>
       </div>
 
+      <!-- B92 (5/20) — 한국 수급 Top 10 (외국인 순매수 + 공매도 거래) -->
+      <div class="section" data-tab-target="macro" style="--sc:#f97316;--sc-glow:rgba(249,115,22,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🎯 한국 수급 Top 10</span>
+          <span class="section-badge">외국인 순매수 + 공매도 거래 · KRX 공식 (D-1) · 19:00 KST 갱신</span>
+        </div>
+        <div class="cards g2" id="kr-flow-top-cards"></div>
+      </div>
+
+      <!-- B93 (5/20) — 한국 섹터 지수 (KRX 테마 10개, 미국 GICS 11과 대칭) -->
+      <div class="section" data-tab-target="macro" style="--sc:#a78bfa;--sc-glow:rgba(167,139,250,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🇰🇷 한국 섹터 지수</span>
+          <span class="section-badge">KRX 테마 10개 · 일일 등락률 · KRX 공식 (D-1) · 19:00 KST 갱신</span>
+        </div>
+        <div class="cards g5" id="kr-sector-cards"></div>
+      </div>
+
       <!-- B45 (5/19) — 한국 채권수익률 (KRX 장외 11개) -->
       <div class="section" data-tab-target="macro" style="--sc:#22d3ee;--sc-glow:rgba(34,211,238,0.35)">
         <div class="section-header">
@@ -2395,6 +2503,46 @@ body.embed-mode .bento-row {
           <span class="section-badge">국고채 · 회사채 · CD · 장외 시장 (D-1) · KRX 공식</span>
         </div>
         <div class="cards g4" id="kr-bond-cards"></div>
+      </div>
+
+      <!-- B108 (5/26) — 미국 연준 유동성 4종 (FRED, assetx2 벤치마킹) -->
+      <div class="section" data-tab-target="macro" style="--sc:#10b981;--sc-glow:rgba(16,185,129,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">💧 미국 연준 유동성</span>
+          <span class="section-badge">대차대조표 · 지급준비금 · 역레포 · TGA · FRED 공식 (주간)</span>
+        </div>
+        <div class="cards g4" id="us-liquidity-cards"></div>
+      </div>
+
+      <!-- B102 (5/26) — BOK ECOS 한국 매크로 10종 -->
+      <div class="section" data-tab-target="macro" style="--sc:#3b82f6;--sc-glow:rgba(59,130,246,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🇰🇷 한국 매크로 (BOK 공식)</span>
+          <span class="section-badge">기준금리 · M2 · 환율 · CPI · 외환보유고 · 산업생산 · 경기심리 · 한국은행 ECOS</span>
+        </div>
+        <div class="cards g5" id="bok-macro-cards"></div>
+      </div>
+
+      <!-- B109 + B110 (5/26) — 신용·스트레스 + 경기침체 선행 4종 (FRED) -->
+      <div class="section" data-tab-target="macro" style="--sc:#ef4444;--sc-glow:rgba(239,68,68,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">🚨 미국 신용·경기침체 선행</span>
+          <span class="section-badge">하이일드 · 금융스트레스 · 장단기 금리차 · 실업수당 · FRED 공식 (주식 선행)</span>
+        </div>
+        <div class="cards g4" id="us-signal-cards"></div>
+      </div>
+
+      <!-- B112-A (5/26) — 옵션 변동성 3종 (Yahoo) -->
+      <div class="section" data-tab-target="macro" style="--sc:#a855f7;--sc-glow:rgba(168,85,247,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">📊 옵션 변동성 (CBOE)</span>
+          <span class="section-badge">SKEW · VVIX · OVX · CBOE 공식 (VIX 보완)</span>
+        </div>
+        <div class="cards g3" id="option-volatility-cards"></div>
       </div>
 
       <!-- 6. 원자재 -->
@@ -3235,6 +3383,50 @@ function renderRaw(rows, liveData) {
     '</div>';
   }
 
+  // B92 (5/20) — 수급 Top 10 카드 (외국인 순매수 / 공매도 거래)
+  //   raw = JSON 문자열 (시트 셀 값) — {date, items:[{code,name,netbid_eok or short_eok,...}, ...]}
+  //   theme: 'buy' (외국인 매수, 녹색) | 'short' (공매도, 빨강)
+  function flowTopCard(title, rawCol, theme, valueField, valueUnit) {
+    const raw = last(rawCol);
+    let items = [];
+    let dateStr = '';
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (parsed && parsed.items) items = parsed.items.slice(0, 10);
+      if (parsed && parsed.date) dateStr = String(parsed.date);
+    } catch (e) { /* silent */ }
+
+    if (!items.length) {
+      return '<div class="flow-top-card empty">' +
+        '<div class="flow-top-header"><span class="flow-top-title">' + title + '</span><span class="flow-top-badge">데이터 대기</span></div>' +
+        '<div class="flow-top-empty">19:00 KST 트리거 후 자동 수집</div>' +
+        '</div>';
+    }
+
+    const themeCls = theme === 'short' ? 'theme-short' : 'theme-buy';
+    const maxVal = items.reduce((m, it) => Math.max(m, Math.abs(it[valueField] || 0)), 0) || 1;
+
+    const rowsHtml = items.map((it, i) => {
+      const v = it[valueField];
+      const pct = (Math.abs(v || 0) / maxVal) * 100;
+      const valDisp = (v != null && !isNaN(v)) ? (v.toLocaleString() + valueUnit) : '-';
+      return '<div class="ft-row">' +
+        '<span class="ft-rank">' + (i + 1) + '</span>' +
+        '<span class="ft-name" title="' + (it.code || '') + '">' + (it.name || '-') + '</span>' +
+        '<div class="ft-barwrap"><div class="ft-bar" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+        '<span class="ft-val">' + valDisp + '</span>' +
+        '</div>';
+    }).join('');
+
+    return '<div class="flow-top-card ' + themeCls + '">' +
+      '<div class="flow-top-header">' +
+        '<span class="flow-top-title">' + title + '</span>' +
+        '<span class="flow-top-badge">' + dateStr + ' · KRX 공식</span>' +
+      '</div>' +
+      '<div class="flow-top-rows">' + rowsHtml + '</div>' +
+    '</div>';
+  }
+
   document.getElementById('index-cards').innerHTML =
     c('S&P 500','S&P500','sp500') + c('NASDAQ','NASDAQ','nasdaq') +
     c('KOSPI','KOSPI','kospi')    + c('KOSDAQ','KOSDAQ','kosdaq');
@@ -3290,6 +3482,37 @@ function renderRaw(rows, liveData) {
     c('KOSPI 공매도(억원)',       'KOSPI 공매도(억원)',     'kospi_short',      0, 'kospi_short') +
     c('KOSDAQ 공매도(억원)',      'KOSDAQ 공매도(억원)',    'kosdaq_short',     0, 'kosdaq_short');
 
+  // B92 (5/20) — 한국 수급 Top 10 (외국인 순매수 + 공매도 거래 + 공매도 잔고)
+  // KRX 공식, 매일 19:00 KST 트리거에서 갱신
+  const krFlowTopEl = document.getElementById('kr-flow-top-cards');
+  if (krFlowTopEl) {
+    krFlowTopEl.innerHTML =
+      flowTopCard('🇰🇷 외국인 순매수 Top KOSPI',   '외국인 순매수 Top KOSPI',  'buy',   'netbid_eok', '억') +
+      flowTopCard('🇰🇷 외국인 순매수 Top KOSDAQ',  '외국인 순매수 Top KOSDAQ', 'buy',   'netbid_eok', '억') +
+      flowTopCard('🔻 공매도 거래 Top KOSPI',       '공매도 거래 Top KOSPI',    'short', 'short_eok',  '억') +
+      flowTopCard('🔻 공매도 거래 Top KOSDAQ',      '공매도 거래 Top KOSDAQ',   'short', 'short_eok',  '억') +
+      // B96 (5/20) — 공매도 잔고 Top (누적 베어 시그널)
+      flowTopCard('🐻 공매도 잔고 Top KOSPI',       '공매도 잔고 Top KOSPI',    'short', 'bal_rto',    '%') +
+      flowTopCard('🐻 공매도 잔고 Top KOSDAQ',      '공매도 잔고 Top KOSDAQ',   'short', 'bal_rto',    '%');
+  }
+
+  // B93 (5/20) — 한국 섹터 지수 (KRX 테마 10개, 등락률 %, 미국 GICS 11과 대칭)
+  // 'pct' mode: 가격 모드 대신 등락률만 큰 글씨로 표시
+  const krSectorEl = document.getElementById('kr-sector-cards');
+  if (krSectorEl) {
+    krSectorEl.innerHTML =
+      c('반도체',        'KRX 반도체',        'krx_sec_semi',         2, 'krx_sec_semi') +
+      c('2차전지',       'KRX 2차전지',       'krx_sec_bat',          2, 'krx_sec_bat') +
+      c('자동차',        'KRX 자동차',        'krx_sec_auto',         2, 'krx_sec_auto') +
+      c('헬스케어',      'KRX 헬스케어',      'krx_sec_hc',           2, 'krx_sec_hc') +
+      c('은행',          'KRX 은행',          'krx_sec_bank',         2, 'krx_sec_bank') +
+      c('에너지화학',    'KRX 에너지화학',    'krx_sec_energy',       2, 'krx_sec_energy') +
+      c('정보기술',      'KRX 정보기술',      'krx_sec_it',           2, 'krx_sec_it') +
+      c('필수소비재',    'KRX 필수소비재',    'krx_sec_cons_staple',  2, 'krx_sec_cons_staple') +
+      c('경기소비재',    'KRX 경기소비재',    'krx_sec_cons_disc',    2, 'krx_sec_cons_disc') +
+      c('미디어통신',    'KRX 미디어통신',    'krx_sec_media',        2, 'krx_sec_media');
+  }
+
   // B45 (5/19) — 한국 채권수익률 11개 (g4 그리드 × 3줄: 11개 → 마지막 줄 3개 wrap)
   // 단기 → 장기 순서: CD → 국고채 1Y → ... → 국고채 30Y → 국민주택 5Y → 회사채 AA- → 회사채 BBB-
   document.getElementById('kr-bond-cards').innerHTML =
@@ -3304,6 +3527,51 @@ function renderRaw(rows, liveData) {
     c('국민주택 5년',    '국민주택 5Y',   'nhf_5y',   2, 'nhf_5y') +
     c('회사채 AA-',      '회사채 AA-',    'corp_aa',  2, 'corp_aa') +
     c('회사채 BBB-',     '회사채 BBB-',   'corp_bbb', 2, 'corp_bbb');
+
+  // B108 (5/26) — 미국 연준 유동성 4종 (FRED, assetx2 벤치마킹)
+  const usLiqEl = document.getElementById('us-liquidity-cards');
+  if (usLiqEl) {
+    usLiqEl.innerHTML =
+      c('연준 대차대조표', '연준 대차대조표($M)', 'fed_walcl',     0, 'fed_walcl') +
+      c('지급준비금',     '지급준비금($M)',     'fed_wresbal',   0, 'fed_wresbal') +
+      c('역레포 (RRP)',   '역레포($M)',         'fed_rrpontsyd', 0, 'fed_rrpontsyd') +
+      c('TGA 재무부계정', 'TGA($M)',            'fed_wtregen',   0, 'fed_wtregen');
+  }
+
+  // B102 (5/26) — BOK ECOS 한국 매크로 10종 (KeyStatisticList)
+  const bokEl = document.getElementById('bok-macro-cards');
+  if (bokEl) {
+    bokEl.innerHTML =
+      c('한국 기준금리',     'BOK 기준금리(%)',     'bok_rate_direct', 2, 'bok_rate_direct') +
+      c('M2 통화량(조원)',   'M2(조원)',            'bok_m2',          0, 'bok_m2') +
+      c('원달러 (BOK)',      '원달러(BOK,원)',      'bok_usdkrw',      1, 'bok_usdkrw') +
+      c('전산업생산지수',    '전산업생산지수',      'bok_industrial',  1, 'bok_industrial') +
+      c('외환보유액($M)',    '외환보유액($M)',      'bok_fx_reserves', 0, 'bok_fx_reserves') +
+      c('소비자물가지수',    '소비자물가지수',      'bok_cpi',         2, 'bok_cpi') +
+      c('경제성장률(분기)',  '경제성장률(%)',       'bok_gdp_growth',  2, 'bok_gdp_growth') +
+      c('선행지수',          '선행지수',            'bok_leading',     1, 'bok_leading') +
+      c('소비자심리지수',    '소비자심리지수',      'bok_cci',         1, 'bok_cci') +
+      c('한국 실업률',       '한국 실업률(%)',      'bok_unemp_kr',    1, 'bok_unemp_kr');
+  }
+
+  // B109 + B110 (5/26) — 미국 신용·경기침체 선행 4종 (FRED)
+  const usSignalEl = document.getElementById('us-signal-cards');
+  if (usSignalEl) {
+    usSignalEl.innerHTML =
+      c('하이일드 스프레드',     '하이일드 스프레드(%)', 'hy_spread', 2, 'hy_spread') +
+      c('금융스트레스지수',      '금융스트레스지수',     'stlfsi',    2, 'stlfsi') +
+      c('장단기 금리차 (10Y-2Y)', '장단기 금리차(%)',     't10y2y',    2, 't10y2y') +
+      c('신규 실업수당',         '신규 실업수당(천건)',  'icsa',      0, 'icsa');
+  }
+
+  // B112-A (5/26) — 옵션 변동성 3종 (Yahoo, CBOE 기반)
+  const optEl = document.getElementById('option-volatility-cards');
+  if (optEl) {
+    optEl.innerHTML =
+      c('SKEW 블랙스완',        'SKEW', 'skew', 1, 'skew') +
+      c('VVIX 공포의 불안정성', 'VVIX', 'vvix', 1, 'vvix') +
+      c('OVX 원유 변동성',      'OVX',  'ovx',  1, 'ovx');
+  }
 
   document.getElementById('commodity-cards').innerHTML =
     c('WTI 유가',   'WTI유가',    'wti',    2) + c('천연가스', '천연가스',   'gas',    3) +
@@ -4084,6 +4352,47 @@ const RAW_DATA_COL_MAP = {
   ktb_1y:'국고채 1Y',  ktb_2y:'국고채 2Y',  ktb_3y:'국고채 3Y',
   ktb_5y:'국고채 5Y',  ktb_10y:'국고채 10Y', ktb_20y:'국고채 20Y', ktb_30y:'국고채 30Y',
   nhf_5y:'국민주택 5Y', corp_aa:'회사채 AA-', corp_bbb:'회사채 BBB-', cd_91d:'CD 91D',
+  // B92 (5/20) — 한국 수급 Top 10 (JSON)
+  flow_fgn_top_kospi:'외국인 순매수 Top KOSPI',
+  flow_fgn_top_kosdaq:'외국인 순매수 Top KOSDAQ',
+  flow_sht_top_kospi:'공매도 거래 Top KOSPI',
+  flow_sht_top_kosdaq:'공매도 거래 Top KOSDAQ',
+  // B93 (5/20) — 한국 섹터 지수 (KRX 테마 10개, 등락률 %)
+  krx_sec_semi:'KRX 반도체',         krx_sec_bat:'KRX 2차전지',
+  krx_sec_auto:'KRX 자동차',         krx_sec_hc:'KRX 헬스케어',
+  krx_sec_bank:'KRX 은행',           krx_sec_energy:'KRX 에너지화학',
+  krx_sec_it:'KRX 정보기술',         krx_sec_cons_staple:'KRX 필수소비재',
+  krx_sec_cons_disc:'KRX 경기소비재', krx_sec_media:'KRX 미디어통신',
+  // B96 (5/20) — 공매도 잔고 Top (JSON)
+  short_bal_top_kospi:'공매도 잔고 Top KOSPI',
+  short_bal_top_kosdaq:'공매도 잔고 Top KOSDAQ',
+  // B108 (5/26) — 미국 연준 유동성 4종 (FRED)
+  fed_walcl:'연준 대차대조표($M)',
+  fed_wresbal:'지급준비금($M)',
+  fed_rrpontsyd:'역레포($M)',
+  fed_wtregen:'TGA($M)',
+  // B102 (5/26) — BOK ECOS 한국 매크로 10종
+  bok_rate_direct:'BOK 기준금리(%)',
+  bok_m2:'M2(조원)',
+  bok_usdkrw:'원달러(BOK,원)',
+  bok_industrial:'전산업생산지수',
+  bok_fx_reserves:'외환보유액($M)',
+  bok_cpi:'소비자물가지수',
+  bok_gdp_growth:'경제성장률(%)',
+  bok_leading:'선행지수',
+  bok_cci:'소비자심리지수',
+  bok_unemp_kr:'한국 실업률(%)',
+  // B109 (5/26) — 신용·스트레스 (FRED)
+  hy_spread:'하이일드 스프레드(%)',
+  stlfsi:'금융스트레스지수',
+  // B110 (5/26) — 경기침체 선행 (FRED)
+  t10y2y:'장단기 금리차(%)',
+  icsa:'신규 실업수당(천건)',
+  // B112-A (5/26) — 옵션 변동성 (Yahoo)
+  skew:'SKEW',
+  vvix:'VVIX',
+  ovx:'OVX',
+  pcr:'Put/Call Ratio',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
@@ -4859,7 +5168,7 @@ async function loadAll() {
     '<div class="skeleton skeleton-line w-80"></div>' +
     '</div>';
   const cardLoadingHtml = skeletonCard + skeletonCard + skeletonCard + skeletonCard;
-  ['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
+  ['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = cardLoadingHtml;
   });
@@ -4870,7 +5179,7 @@ async function loadAll() {
   // 2. bundle-light fetch (1 라운드트립) — raw + mdd30 + sector + live
   fetchBundle('light').then(bundle => {
     if (!bundle || (!bundle.raw && !bundle.mdd)) {
-      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
       return;
     }
 
@@ -4895,7 +5204,7 @@ async function loadAll() {
       initPopupDirection();
     } catch (e) {
       console.error('[renderRaw]', e);
-      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
     }
 
     try {
@@ -4910,7 +5219,7 @@ async function loadAll() {
     try { renderSectorHeatmap(); } catch (e) { console.error('[Sector]', e); }
   }).catch(e => {
     console.error('[Bundle light]', e);
-    _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-bond-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+    _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
   });
 
   // 5. 300ms 후 bundle-heavy (Insight + News) — 인지 속도 분리
