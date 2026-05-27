@@ -3376,14 +3376,34 @@ function renderRaw(rows, liveData) {
     const meta = window._macroTimes.bok[String(key).toUpperCase()];
     if (!meta || !meta.time) return null;
     const fmt = _fmtMacroTime(meta.time);
-    return fmt ? (fmt + ' 발표') : null;
+    if (!fmt) return null;
+    // X2 (5/27) — 발표 주기 라벨 추가 (월간/분기)
+    const t = String(meta.time);
+    let periodLabel = '';
+    if (/^\d{6}$/.test(t)) periodLabel = ' · 월간';
+    else if (/^\d{4}Q[1-4]$/.test(t)) periodLabel = ' · 분기';
+    return fmt + ' 발표' + periodLabel;
+  }
+
+  // X2 (5/27) — 월간/분기 데이터 카드 감지 (변동률 0.00% 노이즈 제거용)
+  function _isPeriodicMacro(key) {
+    if (!window._macroTimes || !window._macroTimes.bok) return false;
+    const meta = window._macroTimes.bok[String(key).toUpperCase()];
+    if (!meta || !meta.time) return false;
+    const t = String(meta.time);
+    return /^\d{6}$/.test(t) || /^\d{4}Q[1-4]$/.test(t);
   }
 
   function c(label, col, key, dec=2, infoKey='') {
     const l=last(col), val=l!=null?fmt(l,dec):'–';
     const macroTime = _getMacroTime(key);  // BOK 카드면 발표 시점, 아니면 null → rawDate fallback
     const displayDate = macroTime || rawDate;
-    return mkCard(label, val, chg(col), pct(col), key, dec, infoKey, displayDate, spark(col, 7));
+    // X2 (5/27) — 월간/분기 데이터는 변동률·sparkline 노이즈 제거 (매일 동일 값)
+    const isPeriodic = _isPeriodicMacro(key);
+    const chgVal = isPeriodic ? null : chg(col);
+    const pctVal = isPeriodic ? null : pct(col);
+    const sparkVal = isPeriodic ? null : spark(col, 7);
+    return mkCard(label, val, chgVal, pctVal, key, dec, infoKey, displayDate, sparkVal);
   }
 
   // B46 매트릭스 카드 (5/19) — KOSPI/KOSDAQ 수급
