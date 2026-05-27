@@ -3115,6 +3115,38 @@ const DETAIL = {
   unemp:      { title:'미국 실업률',         sub:'BLS UNRATE · 월별 발표',              sheet:'Raw Data', dateCol:'날짜', valCol:'실업률(%)',       color:'#ef4444', pct:true },
   fed_rate:   { title:'미국 기준금리',       sub:'Fed Funds Rate · 월별 발표',          sheet:'Raw Data', dateCol:'날짜', valCol:'미국 기준금리',    color:'#3b82f6', pct:true },
   bok_rate:   { title:'BoK 기준금리',       sub:'한국은행 정책금리 · 월별 발표',       sheet:'Raw Data', dateCol:'날짜', valCol:'BoK 기준금리',    color:'#22c55e', pct:true },
+
+  // ── B108 (5/26) — 미국 연준 유동성 4종 (FRED, 주간 발표) ──
+  fed_walcl:    { title:'연준 대차대조표',    sub:'WALCL · 주간 발표 · QE/QT 시그널',          sheet:'Raw Data', dateCol:'날짜', valCol:'연준 대차대조표($M)', color:'#3b82f6' },
+  fed_wresbal:  { title:'지급준비금',         sub:'WRESBAL · 주간 발표 · 은행 시스템 유동성', sheet:'Raw Data', dateCol:'날짜', valCol:'지급준비금($M)',      color:'#10b981' },
+  fed_rrpontsyd:{ title:'역레포 잔액',        sub:'RRPONTSYD · 주간 발표 · 초과 유동성 흡수', sheet:'Raw Data', dateCol:'날짜', valCol:'역레포($M)',          color:'#f59e0b' },
+  fed_wtregen:  { title:'TGA (재무부 일반계정)', sub:'WTREGEN · 주간 발표 · 유동성 펌프',     sheet:'Raw Data', dateCol:'날짜', valCol:'TGA($M)',             color:'#a78bfa' },
+
+  // ── B102 (5/26) — BOK ECOS 한국 매크로 10종 ──
+  bok_rate_direct: { title:'한국 기준금리',       sub:'BOK 정책금리 · 발표일 기준',          sheet:'Raw Data', dateCol:'날짜', valCol:'BOK 기준금리(%)',     color:'#22c55e', pct:true },
+  bok_m2:          { title:'M2 통화량',           sub:'조원 · 월별 발표 (M+2개월 지연)',     sheet:'Raw Data', dateCol:'날짜', valCol:'M2(조원)',            color:'#3b82f6' },
+  bok_usdkrw:      { title:'원달러 (BOK 공식)',   sub:'원 · 일별 발표 · 한국은행 기준환율',  sheet:'Raw Data', dateCol:'날짜', valCol:'원달러(BOK,원)',      color:'#fbbf24' },
+  bok_industrial:  { title:'전산업생산지수',      sub:'2020=100 · 월별 발표 (M+2개월 지연)', sheet:'Raw Data', dateCol:'날짜', valCol:'전산업생산지수',      color:'#10b981' },
+  bok_fx_reserves: { title:'외환보유액',          sub:'$M · 월별 발표 (M+1개월 지연)',       sheet:'Raw Data', dateCol:'날짜', valCol:'외환보유액($M)',      color:'#06b6d4' },
+  bok_cpi:         { title:'소비자물가지수 (CPI)', sub:'2020=100 · 월별 발표 (M+1개월 지연)', sheet:'Raw Data', dateCol:'날짜', valCol:'소비자물가지수',      color:'#f43f5e' },
+  bok_gdp_growth:  { title:'경제성장률 (분기)',   sub:'전기 대비 % · 분기 발표',            sheet:'Raw Data', dateCol:'날짜', valCol:'경제성장률(%)',       color:'#8b5cf6', pct:true },
+  bok_leading:     { title:'선행지수 (순환변동)', sub:'경기 선행 시그널 · 월별 발표',        sheet:'Raw Data', dateCol:'날짜', valCol:'선행지수',            color:'#a78bfa' },
+  bok_cci:         { title:'소비자심리지수 (CCI)', sub:'100 이상 = 낙관 · 월별 발표',         sheet:'Raw Data', dateCol:'날짜', valCol:'소비자심리지수',      color:'#fb923c' },
+  bok_unemp_kr:    { title:'한국 실업률',         sub:'% · 월별 발표 (M+1개월 지연)',        sheet:'Raw Data', dateCol:'날짜', valCol:'한국 실업률(%)',      color:'#ef4444', pct:true },
+
+  // ── B109 (5/26) — 신용·스트레스 2종 (FRED) ──
+  hy_spread:  { title:'하이일드 스프레드',    sub:'BAMLH0A0HYM2 · 정크 회사채 - 국채',   sheet:'Raw Data', dateCol:'날짜', valCol:'하이일드 스프레드(%)',   color:'#dc2626', pct:true },
+  stlfsi:     { title:'금융스트레스지수',     sub:'STLFSI4 · 세인트루이스 연준 종합',    sheet:'Raw Data', dateCol:'날짜', valCol:'금융스트레스지수',       color:'#ef4444' },
+
+  // ── B110 (5/26) — 경기침체 선행 2종 (FRED) ──
+  t10y2y:     { title:'장단기 금리차 (10년-2년)', sub:'역전 시 경기침체 선행 시그널',    sheet:'Raw Data', dateCol:'날짜', valCol:'장단기 금리차(%)',       color:'#a78bfa', pct:true },
+  icsa:       { title:'신규 실업수당 청구',   sub:'천건 · 주간 발표 · ICSA',             sheet:'Raw Data', dateCol:'날짜', valCol:'신규 실업수당(천건)',    color:'#f97316' },
+
+  // ── B112-A (5/26) — 옵션 변동성 3종 (Yahoo) ──
+  skew:       { title:'SKEW (꼬리위험)',      sub:'CBOE SKEW · 블랙스완 인식 지수',      sheet:'Raw Data', dateCol:'날짜', valCol:'SKEW',                 color:'#7c3aed' },
+  vvix:       { title:'VVIX (VIX 변동성)',     sub:'VIX의 변동성 · 변동성 안정성 가늠',   sheet:'Raw Data', dateCol:'날짜', valCol:'VVIX',                 color:'#9333ea' },
+  ovx:        { title:'OVX (원유 변동성)',     sub:'CBOE OVX · 원유 옵션 변동성',         sheet:'Raw Data', dateCol:'날짜', valCol:'OVX',                  color:'#ea580c' },
+
   // 섹터 ETF (Macro History, B54) — GICS 11개
   xlk:        { title:'XLK · 기술',         sub:'Technology SPDR · 25년+ 추이',       sheet:'Macro History', dateCol:'날짜', valCol:'XLK 기술',          color:'#22d3ee' },
   xlf:        { title:'XLF · 금융',         sub:'Financial SPDR · 25년+ 추이',        sheet:'Macro History', dateCol:'날짜', valCol:'XLF 금융',          color:'#10b981' },
