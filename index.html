@@ -3324,9 +3324,30 @@ function renderRaw(rows, liveData) {
     return result.length >= 2 ? result : null;
   }
   const rawDate = fmtDateShort(findDate(rows));
+
+  // B102-UI-Time (5/27) — 매크로 데이터 발표 시점 helper
+  //   BOK는 매월/분기/일별 발표 → 시트 row 날짜와 다름. 정확한 발표 시점 표시
+  function _fmtMacroTime(t) {
+    if (!t) return null;
+    const s = String(t);
+    if (/^\d{8}$/.test(s)) return s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8);  // YYYYMMDD → YYYY-MM-DD
+    if (/^\d{6}$/.test(s)) return s.slice(0, 4) + '-' + s.slice(4, 6);                          // YYYYMM → YYYY-MM
+    if (/^\d{4}Q[1-4]$/.test(s)) return s;                                                       // YYYYQX → 그대로
+    return s;
+  }
+  function _getMacroTime(key) {
+    if (!window._macroTimes || !window._macroTimes.bok) return null;
+    const meta = window._macroTimes.bok[String(key).toUpperCase()];
+    if (!meta || !meta.time) return null;
+    const fmt = _fmtMacroTime(meta.time);
+    return fmt ? (fmt + ' 발표') : null;
+  }
+
   function c(label, col, key, dec=2, infoKey='') {
     const l=last(col), val=l!=null?fmt(l,dec):'–';
-    return mkCard(label, val, chg(col), pct(col), key, dec, infoKey, rawDate, spark(col, 7));
+    const macroTime = _getMacroTime(key);  // BOK 카드면 발표 시점, 아니면 null → rawDate fallback
+    const displayDate = macroTime || rawDate;
+    return mkCard(label, val, chg(col), pct(col), key, dec, infoKey, displayDate, spark(col, 7));
   }
 
   // B46 매트릭스 카드 (5/19) — KOSPI/KOSDAQ 수급
@@ -5193,6 +5214,13 @@ async function loadAll() {
     cache['Raw Data'] = rawT;
     cache['MDD Chart'] = mddT;
     cache['Live'] = liveData;
+
+    // B102-UI-Time (5/27) — 매크로 데이터 발표 시점 메타 저장 (window 전역)
+    //   bundle.macroTimes = { bok: {KEY: {value, time, name}}, updated }
+    //   카드 c() 함수에서 자동 lookup → 카드 하단 "M2 2026-03 발표" 같이 정확 시점 표시
+    if (bundle.macroTimes) {
+      window._macroTimes = bundle.macroTimes;
+    }
 
     // 데이터 신선도 timestamp 저장 (B28-3) — bundle.ts 우선, 없으면 현재 시각
     _lastFreshTs = bundle.ts ? new Date(bundle.ts).getTime() : Date.now();
