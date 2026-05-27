@@ -3123,16 +3123,17 @@ const DETAIL = {
   fed_wtregen:  { title:'TGA (재무부 일반계정)', sub:'WTREGEN · 주간 발표 · 유동성 펌프',     sheet:'Raw Data', dateCol:'날짜', valCol:'TGA($M)',             color:'#a78bfa' },
 
   // ── B102 (5/26) — BOK ECOS 한국 매크로 10종 ──
-  bok_rate_direct: { title:'한국 기준금리',       sub:'BOK 정책금리 · 발표일 기준',          sheet:'Raw Data', dateCol:'날짜', valCol:'BOK 기준금리(%)',     color:'#22c55e', pct:true },
-  bok_m2:          { title:'M2 통화량',           sub:'조원 · 월별 발표 (M+2개월 지연)',     sheet:'Raw Data', dateCol:'날짜', valCol:'M2(조원)',            color:'#3b82f6' },
-  bok_usdkrw:      { title:'원달러 (BOK 공식)',   sub:'원 · 일별 발표 · 한국은행 기준환율',  sheet:'Raw Data', dateCol:'날짜', valCol:'원달러(BOK,원)',      color:'#fbbf24' },
-  bok_industrial:  { title:'전산업생산지수',      sub:'2020=100 · 월별 발표 (M+2개월 지연)', sheet:'Raw Data', dateCol:'날짜', valCol:'전산업생산지수',      color:'#10b981' },
-  bok_fx_reserves: { title:'외환보유액',          sub:'$M · 월별 발표 (M+1개월 지연)',       sheet:'Raw Data', dateCol:'날짜', valCol:'외환보유액($M)',      color:'#06b6d4' },
-  bok_cpi:         { title:'소비자물가지수 (CPI)', sub:'2020=100 · 월별 발표 (M+1개월 지연)', sheet:'Raw Data', dateCol:'날짜', valCol:'소비자물가지수',      color:'#f43f5e' },
-  bok_gdp_growth:  { title:'경제성장률 (분기)',   sub:'전기 대비 % · 분기 발표',            sheet:'Raw Data', dateCol:'날짜', valCol:'경제성장률(%)',       color:'#8b5cf6', pct:true },
-  bok_leading:     { title:'선행지수 (순환변동)', sub:'경기 선행 시그널 · 월별 발표',        sheet:'Raw Data', dateCol:'날짜', valCol:'선행지수',            color:'#a78bfa' },
-  bok_cci:         { title:'소비자심리지수 (CCI)', sub:'100 이상 = 낙관 · 월별 발표',         sheet:'Raw Data', dateCol:'날짜', valCol:'소비자심리지수',      color:'#fb923c' },
-  bok_unemp_kr:    { title:'한국 실업률',         sub:'% · 월별 발표 (M+1개월 지연)',        sheet:'Raw Data', dateCol:'날짜', valCol:'한국 실업률(%)',      color:'#ef4444', pct:true },
+  // Y-A (5/27): 6개 시리즈는 BOK History 시트 (1년 historical) / 4개는 Raw Data 유지 (1달치)
+  bok_rate_direct: { title:'한국 기준금리',       sub:'BOK 정책금리 · 1년 추이',             sheet:'BOK History', dateCol:'날짜', valCol:'BOK_RATE_DIRECT', color:'#22c55e', pct:true },
+  bok_m2:          { title:'M2 통화량',           sub:'조원 · 월별 발표 (M+2개월 지연)',     sheet:'Raw Data',    dateCol:'날짜', valCol:'M2(조원)',         color:'#3b82f6' },
+  bok_usdkrw:      { title:'원달러 (BOK 공식)',   sub:'원 · 1년 추이 · 한국은행 기준환율',   sheet:'BOK History', dateCol:'날짜', valCol:'BOK_USDKRW',       color:'#fbbf24' },
+  bok_industrial:  { title:'전산업생산지수',      sub:'2020=100 · 1년 추이',                 sheet:'BOK History', dateCol:'날짜', valCol:'BOK_INDUSTRIAL',   color:'#10b981' },
+  bok_fx_reserves: { title:'외환보유액',          sub:'천달러 · 1년 추이',                   sheet:'BOK History', dateCol:'날짜', valCol:'BOK_FX_RESERVES',  color:'#06b6d4' },
+  bok_cpi:         { title:'소비자물가지수 (CPI)', sub:'2020=100 · 1년 추이',                sheet:'BOK History', dateCol:'날짜', valCol:'BOK_CPI',          color:'#f43f5e' },
+  bok_gdp_growth:  { title:'경제성장률 (분기)',   sub:'전기 대비 % · 분기 발표',            sheet:'Raw Data',    dateCol:'날짜', valCol:'경제성장률(%)',    color:'#8b5cf6', pct:true },
+  bok_leading:     { title:'선행지수 (순환변동)', sub:'경기 선행 시그널 · 1년 추이',         sheet:'BOK History', dateCol:'날짜', valCol:'BOK_LEADING',      color:'#a78bfa' },
+  bok_cci:         { title:'소비자심리지수 (CCI)', sub:'100 이상 = 낙관 · 월별 발표',         sheet:'Raw Data',    dateCol:'날짜', valCol:'소비자심리지수',   color:'#fb923c' },
+  bok_unemp_kr:    { title:'한국 실업률',         sub:'% · 월별 발표 (M+1개월 지연)',        sheet:'Raw Data',    dateCol:'날짜', valCol:'한국 실업률(%)',   color:'#ef4444', pct:true },
 
   // ── B109 (5/26) — 신용·스트레스 2종 (FRED) ──
   hy_spread:  { title:'하이일드 스프레드',    sub:'BAMLH0A0HYM2 · 정크 회사채 - 국채',   sheet:'Raw Data', dateCol:'날짜', valCol:'하이일드 스프레드(%)',   color:'#dc2626', pct:true },
