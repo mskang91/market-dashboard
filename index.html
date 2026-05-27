@@ -4508,6 +4508,112 @@ const CARD_INFO = {
   ovx:      'WTI 유가 변동성 지수. 지정학·OPEC 결정 등 원유 변동성 사전 신호.',
   hy_spread:'하이일드 스프레드 (정크 회사채 - 국채 금리차). 상승 시 신용 스트레스 ↑, 경기 둔화 선행지표.',
   t10y2y:   '장단기 금리차(10년-2년). 역전은 12~24개월 내 경기침체 선행 신호로 자주 인용됩니다.',
+
+  // ── B114-B (5/27) — 나머지 86개 카드 확장 ──
+
+  // A. GICS 11 섹터 ETF
+  xlk:  'Technology Select Sector SPDR. 미국 빅테크 비중 큼 (애플·MS·엔비디아 등). 금리·실적 시즌에 민감.',
+  xlf:  'Financial Select Sector SPDR. 미국 은행·보험·금융. 금리 상승 시 순이자마진 우호.',
+  xlv:  'Health Care SPDR. 제약·바이오·의료기기. 경기방어주 성격.',
+  xly:  'Consumer Discretionary SPDR. 자동차·여행·리테일. 소비자 신뢰·실업률에 민감.',
+  xlp:  'Consumer Staples SPDR. 식음료·생활용품. 경기방어주, 배당 안정.',
+  xle:  'Energy SPDR. 석유·천연가스 기업. 원유가·OPEC 결정·지정학 직접 영향.',
+  xli:  'Industrials SPDR. 항공·방산·기계·운송. ISM 제조업 지수와 상관성.',
+  xlb:  'Materials SPDR. 화학·금속·종이. 글로벌 경기·원자재 사이클에 동조.',
+  xlu:  'Utilities SPDR. 전기·가스 유틸리티. 금리 하락기 우호, 채권 대체재.',
+  xlre: 'Real Estate SPDR. 리츠(REITs) 중심. 금리 민감도 매우 높음.',
+  xlc:  'Communication Services SPDR. 메타·구글·넷플릭스 등 통신·미디어.',
+
+  // B. 한국 인기 ETF
+  kodex_200:           'KOSPI 200 추종 한국 대표 ETF. KOSPI 시장 전체 노출에 가장 거래량 많음.',
+  kodex_kosdaq150:     'KOSDAQ 150 추종. 중소형 성장주 중심, 변동성 KOSPI보다 높음.',
+  kodex_2ndbat:        '한국 2차전지 산업 테마 ETF. LG에너지솔루션·삼성SDI 등 비중.',
+  kodex_lev:           'KOSPI 200 일간 +2× 추종 (레버리지). 단기 베팅용, 장기 보유 비추.',
+  kodex_inv:           'KOSPI 200 일간 -1× 추종 (인버스). 하락 베팅 단기 도구.',
+  tiger_nasdaq100:     '나스닥 100 한국형 ETF (KRW 환산). 환율 변동 노출.',
+  tiger_sp500:         'S&P 500 한국형 ETF (KRW 환산). 환율 변동 노출.',
+  kodex_us_growth_cc:  '미국 성장주 + 콜옵션 매도 (커버드콜). 상승 캡 + 프리미엄 수익.',
+  kodex_us_div_cc:     '미국 배당주 + 커버드콜. 배당 + 옵션 프리미엄, 월배당 구조.',
+  kodex_200wk_cc:      'KOSPI 200 + 주간 콜옵션 매도. 한국형 커버드콜 + 주간 배당.',
+
+  // C. KRX 한국 시장 + 매트릭스
+  kospi_per:        'KOSPI 시총가중 PER. 한국 대형주 전체의 평균 밸류에이션.',
+  kospi_pbr:        'KOSPI 시총가중 PBR. 청산가치 대비 시장가 비율. 1 미만은 저평가 후보.',
+  kosdaq_per:       'KOSDAQ 시총가중 PER. 성장주 비중 큼, KOSPI보다 변동성 큼.',
+  kosdaq_pbr:       'KOSDAQ 시총가중 PBR.',
+  kospi_forn_net:   'KOSPI 외국인 순매수 (억원). 한국 시장의 외국인 자금 흐름 선행지표.',
+  kospi_inst_net:   'KOSPI 기관 순매수 (억원). 연기금·금융투자 합산.',
+  kosdaq_forn_net:  'KOSDAQ 외국인 순매수 (억원).',
+  kosdaq_inst_net:  'KOSDAQ 기관 순매수 (억원).',
+  kospi_mcap:       'KOSPI 전체 시가총액 (조원). 한국 대형주 시장 규모.',
+  kosdaq_mcap:      'KOSDAQ 전체 시가총액 (조원). 중소형주 시장 규모.',
+  kospi_forn_rate:  'KOSPI 외국인 보유율 (%). 한국 시장 외국인 비중 — 상승 시 외국인 매수세.',
+  kosdaq_forn_rate: 'KOSDAQ 외국인 보유율 (%). KOSPI보다 낮은 편.',
+  kospi_short:      'KOSPI 공매도 거래대금 (억원). 하락 베팅 강도.',
+  kosdaq_short:     'KOSDAQ 공매도 거래대금 (억원).',
+  kospi_indiv_net:  'KOSPI 개인 순매수 (억원). 외국인·기관과 반대 방향 자주.',
+  kospi_other_net:  'KOSPI 기타법인 순매수 (억원). 일반법인 거래.',
+  kosdaq_indiv_net: 'KOSDAQ 개인 순매수 (억원).',
+  kosdaq_other_net: 'KOSDAQ 기타법인 순매수 (억원).',
+
+  // D. 한국 채권 (% 수익률)
+  ktb_1y:   '국고채 1년 수익률. 단기 금리 시장 기준.',
+  ktb_2y:   '국고채 2년 수익률. BOK 기준금리에 가장 가까운 trace.',
+  ktb_3y:   '국고채 3년 수익률. 한국 채권 시장 벤치마크 (가장 거래 활발).',
+  ktb_5y:   '국고채 5년 수익률. 중기 금리.',
+  ktb_10y:  '국고채 10년 수익률. 장기 금리 벤치마크. 부동산·대출 기준.',
+  ktb_20y:  '국고채 20년 수익률. 초장기 금리.',
+  ktb_30y:  '국고채 30년 수익률. 가장 긴 만기. 보험·연기금 수요 영향.',
+  nhf_5y:   '국민주택채권 1종 5년 수익률. 부동산 등기 시 매입 의무 채권.',
+  corp_aa:  '회사채 AA- (무보증 3년). 우량 신용등급. 국고채 대비 스프레드가 신용 우려 지표.',
+  corp_bbb: '회사채 BBB- (무보증 3년). 투기등급 직전. AA-와의 스프레드 차가 신용시장 스트레스.',
+  cd_91d:   'CD 91일물. 단기 자금시장 금리. BOK 기준금리 반영 빠름.',
+
+  // E. 한국 섹터 지수 (KRX 테마, 일일 등락률 %)
+  krx_sec_semi:        'KRX 반도체 지수. 삼성전자·SK하이닉스 비중. 한국 시장 핵심 섹터.',
+  krx_sec_bat:         'KRX 2차전지 지수. LG에너지솔루션·삼성SDI 비중. 전기차 수요·정책 민감.',
+  krx_sec_auto:        'KRX 자동차 지수. 현대차·기아 비중. 환율·미국 판매에 민감.',
+  krx_sec_hc:          'KRX 헬스케어 지수. 제약·바이오·의료기기.',
+  krx_sec_bank:        'KRX 은행 지수. KB·신한·하나·우리 등. 금리·배당 영향.',
+  krx_sec_energy:      'KRX 에너지화학 지수. 정유·화학.',
+  krx_sec_it:          'KRX 정보기술 지수. SW·인터넷·게임.',
+  krx_sec_cons_staple: 'KRX 필수소비재 지수. 식음료·생활용품.',
+  krx_sec_cons_disc:   'KRX 경기소비재 지수. 패션·외식·여가.',
+  krx_sec_media:       'KRX 미디어통신 지수. 통신사·콘텐츠.',
+
+  // F. 미국 거시 (FRED) — 유동성 4종 + 신용/경기 보강
+  fed_walcl:    '연준 대차대조표 총자산. 증가 = QE / 감소 = QT. 글로벌 유동성 시그널.',
+  fed_wresbal:  '연준 지급준비금. 은행 시스템 유동성 직접 측정.',
+  fed_rrpontsyd:'연준 역레포 잔액. 초과 유동성 흡수 (MMF 등이 연준에 예치).',
+  fed_wtregen:  'TGA (재무부 일반계정). 증가 = 유동성 흡수, 감소 = 유동성 펌프.',
+  stlfsi:       '세인트루이스 연준 금융스트레스지수. 18개 지표 종합. 0 = 평균, 양수 = 스트레스.',
+  icsa:         '미국 주간 신규 실업수당 청구 (천건). 노동시장 단기 신호. 빠른 상승 = 침체 경고.',
+
+  // G. BOK 나머지 매크로
+  bok_m2:         '한국 M2 통화량 (조원). 광의 통화 — 통화정책·경기 흐름 동행지표.',
+  bok_usdkrw:     '원달러 (한국은행 공식 기준환율). 일별 발표. Yahoo 환율과 미세 차이.',
+  bok_industrial: '한국 전산업생산지수. 광공업 + 서비스업 종합. 경기 동행지표.',
+  bok_gdp_growth: '한국 GDP 성장률 (전기 대비, 분기). 가장 중요한 경기 척도.',
+  bok_leading:    '한국 경기 선행지수 (순환변동치). 6~9개월 후 경기 방향 시그널.',
+  bok_cci:        '한국 소비자심리지수 (CCI). 100 이상 = 낙관, 100 미만 = 비관.',
+  bok_unemp_kr:   '한국 실업률 (%). 노동시장 건전성.',
+
+  // H. 한국 수급 / 공매도 Top (JSON, 종목명 매트릭스)
+  flow_fgn_top_kospi:  'KOSPI 외국인 순매수 Top 10 종목 (D-1). 종목 단위 외국인 자금 흐름.',
+  flow_fgn_top_kosdaq: 'KOSDAQ 외국인 순매수 Top 10 종목.',
+  flow_sht_top_kospi:  'KOSPI 공매도 거래 Top 10 종목 (D-1). 하락 베팅 집중 종목.',
+  flow_sht_top_kosdaq: 'KOSDAQ 공매도 거래 Top 10 종목.',
+  short_bal_top_kospi: 'KOSPI 공매도 잔고 Top (누적 베어 시그널, D-1).',
+  short_bal_top_kosdaq:'KOSDAQ 공매도 잔고 Top.',
+
+  // I. 기타
+  usdcny:   '달러위안 환율. 중국 경기·무역갈등 시 변동. 신흥국 통화 전반에 영향.',
+  silver:   '은 (USD/oz). 산업금속 + 안전자산 양면성. 금과 동조하지만 변동성 더 큼.',
+  smh:      'SMH 반도체 ETF. 엔비디아·TSMC·브로드컴 등. 미국 반도체 섹터 노출.',
+  lit:      'LIT 리튬·배터리 ETF. 전기차 공급망. 리튬 가격에 민감.',
+  remx:     'REMX 희토류 ETF. 중국 의존도 높아 지정학 변동 큼.',
+  bok_rate: 'BOK 기준금리 (FRED 시리즈). bok_rate_direct(ECOS)와 동일하지만 갱신 주기 다름.',
+  pcr:      'Put/Call Ratio. 옵션 시장 풋/콜 거래 비율. 1 초과 = 풋 우세 (베어 sentiment).',
 };
 
 // 현재 detail 상태 (showDetail에서 채움, 탭/필터에서 사용)
