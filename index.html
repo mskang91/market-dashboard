@@ -3410,9 +3410,14 @@ function renderRaw(rows, liveData) {
     const displayDate = macroTime || rawDate;
     // X2 (5/27) — 월간/분기 데이터는 변동률·sparkline 노이즈 제거 (매일 동일 값)
     // I-1 fix — 'pct' mode도 변동률·sparkline 숨김 (등락률의 등락률 무의미)
-    const isPeriodic = _isPeriodicMacro(key) || mode === 'pct';
-    const chgVal = isPeriodic ? null : chg(col);
-    const pctVal = isPeriodic ? null : pct(col);
+    // I-8 fix (5/28 저녁) — D-1과 D-0가 동일 (변동 0) 카드도 자동 숨김
+    //   원인: 시총/외국인보유/연준 유동성 등 갱신 빈도 낮은 카드들이 "0.00% (+0)" 시각 노이즈
+    //   효과: chg=0 && pct=0이면 변동률·sparkline 자동 비표시
+    const rawChg = chg(col), rawPct = pct(col);
+    const isFlat = (rawChg === 0 && rawPct === 0);
+    const isPeriodic = _isPeriodicMacro(key) || mode === 'pct' || isFlat;
+    const chgVal = isPeriodic ? null : rawChg;
+    const pctVal = isPeriodic ? null : rawPct;
     const sparkVal = isPeriodic ? null : spark(col, 7);
     return mkCard(label, val, chgVal, pctVal, key, dec, infoKey, displayDate, sparkVal);
   }
@@ -5678,37 +5683,54 @@ function initPopupDirection() {
   function notifyParentHeight(force) {
     if (_resizeRAF) cancelAnimationFrame(_resizeRAF);
     _resizeRAF = requestAnimationFrame(() => {
-      // 다각도 측정 — body·documentElement 모두 + main 영역의 마지막 자식 bottom
-      // 어느 하나에서 측정 누락돼도 다른 측정값으로 보완
+      // I-2 fix (5/28 저녁): 활성 탭 콘텐츠 bottom 우선 사용
+      //   기존 Math.max(body.scrollHeight + ...) → 매크로 탭 기준 high water mark 박혀서
+      //   짧은 탭(원자재/MDD/섹터/분위기) 전환 시 광활한 빈 공간 발생
+      //   활성 탭 bottom이 충분히 크면 (>= 300px) 그 값만 사용 + 24px 여유
+      //   fallback: 활성 탭 측정 실패 시 기존 Math.max 패턴
       const docEl = document.documentElement;
       const body = document.body;
-      const candidates = [
-        body.scrollHeight,
-        body.offsetHeight,
-        docEl.scrollHeight,
-        docEl.offsetHeight
-      ];
       const main = document.querySelector('.main');
+
+      let height = 0;
+
+      // 1차: 활성 탭 콘텐츠 bottom (가장 정확)
       if (main) {
-        const rect = main.getBoundingClientRect();
-        candidates.push(Math.ceil(rect.bottom + window.scrollY));
-        candidates.push(main.scrollHeight);
-        candidates.push(main.offsetHeight);
-        // main 안 마지막 visible 자식의 bottom — 가장 정확한 최하단 지점
-        const visibleChildren = Array.from(main.children).filter(el => {
-          const cs = window.getComputedStyle(el);
-          return cs.display !== 'none' && cs.visibility !== 'hidden';
-        });
-        if (visibleChildren.length) {
-          const last = visibleChildren[visibleChildren.length - 1];
-          candidates.push(Math.ceil(last.getBoundingClientRect().bottom + window.scrollY));
-        }
-        // 활성 탭 콘텐츠의 bottom도 추가 (탭 시스템 사용 시)
+        const activeBottoms = [];
         main.querySelectorAll('[data-tab-target]:not(.tab-hidden)').forEach(el => {
-          candidates.push(Math.ceil(el.getBoundingClientRect().bottom + window.scrollY));
+          const bottom = Math.ceil(el.getBoundingClientRect().bottom + window.scrollY);
+          if (bottom > 0) activeBottoms.push(bottom);
         });
+        if (activeBottoms.length > 0) {
+          height = Math.max.apply(null, activeBottoms) + 24;  // 24px 여유 (푸터/스크롤바)
+        }
       }
-      const height = Math.max.apply(null, candidates);
+
+      // 2차 fallback: 활성 탭 측정 실패 또는 비현실적으로 작은 경우 (< 300px)
+      if (height < 300) {
+        const candidates = [
+          body.scrollHeight,
+          body.offsetHeight,
+          docEl.scrollHeight,
+          docEl.offsetHeight
+        ];
+        if (main) {
+          const rect = main.getBoundingClientRect();
+          candidates.push(Math.ceil(rect.bottom + window.scrollY));
+          candidates.push(main.scrollHeight);
+          candidates.push(main.offsetHeight);
+          const visibleChildren = Array.from(main.children).filter(el => {
+            const cs = window.getComputedStyle(el);
+            return cs.display !== 'none' && cs.visibility !== 'hidden';
+          });
+          if (visibleChildren.length) {
+            const last = visibleChildren[visibleChildren.length - 1];
+            candidates.push(Math.ceil(last.getBoundingClientRect().bottom + window.scrollY));
+          }
+        }
+        height = Math.max.apply(null, candidates);
+      }
+
       // force가 false이고 변화량 < 2px이면 skip
       if (!force && Math.abs(height - _lastNotifiedHeight) < 2) return;
       _lastNotifiedHeight = height;
