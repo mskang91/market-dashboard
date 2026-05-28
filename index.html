@@ -3395,12 +3395,22 @@ function renderRaw(rows, liveData) {
     return /^\d{6}$/.test(t) || /^\d{4}Q[1-4]$/.test(t);
   }
 
-  function c(label, col, key, dec=2, infoKey='') {
-    const l=last(col), val=l!=null?fmt(l,dec):'–';
+  function c(label, col, key, dec=2, infoKey='', mode='price') {
+    const l = last(col);
+    // I-1 fix (5/28 저녁): 'pct' mode — 저장된 값이 % 등락률 (KRX 섹터 FLUC_RT 등). 가격 모드로 표시하면 등락률의 등락률 = 카오스 (M-?? 학습)
+    let val;
+    if (mode === 'pct' && l != null) {
+      const valColor = l > 0 ? 'var(--green, #22c55e)' : (l < 0 ? 'var(--red, #ef4444)' : 'var(--text3, #6b7280)');
+      const valSign = l > 0 ? '+' : '';
+      val = `<span style="color:${valColor}">${valSign}${fmt(l, dec)}%</span>`;
+    } else {
+      val = l != null ? fmt(l, dec) : '–';
+    }
     const macroTime = _getMacroTime(key);  // BOK 카드면 발표 시점, 아니면 null → rawDate fallback
     const displayDate = macroTime || rawDate;
     // X2 (5/27) — 월간/분기 데이터는 변동률·sparkline 노이즈 제거 (매일 동일 값)
-    const isPeriodic = _isPeriodicMacro(key);
+    // I-1 fix — 'pct' mode도 변동률·sparkline 숨김 (등락률의 등락률 무의미)
+    const isPeriodic = _isPeriodicMacro(key) || mode === 'pct';
     const chgVal = isPeriodic ? null : chg(col);
     const pctVal = isPeriodic ? null : pct(col);
     const sparkVal = isPeriodic ? null : spark(col, 7);
@@ -3575,20 +3585,20 @@ function renderRaw(rows, liveData) {
   }
 
   // B93 (5/20) — 한국 섹터 지수 (KRX 테마 10개, 등락률 %, 미국 GICS 11과 대칭)
-  // 'pct' mode: 가격 모드 대신 등락률만 큰 글씨로 표시
+  // I-1 fix (5/28 저녁) — 'pct' mode 6번째 인자 박힘. 저장 값이 % 등락률이라 가격 모드로 표시 시 카오스 (반도체 803% 등) — c() 함수 분기 동시 박힘
   const krSectorEl = document.getElementById('kr-sector-cards');
   if (krSectorEl) {
     krSectorEl.innerHTML =
-      c('반도체',        'KRX 반도체',        'krx_sec_semi',         2, 'krx_sec_semi') +
-      c('2차전지',       'KRX 2차전지',       'krx_sec_bat',          2, 'krx_sec_bat') +
-      c('자동차',        'KRX 자동차',        'krx_sec_auto',         2, 'krx_sec_auto') +
-      c('헬스케어',      'KRX 헬스케어',      'krx_sec_hc',           2, 'krx_sec_hc') +
-      c('은행',          'KRX 은행',          'krx_sec_bank',         2, 'krx_sec_bank') +
-      c('에너지화학',    'KRX 에너지화학',    'krx_sec_energy',       2, 'krx_sec_energy') +
-      c('정보기술',      'KRX 정보기술',      'krx_sec_it',           2, 'krx_sec_it') +
-      c('필수소비재',    'KRX 필수소비재',    'krx_sec_cons_staple',  2, 'krx_sec_cons_staple') +
-      c('경기소비재',    'KRX 경기소비재',    'krx_sec_cons_disc',    2, 'krx_sec_cons_disc') +
-      c('미디어통신',    'KRX 미디어통신',    'krx_sec_media',        2, 'krx_sec_media');
+      c('반도체',        'KRX 반도체',        'krx_sec_semi',         2, 'krx_sec_semi',         'pct') +
+      c('2차전지',       'KRX 2차전지',       'krx_sec_bat',          2, 'krx_sec_bat',          'pct') +
+      c('자동차',        'KRX 자동차',        'krx_sec_auto',         2, 'krx_sec_auto',         'pct') +
+      c('헬스케어',      'KRX 헬스케어',      'krx_sec_hc',           2, 'krx_sec_hc',           'pct') +
+      c('은행',          'KRX 은행',          'krx_sec_bank',         2, 'krx_sec_bank',         'pct') +
+      c('에너지화학',    'KRX 에너지화학',    'krx_sec_energy',       2, 'krx_sec_energy',       'pct') +
+      c('정보기술',      'KRX 정보기술',      'krx_sec_it',           2, 'krx_sec_it',           'pct') +
+      c('필수소비재',    'KRX 필수소비재',    'krx_sec_cons_staple',  2, 'krx_sec_cons_staple',  'pct') +
+      c('경기소비재',    'KRX 경기소비재',    'krx_sec_cons_disc',    2, 'krx_sec_cons_disc',    'pct') +
+      c('미디어통신',    'KRX 미디어통신',    'krx_sec_media',        2, 'krx_sec_media',        'pct');
   }
 
   // B45 (5/19) — 한국 채권수익률 11개 (g4 그리드 × 3줄: 11개 → 마지막 줄 3개 wrap)
