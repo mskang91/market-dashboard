@@ -334,9 +334,10 @@ body.light .flow-top-card { background: var(--bg2); }
 }
 .flow-top-card .ft-row {
   display: grid;
-  grid-template-columns: 22px 1fr 1fr 80px;
+  /* B182 P1 fix: name 컬럼을 2fr로 늘림 (기존 1fr) + min 60px 보장. 종목명 잘림 차단 */
+  grid-template-columns: 20px minmax(60px, 2fr) 1fr 70px;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 4px 0;
   font-size: 12px;
   border-bottom: 1px dashed var(--border);
@@ -354,6 +355,7 @@ body.light .flow-top-card { background: var(--bg2); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: help;  /* B182 P1: 호버 시 도움말 커서 (tooltip 박힘 시그널) */
 }
 .flow-top-card .ft-barwrap {
   position: relative;
@@ -380,9 +382,17 @@ body.light .flow-top-card { background: var(--bg2); }
   color: var(--text);
   font-size: 11.5px;
 }
-@media (max-width: 640px) {
+@media (max-width: 1100px) {
+  /* B182 P1: 6열 그리드 환경(iframe 임베드 데스크탑) — bar 숨김 + name 풀폭 */
   .flow-top-card .ft-row {
-    grid-template-columns: 18px 1fr 60px;
+    grid-template-columns: 20px minmax(80px, 1fr) 70px;
+  }
+  .flow-top-card .ft-barwrap { display: none; }
+}
+@media (max-width: 640px) {
+  /* 모바일 — name 더 넓게, value 컴팩트 */
+  .flow-top-card .ft-row {
+    grid-template-columns: 18px minmax(70px, 1fr) 60px;
   }
   .flow-top-card .ft-barwrap { display: none; }
 }
@@ -3503,9 +3513,13 @@ function renderRaw(rows, liveData) {
       const v = it[valueField];
       const pct = (Math.abs(v || 0) / maxVal) * 100;
       const valDisp = (v != null && !isNaN(v)) ? (v.toLocaleString() + valueUnit) : '-';
+      // B182 P1 fix: title에 종목명 + 코드 둘 다 박힘 (호버 시 풀네임 표시)
+      const nameSafe = String(it.name || '-').replace(/"/g, '&quot;');
+      const codeSafe = String(it.code || '').replace(/"/g, '&quot;');
+      const tooltip = codeSafe ? (nameSafe + ' (' + codeSafe + ')') : nameSafe;
       return '<div class="ft-row">' +
         '<span class="ft-rank">' + (i + 1) + '</span>' +
-        '<span class="ft-name" title="' + (it.code || '') + '">' + (it.name || '-') + '</span>' +
+        '<span class="ft-name" title="' + tooltip + '">' + (it.name || '-') + '</span>' +
         '<div class="ft-barwrap"><div class="ft-bar" style="width:' + pct.toFixed(1) + '%"></div></div>' +
         '<span class="ft-val">' + valDisp + '</span>' +
         '</div>';
