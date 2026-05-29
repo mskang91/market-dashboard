@@ -1441,18 +1441,33 @@ body.embed-mode .card-date   { font-size: 10.5px !important; margin-top: 4px !im
 body.embed-mode .section-title { font-size: 16px !important; }
 body.embed-mode .section-badge { font-size: 11.5px !important; }
 
-/* 5. 그리드 반응형 보강 — 좁은 iframe에서 자동 wrap 후 카드 너비 보장 */
-/*    floor 155px → 980px에서 5~6열, 모바일에서 2~3열로 자연 wrap */
-body.embed-mode .cards.g4,
-body.embed-mode .cards.g5,
-body.embed-mode .cards.g7 {
-  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)) !important;
+/* B182 P1-C (5/29) — 명시적 column 박기. 외톨이 row 차단 */
+/*    iframe wrapper CSS (Tistory CSS overlay)로 폭 1500px 확보됨 → 명시 grid OK */
+/*    g4=4열 / g5=5열 / g7=7열 / g3=3열 / g2=2열 */
+body.embed-mode .cards.g4 { grid-template-columns: repeat(4, 1fr) !important; }
+body.embed-mode .cards.g5 { grid-template-columns: repeat(5, 1fr) !important; }
+body.embed-mode .cards.g7 { grid-template-columns: repeat(7, 1fr) !important; }
+body.embed-mode .cards.g3 { grid-template-columns: repeat(3, 1fr) !important; }
+body.embed-mode .cards.g2 { grid-template-columns: repeat(2, 1fr) !important; }
+
+/* 한국 수급 Top 10 (g2 클래스 박혀있지만 카드 수 6개 — ID로 override 3열 박음) */
+body.embed-mode #kr-flow-top-cards { grid-template-columns: repeat(3, 1fr) !important; }
+
+/* 좁은 폭 (iframe < 1100px) — wrap */
+@media (max-width: 1099px) {
+  body.embed-mode .cards.g4,
+  body.embed-mode .cards.g5,
+  body.embed-mode .cards.g7 { grid-template-columns: repeat(3, 1fr) !important; }
+  body.embed-mode .cards.g3,
+  body.embed-mode #kr-flow-top-cards { grid-template-columns: repeat(2, 1fr) !important; }
 }
-body.embed-mode .cards.g3 {
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
-}
-body.embed-mode .cards.g2 {
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+@media (max-width: 700px) {
+  body.embed-mode .cards.g4,
+  body.embed-mode .cards.g5,
+  body.embed-mode .cards.g7,
+  body.embed-mode .cards.g3,
+  body.embed-mode #kr-flow-top-cards { grid-template-columns: repeat(2, 1fr) !important; }
+  body.embed-mode .cards.g2 { grid-template-columns: 1fr !important; }
 }
 
 /* 6. 섹션 사이 간격 약간 축소 — 임베드에서 한 화면에 더 많이 보이도록 */
@@ -1475,6 +1490,35 @@ body.embed-mode .bento-row {
   body.embed-mode .cards.g7 {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
   }
+}
+
+/* B182 P1-C (5/29) — 한국 채권수익률 그룹화 (단기/중기/장기/회사채) */
+#kr-bond-cards {
+  display: flex !important;
+  flex-direction: column;
+  gap: 14px;
+}
+.bond-group {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+}
+.bond-group-header {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.4px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.bond-group-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+@media (max-width: 700px) {
+  .bond-group-cards { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* B54 (5/18) — 섹터 회전 매트릭스 */
@@ -3428,7 +3472,11 @@ function renderRaw(rows, liveData) {
     const isPeriodic = _isPeriodicMacro(key) || mode === 'pct' || isFlat;
     const chgVal = isPeriodic ? null : rawChg;
     const pctVal = isPeriodic ? null : rawPct;
-    const sparkVal = isPeriodic ? null : spark(col, 7);
+    // B182 P1-C (5/29) — 'pct' mode (한국 섹터)에도 sparkline 박기 (등락률 7일 추이 시각화)
+    //   변동률·변동값은 isPeriodic 박혀서 숨김 유지. sparkline만 별도 분기로 박음.
+    //   BOK 월간/분기 (_isPeriodicMacro) + isFlat (변동 0) 는 sparkline 안 박힘 (기존 동작 유지)
+    const isMonthlyOrQuarter = _isPeriodicMacro(key);
+    const sparkVal = (isFlat || isMonthlyOrQuarter) ? null : spark(col, 7);
     return mkCard(label, val, chgVal, pctVal, key, dec, infoKey, displayDate, sparkVal);
   }
 
@@ -3620,20 +3668,40 @@ function renderRaw(rows, liveData) {
       c('미디어통신',    'KRX 미디어통신',    'krx_sec_media',        2, 'krx_sec_media',        'pct');
   }
 
-  // B45 (5/19) — 한국 채권수익률 11개 (g4 그리드 × 3줄: 11개 → 마지막 줄 3개 wrap)
-  // 단기 → 장기 순서: CD → 국고채 1Y → ... → 국고채 30Y → 국민주택 5Y → 회사채 AA- → 회사채 BBB-
+  // B45 (5/19) → B182 P1-C (5/29) — 한국 채권수익률 11개 그룹화 (단기 4 / 중기 2 / 장기 3 / 회사채 2)
+  // 외톨이 row 차단 + 만기별 시각 분류 명확
   document.getElementById('kr-bond-cards').innerHTML =
-    c('CD 91일',         'CD 91D',        'cd_91d',   2, 'cd_91d') +
-    c('국고채 1년',      '국고채 1Y',     'ktb_1y',   2, 'ktb_1y') +
-    c('국고채 2년',      '국고채 2Y',     'ktb_2y',   2, 'ktb_2y') +
-    c('국고채 3년',      '국고채 3Y',     'ktb_3y',   2, 'ktb_3y') +
-    c('국고채 5년',      '국고채 5Y',     'ktb_5y',   2, 'ktb_5y') +
-    c('국고채 10년',     '국고채 10Y',    'ktb_10y',  2, 'ktb_10y') +
-    c('국고채 20년',     '국고채 20Y',    'ktb_20y',  2, 'ktb_20y') +
-    c('국고채 30년',     '국고채 30Y',    'ktb_30y',  2, 'ktb_30y') +
-    c('국민주택 5년',    '국민주택 5Y',   'nhf_5y',   2, 'nhf_5y') +
-    c('회사채 AA-',      '회사채 AA-',    'corp_aa',  2, 'corp_aa') +
-    c('회사채 BBB-',     '회사채 BBB-',   'corp_bbb', 2, 'corp_bbb');
+    '<div class="bond-group">' +
+      '<div class="bond-group-header">단기 · CD · 국고채 1~3Y</div>' +
+      '<div class="bond-group-cards">' +
+        c('CD 91일',    'CD 91D',    'cd_91d', 2, 'cd_91d') +
+        c('국고채 1년', '국고채 1Y', 'ktb_1y', 2, 'ktb_1y') +
+        c('국고채 2년', '국고채 2Y', 'ktb_2y', 2, 'ktb_2y') +
+        c('국고채 3년', '국고채 3Y', 'ktb_3y', 2, 'ktb_3y') +
+      '</div>' +
+    '</div>' +
+    '<div class="bond-group">' +
+      '<div class="bond-group-header">중기 · 국고채 5~10Y</div>' +
+      '<div class="bond-group-cards">' +
+        c('국고채 5년',  '국고채 5Y',  'ktb_5y',  2, 'ktb_5y') +
+        c('국고채 10년', '국고채 10Y', 'ktb_10y', 2, 'ktb_10y') +
+      '</div>' +
+    '</div>' +
+    '<div class="bond-group">' +
+      '<div class="bond-group-header">장기 · 국고채 20~30Y · 국민주택</div>' +
+      '<div class="bond-group-cards">' +
+        c('국고채 20년',  '국고채 20Y',  'ktb_20y', 2, 'ktb_20y') +
+        c('국고채 30년',  '국고채 30Y',  'ktb_30y', 2, 'ktb_30y') +
+        c('국민주택 5년', '국민주택 5Y', 'nhf_5y',  2, 'nhf_5y') +
+      '</div>' +
+    '</div>' +
+    '<div class="bond-group">' +
+      '<div class="bond-group-header">회사채 (무보증 3년)</div>' +
+      '<div class="bond-group-cards">' +
+        c('회사채 AA-',  '회사채 AA-',  'corp_aa',  2, 'corp_aa') +
+        c('회사채 BBB-', '회사채 BBB-', 'corp_bbb', 2, 'corp_bbb') +
+      '</div>' +
+    '</div>';
 
   // B108 (5/26) — 미국 연준 유동성 4종 (FRED, assetx2 벤치마킹)
   const usLiqEl = document.getElementById('us-liquidity-cards');
