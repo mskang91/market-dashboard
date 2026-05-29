@@ -2589,14 +2589,14 @@ body.embed-mode .bento-row {
         <div class="cards g4" id="us-signal-cards"></div>
       </div>
 
-      <!-- B112-A (5/26) — 옵션 변동성 3종 (Yahoo) -->
+      <!-- B112-A (5/26) + B175 VKOSPI (5/29) — 옵션 변동성 4종 -->
       <div class="section" data-tab-target="macro" style="--sc:#a855f7;--sc-glow:rgba(168,85,247,0.35)">
         <div class="section-header">
           <div class="section-bar"></div>
-          <span class="section-title">📊 옵션 변동성 (CBOE)</span>
-          <span class="section-badge">SKEW · VVIX · OVX · CBOE 공식 (VIX 보완)</span>
+          <span class="section-title">📊 옵션 변동성 (CBOE · 한국)</span>
+          <span class="section-badge">SKEW · VVIX · OVX · VKOSPI · 미국 CBOE + 한국 Adanos</span>
         </div>
-        <div class="cards g3" id="option-volatility-cards"></div>
+        <div class="cards g4" id="option-volatility-cards"></div>
       </div>
 
       <!-- 6. 원자재 -->
@@ -3480,6 +3480,26 @@ function renderRaw(rows, liveData) {
     return mkCard(label, val, chgVal, pctVal, key, dec, infoKey, displayDate, sparkVal);
   }
 
+  // B177 (5/29) — 신용 스프레드 카드 (회사채 AA- 수익률 - 국고채 3Y 수익률) bp 단위
+  //   정상 50~100bp / 위기 200bp+ — 매크로 위기 시 가장 빠르게 벌어지는 선행 지표
+  //   sparkline은 7일 spread 시계열 (corp - ktb) 박음
+  function creditSpreadCard() {
+    const corp = last('회사채 AA-'), ktb = last('국고채 3Y');
+    if (corp == null || ktb == null) return '';
+    const spread = (corp - ktb) * 100; // %p → bp
+    const corpPrev = prev('회사채 AA-'), ktbPrev = prev('국고채 3Y');
+    const spreadPrev = (corpPrev != null && ktbPrev != null) ? (corpPrev - ktbPrev) * 100 : null;
+    const chgBp = spreadPrev != null ? spread - spreadPrev : null;
+    const pctChg = spreadPrev != null && spreadPrev !== 0 ? chgBp / spreadPrev * 100 : null;
+    // 7일 spread 시계열 (corp[i] - ktb[i]) × 100 bp
+    const corpSpark = spark('회사채 AA-', 7), ktbSpark = spark('국고채 3Y', 7);
+    let spreadSpark = null;
+    if (corpSpark && ktbSpark && corpSpark.length === ktbSpark.length) {
+      spreadSpark = corpSpark.map((c, i) => (c - ktbSpark[i]) * 100);
+    }
+    return mkCard('신용 스프레드 (AA−3Y)', spread.toFixed(0) + ' bp', chgBp, pctChg, '', 1, '', rawDate, spreadSpark);
+  }
+
   // B46 매트릭스 카드 (5/19) — KOSPI/KOSDAQ 수급
   // categories: [{ label, col, key }, ...] — 4행 (외국인/기관/개인/기타법인)
   function flowMatrixCard(title, dateStr, categories) {
@@ -3696,10 +3716,11 @@ function renderRaw(rows, liveData) {
       '</div>' +
     '</div>' +
     '<div class="bond-group">' +
-      '<div class="bond-group-header">회사채 (무보증 3년)</div>' +
+      '<div class="bond-group-header">회사채 · 신용 스프레드 (B177 5/29)</div>' +
       '<div class="bond-group-cards">' +
         c('회사채 AA-',  '회사채 AA-',  'corp_aa',  2, 'corp_aa') +
         c('회사채 BBB-', '회사채 BBB-', 'corp_bbb', 2, 'corp_bbb') +
+        creditSpreadCard() +
       '</div>' +
     '</div>';
 
@@ -3739,13 +3760,14 @@ function renderRaw(rows, liveData) {
       c('신규 실업수당',         '신규 실업수당(천건)',  'icsa',      0, 'icsa');
   }
 
-  // B112-A (5/26) — 옵션 변동성 3종 (Yahoo, CBOE 기반)
+  // B112-A (5/26) + B175 VKOSPI (5/29) — 옵션 변동성 4종 (미국 CBOE 3 + 한국 1)
   const optEl = document.getElementById('option-volatility-cards');
   if (optEl) {
     optEl.innerHTML =
-      c('SKEW 블랙스완',        'SKEW', 'skew', 1, 'skew') +
-      c('VVIX 공포의 불안정성', 'VVIX', 'vvix', 1, 'vvix') +
-      c('OVX 원유 변동성',      'OVX',  'ovx',  1, 'ovx');
+      c('SKEW 블랙스완',        'SKEW',   'skew',   1, 'skew') +
+      c('VVIX 공포의 불안정성', 'VVIX',   'vvix',   1, 'vvix') +
+      c('OVX 원유 변동성',      'OVX',    'ovx',    1, 'ovx') +
+      c('VKOSPI 한국 변동성',   'VKOSPI', 'vkospi', 2, 'vix');
   }
 
   document.getElementById('commodity-cards').innerHTML =
