@@ -2589,14 +2589,14 @@ body.embed-mode .bento-row {
         <div class="cards g7" id="kr-fg-sub-cards"></div>
       </div>
 
-      <!-- B109 + B110 (5/26) — 신용·스트레스 + 경기침체 선행 4종 (FRED) -->
+      <!-- B109 + B110 (5/26) + Phase 1 #1 (5/30 IG OAS 추가) — 신용·스트레스 + 경기침체 선행 5종 (FRED) -->
       <div class="section" data-tab-target="macro" style="--sc:#ef4444;--sc-glow:rgba(239,68,68,0.35)">
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🚨 미국 신용·경기침체 선행</span>
-          <span class="section-badge">주간 · FRED · 하이일드·스트레스·금리차·실업수당 (주식 선행)</span>
+          <span class="section-badge">주간 · FRED · 하이일드/IG·스트레스·금리차·실업수당 (주식 선행)</span>
         </div>
-        <div class="cards g4" id="us-signal-cards"></div>
+        <div class="cards g5" id="us-signal-cards"></div>
       </div>
 
       <!-- B112-A (5/26) + B175 VKOSPI (5/29) — 옵션 변동성 4종 -->
@@ -3637,7 +3637,10 @@ function renderRaw(rows, liveData) {
     c('Core PCE',        'Core PCE',       'pce_core', 2) +
     c('미국 실업률 (%)', '실업률(%)',      'unemp',    1) +
     c('미국 기준금리',   '미국 기준금리',  'fed_rate', 2) +
-    c('BoK 기준금리',    'BoK 기준금리',   'bok_rate', 2);
+    c('BoK 기준금리',    'BoK 기준금리',   'bok_rate', 2) +
+    // Phase 1 #1 (5/30) — 신규 2종 (일본 10Y, TIPS 10Y)
+    c('일본 10년물',     '일본 10Y(%)',    'jp_10y',   2, 'us10y') +
+    c('TIPS 10년 실질',  'TIPS 10Y(%)',    'tips_10y', 2, 'us10y');
 
   // B46 (5/19) — 한국 시장 종합 (KRX 공식) — 3개 sub-섹션
   // 1) 한국 밸류에이션 (PER/PBR 4)
@@ -3764,11 +3767,12 @@ function renderRaw(rows, liveData) {
       c('한국 실업률',       '한국 실업률(%)',      'bok_unemp_kr',    1, 'bok_unemp_kr');
   }
 
-  // B109 + B110 (5/26) — 미국 신용·경기침체 선행 4종 (FRED)
+  // B109 + B110 (5/26) + Phase 1 #1 (5/30 IG OAS) — 미국 신용·경기침체 선행 5종 (FRED)
   const usSignalEl = document.getElementById('us-signal-cards');
   if (usSignalEl) {
     usSignalEl.innerHTML =
       c('하이일드 스프레드',     '하이일드 스프레드(%)', 'hy_spread', 2, 'hy_spread') +
+      c('IG OAS',                'IG OAS(%)',           'ig_oas',    2, '') +
       c('금융스트레스지수',      '금융스트레스지수',     'stlfsi',    2, 'stlfsi') +
       c('장단기 금리차 (10Y-2Y)', '장단기 금리차(%)',     't10y2y',    2, 't10y2y') +
       c('신규 실업수당',         '신규 실업수당(천건)',  'icsa',      0, 'icsa');
