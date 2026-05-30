@@ -2462,7 +2462,7 @@ body.embed-mode .bento-row {
 
       <!-- 4. 주요 지수 -->
       <div class="section sec-index">
-        <div class="section-header"><div class="section-bar"></div><span class="section-title">📈 주요 지수</span><span class="section-badge">[D-1] 전 거래일 종가 대비 등락</span></div>
+        <div class="section-header"><div class="section-bar"></div><span class="section-title">📈 주요 지수</span><span class="section-badge">D-1 · Yahoo Finance · 미국 + 한국 4 지수</span></div>
         <div class="cards g4" id="index-cards"></div>
       </div>
 
@@ -2496,7 +2496,7 @@ body.embed-mode .bento-row {
 
       <!-- 5. 매크로 지표 -->
       <div class="section sec-macro" data-tab-target="macro">
-        <div class="section-header"><div class="section-bar"></div><span class="section-title">🌐 매크로 지표</span><span class="section-badge">[D-1] 전일 대비 변화 · ⓘ 호버 시 참조표 확인</span></div>
+        <div class="section-header"><div class="section-bar"></div><span class="section-title">🌐 매크로 지표</span><span class="section-badge">D-1 · Yahoo + FRED · ⓘ 호버 참조표</span></div>
         <div class="cards g-macro" id="macro-cards"></div>
         <button class="macro-toggle-btn" id="macro-toggle-btn" onclick="toggleMacroExtra()">매크로 5개 더 보기 ▼</button>
       </div>
@@ -2506,7 +2506,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🇰🇷 한국 시장 밸류에이션</span>
-          <span class="section-badge">KOSPI/KOSDAQ PER · PBR · 시총가중 (D-1) · KRX 공식</span>
+          <span class="section-badge">D-1 · KRX 공식 · KOSPI/KOSDAQ PER·PBR 시총가중</span>
         </div>
         <div class="cards g4" id="kr-valuation-cards"></div>
       </div>
@@ -2515,7 +2515,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">💰 한국 수급</span>
-          <span class="section-badge">외국인 · 기관 · 개인 · 기타법인 순매수 (억원) · KRX 공식 (D-1) · 각 줄 클릭 시 추이 확인</span>
+          <span class="section-badge">D-1 · KRX 공식 · 외국인·기관·개인·기타 순매수 (억원) · 클릭 시 추이</span>
         </div>
         <div class="cards g2" id="kr-flow-cards"></div>
       </div>
@@ -2524,7 +2524,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">📊 한국 시장 지표</span>
-          <span class="section-badge">시가총액 · 외국인 보유율 · 공매도 · KRX 공식 (D-1)</span>
+          <span class="section-badge">D-1 · KRX 공식 · 시총·외국인 보유율·공매도</span>
         </div>
         <div class="cards g3" id="kr-market-cards"></div>
       </div>
@@ -2534,7 +2534,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🎯 한국 수급 Top 10</span>
-          <span class="section-badge">외국인 순매수 + 공매도 거래 · KRX 공식 (D-1) · 19:00 KST 갱신</span>
+          <span class="section-badge">D-1 · KRX 공식 · 19:00 KST · 외국인 매수 + 공매도 Top 10</span>
         </div>
         <div class="cards g2" id="kr-flow-top-cards"></div>
       </div>
@@ -2544,7 +2544,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🇰🇷 한국 섹터 지수</span>
-          <span class="section-badge">KRX 테마 10개 · 일일 등락률 · KRX 공식 (D-1) · 19:00 KST 갱신</span>
+          <span class="section-badge">D-1 · KRX 공식 · 19:00 KST · KRX 테마 10개 등락률</span>
         </div>
         <div class="cards g5" id="kr-sector-cards"></div>
       </div>
@@ -2554,7 +2554,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🏦 한국 채권수익률</span>
-          <span class="section-badge">국고채 · 회사채 · CD · 장외 시장 (D-1) · KRX 공식</span>
+          <span class="section-badge">D-1 · KRX 공식 · 장외 시장 · 국고채/회사채/CD/신용 스프레드</span>
         </div>
         <div class="cards g4" id="kr-bond-cards"></div>
       </div>
@@ -2564,7 +2564,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">💧 미국 연준 유동성</span>
-          <span class="section-badge">대차대조표 · 지급준비금 · 역레포 · TGA · FRED 공식 (주간)</span>
+          <span class="section-badge">주간 · FRED · WALCL·WRESBAL·RRP·TGA</span>
         </div>
         <div class="cards g4" id="us-liquidity-cards"></div>
       </div>
@@ -2574,7 +2574,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🇰🇷 한국 매크로 (BOK 공식)</span>
-          <span class="section-badge">기준금리 · M2 · 환율 · CPI · 외환보유고 · 산업생산 · 경기심리 · 한국은행 ECOS</span>
+          <span class="section-badge">월간 · BOK ECOS · 기준금리·M2·CPI·외환보유 등 10종</span>
         </div>
         <div class="cards g5" id="bok-macro-cards"></div>
       </div>
@@ -2584,7 +2584,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🚨 미국 신용·경기침체 선행</span>
-          <span class="section-badge">하이일드 · 금융스트레스 · 장단기 금리차 · 실업수당 · FRED 공식 (주식 선행)</span>
+          <span class="section-badge">주간 · FRED · 하이일드·스트레스·금리차·실업수당 (주식 선행)</span>
         </div>
         <div class="cards g4" id="us-signal-cards"></div>
       </div>
@@ -2594,14 +2594,14 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">📊 옵션 변동성 (CBOE · 한국)</span>
-          <span class="section-badge">SKEW · VVIX · OVX · VKOSPI · 미국 CBOE + 한국 Adanos</span>
+          <span class="section-badge">D-1 · CBOE (미국) + Adanos (VKOSPI) · SKEW·VVIX·OVX·VKOSPI</span>
         </div>
         <div class="cards g4" id="option-volatility-cards"></div>
       </div>
 
       <!-- 6. 원자재 -->
       <div class="section sec-commodity" data-tab-target="assets">
-        <div class="section-header"><div class="section-bar"></div><span class="section-title">🛢️ 원자재</span><span class="section-badge">[D-1] 전 거래일 종가 대비 등락</span></div>
+        <div class="section-header"><div class="section-bar"></div><span class="section-title">🛢️ 원자재</span><span class="section-badge">D-1 · Yahoo Finance · WTI·천연가스·구리·금·은</span></div>
         <div class="cards g5" id="commodity-cards"></div>
       </div>
 
@@ -2610,7 +2610,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🇰🇷 한국 인기 ETF</span>
-          <span class="section-badge">국내 · 해외 · 레버리지/인버스 · 커버드콜 · [D-1] 전 거래일 종가 대비</span>
+          <span class="section-badge">D-1 · 국내·해외·레버리지/인버스·커버드콜 10종</span>
         </div>
         <div class="cards g5" id="kr-etf-cards"></div>
       </div>
@@ -2618,11 +2618,11 @@ body.embed-mode .bento-row {
       <!-- 7. 테마 ETF + 가상화폐 -->
       <div class="bento-row" data-tab-target="assets">
         <div class="section sec-etf">
-          <div class="section-header"><div class="section-bar"></div><span class="section-title">🔬 테마 ETF</span><span class="section-badge">[D-1] 전 거래일 대비</span></div>
+          <div class="section-header"><div class="section-bar"></div><span class="section-title">🔬 테마 ETF</span><span class="section-badge">D-1 · Yahoo Finance · QQQ·VOO·SPY 등</span></div>
           <div class="cards g3" id="etf-cards"></div>
         </div>
         <div class="section sec-crypto">
-          <div class="section-header"><div class="section-bar"></div><span class="section-title">₿ 가상화폐</span><span class="section-badge">[D-1] 전일 동시각 대비 (24h)</span></div>
+          <div class="section-header"><div class="section-bar"></div><span class="section-title">₿ 가상화폐</span><span class="section-badge">24h · Yahoo Finance · BTC·ETH</span></div>
           <div class="cards g2" id="crypto-cards"></div>
         </div>
       </div>
@@ -2660,7 +2660,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🗺️ 섹터 히트맵</span>
-          <span class="section-badge">S&P 500 · KOSPI · KOSDAQ · 전 거래일 종가 대비 등락률</span>
+          <span class="section-badge">D-1 · S&P 500 · KOSPI · KOSDAQ 등락률</span>
         </div>
         <div id="sector-heatmap-content">
           <div class="hm-loading"><div class="spinner sm" style="display:inline-block;vertical-align:middle;margin-right:8px"></div>섹터 데이터 로딩 중...</div>
@@ -2672,7 +2672,7 @@ body.embed-mode .bento-row {
         <div class="section-header">
           <div class="section-bar"></div>
           <span class="section-title">🔄 섹터 회전</span>
-          <span class="section-badge">GICS 11 · 1D · 1W · 1M 상대 성과</span>
+          <span class="section-badge">D-1·1W·1M · GICS 11 상대 성과</span>
         </div>
         <div class="cards g3" id="sector-rotation-cards" style="margin-bottom:16px"></div>
         <div id="sector-rotation-matrix"></div>
