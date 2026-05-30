@@ -2599,14 +2599,14 @@ body.embed-mode .bento-row {
         <div class="cards g5" id="us-signal-cards"></div>
       </div>
 
-      <!-- B112-A (5/26) + B175 VKOSPI (5/29) — 옵션 변동성 4종 -->
+      <!-- B112-A (5/26) + B175 VKOSPI (5/29) + Phase 1 #2 (5/30 MOVE/GVZ) — 변동성 지수 6종 -->
       <div class="section" data-tab-target="macro" style="--sc:#a855f7;--sc-glow:rgba(168,85,247,0.35)">
         <div class="section-header">
           <div class="section-bar"></div>
-          <span class="section-title">📊 옵션 변동성 (CBOE · 한국)</span>
-          <span class="section-badge">D-1 · CBOE (미국) + Adanos (VKOSPI) · SKEW·VVIX·OVX·VKOSPI</span>
+          <span class="section-title">📊 변동성 지수 (CBOE · ICE BofA · 한국)</span>
+          <span class="section-badge">D-1 · CBOE + ICE BofA + Adanos · SKEW·VVIX·OVX·VKOSPI·MOVE·GVZ</span>
         </div>
-        <div class="cards g4" id="option-volatility-cards"></div>
+        <div class="cards g3" id="option-volatility-cards"></div>
       </div>
 
       <!-- 6. 원자재 -->
@@ -3778,14 +3778,16 @@ function renderRaw(rows, liveData) {
       c('신규 실업수당',         '신규 실업수당(천건)',  'icsa',      0, 'icsa');
   }
 
-  // B112-A (5/26) + B175 VKOSPI (5/29) — 옵션 변동성 4종 (미국 CBOE 3 + 한국 1)
+  // B112-A (5/26) + B175 VKOSPI (5/29) + Phase 1 #2 (5/30 MOVE/GVZ) — 변동성 지수 6종
   const optEl = document.getElementById('option-volatility-cards');
   if (optEl) {
     optEl.innerHTML =
       c('SKEW 블랙스완',        'SKEW',   'skew',   1, 'skew') +
       c('VVIX 공포의 불안정성', 'VVIX',   'vvix',   1, 'vvix') +
       c('OVX 원유 변동성',      'OVX',    'ovx',    1, 'ovx') +
-      c('VKOSPI 한국 변동성',   'VKOSPI', 'vkospi', 2, 'vix');
+      c('VKOSPI 한국 변동성',   'VKOSPI', 'vkospi', 2, 'vix') +
+      c('MOVE 미국채 변동성',   'MOVE(%)', 'move',  2, 'vix') +
+      c('GVZ 금 변동성',        'GVZ(%)',  'gvz',   2, 'vix');
   }
 
   // B174 (5/29) — KR F&G sub-지표 7개 펼침 카드
