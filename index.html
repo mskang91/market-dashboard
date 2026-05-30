@@ -2529,6 +2529,16 @@ body.embed-mode .bento-row {
         <div class="cards g3" id="kr-market-cards"></div>
       </div>
 
+      <!-- Phase 1 #3 (5/30) — KR 시총 주별 변화 트래커 -->
+      <div class="section" data-tab-target="macro" style="--sc:#0ea5e9;--sc-glow:rgba(14,165,233,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">📈 KR 시총 주별 변화</span>
+          <span class="section-badge">주간 · KOSPI/KOSDAQ 시총 4주·12주·52주 변화율 (토요일 09:30 KST 자동)</span>
+        </div>
+        <div class="cards g3" id="kr-mcap-weekly-cards"></div>
+      </div>
+
       <!-- B92 (5/20) — 한국 수급 Top 10 (외국인 순매수 + 공매도 거래) -->
       <div class="section" data-tab-target="macro" style="--sc:#f97316;--sc-glow:rgba(249,115,22,0.35)">
         <div class="section-header">
@@ -3664,6 +3674,43 @@ function renderRaw(rows, liveData) {
       { label:'개인',      col:'KOSDAQ 개인순매수',      key:'kosdaq_indiv_net' },
       { label:'기타법인',  col:'KOSDAQ 기타법인순매수',  key:'kosdaq_other_net' },
     ]);
+
+  // Phase 1 #3 (5/30) — KR 시총 주별 변화 카드 (KOSPI/KOSDAQ × 4주·12주·52주 = 6 카드)
+  //   source: KR_Mcap_Weekly 시트 마지막 row (snapshot_kr_mcap_weekly가 매주 토요일 append)
+  //   카드: 4주% / 12주% / 52주% (KOSPI + KOSDAQ 각각)
+  (function renderKrMcapWeekly() {
+    const el = document.getElementById('kr-mcap-weekly-cards');
+    if (!el) return;
+    fetchSheet('KR_Mcap_Weekly').then(table => {
+      const r = toRows(table);
+      if (!r || r.length === 0) {
+        el.innerHTML = '<div style="grid-column:1/-1;opacity:0.5;font-size:12px;padding:20px;text-align:center;">KR 시총 주별 데이터 대기 중 (setup_kr_mcap_weekly_tracker 실행 필요)</div>';
+        return;
+      }
+      const last = r[r.length - 1];
+      function mkChangeCard(label, pctVal, dateStr) {
+        const v = parseFloat(pctVal);
+        if (isNaN(v)) {
+          return '<div class="card no-drill"><div class="card-label">' + label + '</div><div class="card-value" style="color:var(--text3);font-size:16px">데이터 부족</div><div class="card-date">📅 ' + dateStr + '</div></div>';
+        }
+        const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : 'neu');
+        const arr = v > 0 ? '▲' : (v < 0 ? '▼' : '');
+        return '<div class="card no-drill"><div class="card-label">' + label + '</div>' +
+          '<div class="card-value ' + cls + '">' + arr + ' ' + Math.abs(v).toFixed(2) + '%</div>' +
+          '<div class="card-date">📅 ' + dateStr + ' 기준</div></div>';
+      }
+      const date = last['날짜'] || '';
+      el.innerHTML =
+        mkChangeCard('KOSPI 4주', last['KOSPI 4주%'], date) +
+        mkChangeCard('KOSPI 12주', last['KOSPI 12주%'], date) +
+        mkChangeCard('KOSPI 52주', last['KOSPI 52주%'], date) +
+        mkChangeCard('KOSDAQ 4주', last['KOSDAQ 4주%'], date) +
+        mkChangeCard('KOSDAQ 12주', last['KOSDAQ 12주%'], date) +
+        mkChangeCard('KOSDAQ 52주', last['KOSDAQ 52주%'], date);
+    }).catch(e => {
+      el.innerHTML = '<div style="grid-column:1/-1;opacity:0.5;font-size:12px;padding:20px;text-align:center;color:var(--red)">KR 시총 시트 fetch 실패 — ' + e.message + '</div>';
+    });
+  })();
 
   // 3) 한국 시장 지표 (시총 2 + 외국인 보유 2 + 공매도 2 = 6)
   document.getElementById('kr-market-cards').innerHTML =
