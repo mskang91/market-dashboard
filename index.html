@@ -2579,6 +2579,16 @@ body.embed-mode .bento-row {
         <div class="cards g5" id="bok-macro-cards"></div>
       </div>
 
+      <!-- B174 (5/29) — KR F&G sub-지표 7개 펼침 -->
+      <div class="section" data-tab-target="macro" style="--sc:#fbbf24;--sc-glow:rgba(251,191,36,0.35)">
+        <div class="section-header">
+          <div class="section-bar"></div>
+          <span class="section-title">😱 한국 F&G sub-지표 7종</span>
+          <span class="section-badge">D-1 · Adanos KR F&G · KOSPI 등락/강도/변동성/안전자산/추세/심리</span>
+        </div>
+        <div class="cards g7" id="kr-fg-sub-cards"></div>
+      </div>
+
       <!-- B109 + B110 (5/26) — 신용·스트레스 + 경기침체 선행 4종 (FRED) -->
       <div class="section" data-tab-target="macro" style="--sc:#ef4444;--sc-glow:rgba(239,68,68,0.35)">
         <div class="section-header">
@@ -3772,6 +3782,28 @@ function renderRaw(rows, liveData) {
       c('VVIX 공포의 불안정성', 'VVIX',   'vvix',   1, 'vvix') +
       c('OVX 원유 변동성',      'OVX',    'ovx',    1, 'ovx') +
       c('VKOSPI 한국 변동성',   'VKOSPI', 'vkospi', 2, 'vix');
+  }
+
+  // B174 (5/29) — KR F&G sub-지표 7개 펼침 카드
+  //   Raw Data 'KR F&G Sub JSON' 컬럼에서 indicators[] 파싱 → 7 카드 표시
+  //   각 카드: name (label) + value (점수 0~100) + raw (원본 값 + unit)
+  const krFGSubEl = document.getElementById('kr-fg-sub-cards');
+  if (krFGSubEl) {
+    const rawJson = last('KR F&G Sub JSON');
+    let indicators = [];
+    if (rawJson) {
+      try { indicators = JSON.parse(rawJson); } catch (e) { indicators = []; }
+    }
+    if (Array.isArray(indicators) && indicators.length > 0) {
+      krFGSubEl.innerHTML = indicators.map(ind => {
+        const score = Math.round(ind.value || 0);
+        const rawDisp = ind.raw != null ? String(ind.raw) + (ind.unit || '') : '';
+        const dateDisp = rawDate + (rawDisp ? ' · ' + rawDisp : '');
+        return mkCard(String(ind.name || '–'), score, null, null, '', 0, 'feargreed', dateDisp, null);
+      }).join('');
+    } else {
+      krFGSubEl.innerHTML = '<div style="grid-column:1/-1;opacity:0.5;font-size:12px;padding:20px;text-align:center;">한국 F&G sub-지표 데이터 대기 중…</div>';
+    }
   }
 
   document.getElementById('commodity-cards').innerHTML =
