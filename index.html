@@ -3491,13 +3491,17 @@ function renderRaw(rows, liveData) {
     const spreadPrev = (corpPrev != null && ktbPrev != null) ? (corpPrev - ktbPrev) * 100 : null;
     const chgBp = spreadPrev != null ? spread - spreadPrev : null;
     const pctChg = spreadPrev != null && spreadPrev !== 0 ? chgBp / spreadPrev * 100 : null;
+    // B177 (5/29 patch) — isFlat 처리: 어제 = 오늘 spread 시 "0.00% (+0.0)" 노이즈 차단 (c() 함수 패턴 동일)
+    const isFlat = (chgBp === 0 && pctChg === 0);
+    const finalChg = isFlat ? null : chgBp;
+    const finalPct = isFlat ? null : pctChg;
     // 7일 spread 시계열 (corp[i] - ktb[i]) × 100 bp
     const corpSpark = spark('회사채 AA-', 7), ktbSpark = spark('국고채 3Y', 7);
     let spreadSpark = null;
     if (corpSpark && ktbSpark && corpSpark.length === ktbSpark.length) {
       spreadSpark = corpSpark.map((c, i) => (c - ktbSpark[i]) * 100);
     }
-    return mkCard('신용 스프레드 (AA−3Y)', spread.toFixed(0) + ' bp', chgBp, pctChg, '', 1, '', rawDate, spreadSpark);
+    return mkCard('신용 스프레드 (AA−3Y)', spread.toFixed(0) + ' bp', finalChg, finalPct, '', 1, '', rawDate, spreadSpark);
   }
 
   // B46 매트릭스 카드 (5/19) — KOSPI/KOSDAQ 수급
