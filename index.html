@@ -8672,6 +8672,16 @@ window.addEventListener('resize', () => {
             { label: '다시 검색', primary: true, onclick: "document.getElementById('persona-search').focus()" }
           ]
         });
+      } else if (code === 'rate_limit_exceeded') {
+        _renderPersonaError({
+          icon: '⏳',
+          title: '잠시만 기다려 주세요',
+          message: '단시간에 너무 많이 검색하셨어요.',
+          hint: (data && data.hint) ? data.hint : '1분 안에 너무 많이 호출했습니다. 잠시 후 다시 시도해 주세요.',
+          actions: [
+            { label: '60초 후 다시 시도', primary: true, onclick: 'setTimeout(function(){handlePersonaSearch(' + JSON.stringify(lastTicker) + ')}, 60000)' }
+          ]
+        });
       } else if (code === 'dart_fetch_failed' || (data && data.hint && /dart/i.test(data.hint))) {
         _renderPersonaError({
           icon: '⚠',
