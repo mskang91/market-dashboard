@@ -3402,6 +3402,24 @@ body.embed-mode .bento-row {
 .persona-action-banner-breakdown strong.total { color: var(--accent); font-size: 14px; }
 .persona-action-banner-weak strong { color: var(--orange); font-weight: 800; }
 
+/* L2 카테고리 합계 헤더 + mini grid */
+.persona-l2-summary {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 6px 0 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.persona-l2-summary-label {
+  font-size: 13px; color: var(--text2); font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.persona-l2-summary-score {
+  font-size: 22px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+}
+.persona-l2-summary-score .max { font-size: 14px; color: var(--text3); font-weight: 600; margin-left: 2px; }
+.persona-l2-grid-mini { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
 /* 등급 카드 회사 정보 sub */
 .persona-grade-company-sub {
   font-size: 14px; color: var(--text2); font-weight: 600;
@@ -3624,19 +3642,19 @@ body.embed-mode .bento-row {
       <div class="persona-l2-section" id="persona-l2-section" style="display:none;">
         <div class="persona-l2-grid">
           <div class="persona-l2-card" id="l2-stock-eval">
-            <div class="persona-card-head">📈 종목 평가 (자세히)</div>
+            <div class="persona-card-head">📊 점수 구성 종합 (4 카테고리)</div>
             <div class="persona-card-body" id="l2-stock-eval-body"></div>
           </div>
           <div class="persona-l2-card" id="l2-ops-rec">
-            <div class="persona-card-head">📊 운용 권고 (자세히)</div>
+            <div class="persona-card-head">💎 밸류에이션 자세히</div>
             <div class="persona-card-body" id="l2-ops-rec-body"></div>
           </div>
           <div class="persona-l2-card" id="l2-market-diag">
-            <div class="persona-card-head">🌐 시장 진단 (자세히)</div>
+            <div class="persona-card-head">💰 현금흐름·성장 자세히</div>
             <div class="persona-card-body" id="l2-market-diag-body"></div>
           </div>
           <div class="persona-l2-card" id="l2-macro-watch">
-            <div class="persona-card-head">🔭 매크로 워치 (자세히)</div>
+            <div class="persona-card-head">🔭 사이클·매크로 자세히</div>
             <div class="persona-card-body" id="l2-macro-watch-body"></div>
           </div>
         </div>
@@ -7095,7 +7113,18 @@ window.addEventListener('resize', () => {
     style_quadrant:            { name: '스타일 사분면',    short: 'Style' },
     rate_speed_3m_bp:          { name: '3개월 금리 변화',  short: 'Rate Δ' },
     credit_spread:             { name: '신용 스프레드',    short: 'Spread' },
-    loss_threshold:            { name: '손절 기준',        short: 'Stop' }
+    loss_threshold:            { name: '손절 기준',        short: 'Stop' },
+    // === L2 자세히 details 키 (백엔드 breakdown.details) ===
+    PER_hist_pct:              { name: '주가수익비율 %ile', short: 'PER %' },
+    PBR_hist_pct:              { name: '주가순자산비율 %ile', short: 'PBR %' },
+    'EV/EBITDA':               { name: 'EV/EBITDA 배수',   short: 'EV/EBITDA' },
+    DCF_vs_mcap:               { name: 'DCF 시사 vs 시총', short: 'DCF/시총' },
+    'FCF_추세':                { name: 'FCF 4분기 추세',   short: 'FCF↗' },
+    EPS_YoY_avg:               { name: 'EPS 평균 성장률',  short: 'EPS YoY' },
+    '매출_YoY':                { name: '매출 YoY',         short: '매출' },
+    'CAPEX_효율':              { name: 'CAPEX 효율',       short: 'CAPEX' },
+    'cyclical_5요소':          { name: '경기민감 5요인',   short: '5F' },
+    rate_speed_3m:             { name: '3개월 금리 변화',  short: 'Rate Δ' }
   };
 
   // === 지표 상세 설명 (정의·산출법·의미 범례) — 13번/15번 명세 정합 ===
@@ -7238,6 +7267,57 @@ window.addEventListener('resize', () => {
         { range: '< -45%',    label: '손실 위험 — 확대 방지 차원 손절', cls: 'bad' }
       ],
       note: '개인 -10%는 운용 보정값 (슬라이드 ② 원본 -15% → -10% 보정)'
+    },
+    // === L2 자세히 details 정의·산출법 ===
+    PER_hist_pct: {
+      define: '현재 PER이 최근 5년 분포 중 어느 위치인지 (%ile).',
+      formula: 'rank(현재 PER, 5년 분포) × 100',
+      note: '30% 이하 = 저평가 / 70% 이상 = 고평가'
+    },
+    PBR_hist_pct: {
+      define: '현재 PBR이 최근 5년 분포 중 어느 위치인지 (%ile).',
+      formula: 'rank(현재 PBR, 5년 분포) × 100',
+      note: '30% 이하 = 저평가 / 70% 이상 = 고평가'
+    },
+    'EV/EBITDA': {
+      define: '기업가치(EV) ÷ EBITDA. 인수합병 관점 가치평가.',
+      formula: '(시총 + 순부채) ÷ EBITDA',
+      note: 'CAPEX heavy 업종 비교용. 10배 이하 저평가, 15배+ 고평가'
+    },
+    DCF_vs_mcap: {
+      define: 'DCF 시사 가치 대비 현재 시총 비율. 100%면 균형.',
+      formula: 'DCF PV = C ÷ (r − g) → vs 시총 × 100',
+      note: '100% 미만 = 시총이 DCF 미달 (저평가). 100%+ = 할증 / 시총 ↑'
+    },
+    'FCF_추세': {
+      define: '잉여현금흐름 최근 4분기 추세 (값 흐름).',
+      formula: '4분기 FCF 시계열 → ↑ 회복 / → 안정 / ↓ 약화',
+      note: '4분기 연속 추세 봐야. 한 분기 변동은 노이즈'
+    },
+    EPS_YoY_avg: {
+      define: '주당순이익 평균 성장률 (최근 4분기 평균 YoY).',
+      formula: '(현재 EPS − 1년 전 EPS) ÷ 1년 전 EPS × 100, 4Q 평균',
+      note: '20%+ = 성장 / 50%+ = 성장 가속 / 마이너스 = 둔화'
+    },
+    '매출_YoY': {
+      define: '매출 전년 동기 대비 성장률.',
+      formula: '(현재 분기 매출 − 1년 전 분기 매출) ÷ 1년 전 매출 × 100',
+      note: '10%+ = 성장 / 30%+ = 강한 성장 / 마이너스 = 부진'
+    },
+    'CAPEX_효율': {
+      define: 'CAPEX 대비 EBITDA 변화. 설비투자가 이익으로 전환되는 효율.',
+      formula: 'ΔEBITDA ÷ CAPEX × 100',
+      note: 'CAPEX heavy 업종 ROIC 보조 지표'
+    },
+    'cyclical_5요소': {
+      define: '경기 사이클 부합도 (5요인 중 부합 개수).',
+      formula: '경기민감 업종·매출 사이클·CAPEX 사이클·가격 결정력·재고 사이클 → 5개 중 부합 N개',
+      note: '4~5/5 = 강한 경기민감주 / 0~1 = 방어주 성격'
+    },
+    rate_speed_3m: {
+      define: '미국채 10년 수익률 3개월 변화 속도 (bp).',
+      formula: '(최근 종가 − 63영업일 전 종가) × 100',
+      note: '23bp 이상 = 위험 자산 하방 압력 (슬라이드 ⑦ p23)'
     }
   };
 
@@ -7753,10 +7833,20 @@ window.addEventListener('resize', () => {
 
   function fmtBreakdown(b) {
     if (!b || !b.details) return '<div class="persona-voice">데이터 없음</div>';
-    return '<div class="persona-breakdown-row" style="font-weight:700;color:var(--text);margin-bottom:6px"><span>합계</span><span class="val">' + b.score + ' / ' + b.max + '</span></div>'
-      + b.details.map(function(d) {
-        return '<div class="persona-breakdown-row"><span class="key">' + escapeHtml(d.key) + '</span><span class="val">' + escapeHtml(String(d.raw || '')) + '</span><span class="label">' + escapeHtml(d.label || '') + '</span></div>';
-      }).join('');
+    const header = ''
+      + '<div class="persona-l2-summary">'
+      +   '<span class="persona-l2-summary-label">카테고리 합계</span>'
+      +   '<span class="persona-l2-summary-score">' + b.score + ' <span class="max">/ ' + b.max + '</span></span>'
+      + '</div>';
+    // details → mini card grid (L1과 동일 위계)
+    const miniCards = b.details.map(function(d) {
+      // raw + label 합쳐서 _miniCard에 전달 → _parseMetric이 tag로 추출
+      const rawCombined = (d.label && String(d.label).trim())
+        ? (String(d.raw || '') + ' → ' + d.label)
+        : String(d.raw || '');
+      return _miniCard(d.key, rawCombined);
+    }).join('');
+    return header + '<div class="persona-mini-grid persona-l2-grid-mini">' + miniCards + '</div>';
   }
 
   function renderL2Cards(data) {
