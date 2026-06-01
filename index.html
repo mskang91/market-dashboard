@@ -7635,10 +7635,11 @@ window.addEventListener('resize', () => {
     const hasInfo = !!info;
     const mainViz = _mainVizFor(key, raw, p);
     const isVizMain = !!mainViz;
+    // 일부 카드(loss_threshold)는 시각화가 곧 정보 — raw value/sub/tag 중복 표시 X
+    const hideRawDisplay = (key === 'loss_threshold');
     const valCls = isVizMain
       ? 'persona-mini-card-value text'
       : (String(p.value).length > 8 ? 'persona-mini-card-value text' : 'persona-mini-card-value');
-    // 정의·산출법 인라인 (ⓘ 안 눌러도 보임 — 모든 카드 동일 위계)
     const inlineDefine = (info && info.define)
       ? '<div class="persona-mini-card-define">' + escapeHtml(info.define) + '</div>'
       : '';
@@ -7651,10 +7652,10 @@ window.addEventListener('resize', () => {
       +   '<div class="persona-mini-card-label">' + escapeHtml(meta.short) + '</div>'
       +   '<div class="persona-mini-card-name">' + escapeHtml(meta.name) + '</div>'
       + (isVizMain
-          ? mainViz + '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>'
+          ? mainViz + (hideRawDisplay ? '' : '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>')
           : '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>')
-      + (p.sub ? '<div class="persona-mini-card-sub">' + escapeHtml(p.sub) + '</div>' : '')
-      + (p.tag ? '<span class="persona-mini-card-tag ' + p.tag.cls + '">' + escapeHtml(p.tag.text) + '</span>' : '')
+      + (!hideRawDisplay && p.sub ? '<div class="persona-mini-card-sub">' + escapeHtml(p.sub) + '</div>' : '')
+      + (!hideRawDisplay && p.tag ? '<span class="persona-mini-card-tag ' + p.tag.cls + '">' + escapeHtml(p.tag.text) + '</span>' : '')
       + inlineDefine
       + inlineFormula
       + (hasInfo ? _miniCardInfoHtml(key, raw) : '')
