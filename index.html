@@ -2799,6 +2799,22 @@ body.embed-mode .bento-row {
   --persona-r-md:  10px;
   --persona-r-lg:  14px;
   --persona-r-xl:  16px;
+
+  /* 시각 mid alpha (게이지·스테퍼·임계 마커용) */
+  --persona-good-mid:    rgba(34,197,94,0.55);
+  --persona-bad-mid:     rgba(239,68,68,0.55);
+  --persona-bad-edge:    rgba(239,68,68,0.45);
+  --persona-neutral-mid: rgba(148,163,184,0.45);
+
+  /* 게이지·스테퍼 공통 spectrum */
+  --persona-gauge-spectrum: linear-gradient(90deg,
+    var(--persona-good-mid) 0%,
+    var(--persona-neutral-mid) 50%,
+    var(--persona-bad-mid) 100%);
+  --persona-stepper-track: linear-gradient(90deg,
+    var(--persona-bad-mid) 0%,
+    var(--persona-neutral-mid) 50%,
+    var(--persona-bad-mid) 100%);
 }
 
 .persona-notice {
@@ -3201,7 +3217,7 @@ body.embed-mode .bento-row {
 .persona-mini-card {
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--persona-r-lg);
   padding: 20px 22px 18px;
   display: flex; flex-direction: column; gap: 7px;
   min-height: 148px;
@@ -3312,7 +3328,7 @@ body.embed-mode .bento-row {
 /* Style 사분면 SVG */
 .persona-quadrant-svg { width: 100%; max-width: 260px; margin: 8px auto; display: block; }
 .persona-quadrant-cell { fill: var(--surface-1); stroke: var(--border); stroke-width: 1; }
-.persona-quadrant-cell.is-current { fill: rgba(49,130,246,0.22); stroke: var(--accent); stroke-width: 2; }
+.persona-quadrant-cell.is-current { fill: var(--persona-accent-soft); stroke: var(--accent); stroke-width: 2; }
 .persona-quadrant-label { font-size: 11px; fill: var(--text2); font-weight: 700; dominant-baseline: middle; }
 .persona-quadrant-label.is-current { fill: var(--accent); font-weight: 800; }
 .persona-quadrant-axis { font-size: 10px; fill: var(--text3); font-weight: 600; dominant-baseline: middle; }
@@ -3384,8 +3400,8 @@ body.embed-mode .bento-row {
 .persona-mini-card { transition: transform 0.35s var(--toss-ease), box-shadow 0.35s var(--toss-ease), border-color 0.35s var(--toss-ease); }
 .persona-mini-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(49,130,246,0.15), var(--persona-shadow-hover);
-  border-color: rgba(49,130,246,0.30);
+  box-shadow: 0 8px 24px var(--persona-accent-soft), var(--persona-shadow-hover);
+  border-color: var(--persona-accent-glow);
 }
 
 /* 그라데이션 텍스트 (등급 카드 큰 숫자) — Uniswap 영감 */
@@ -3535,10 +3551,7 @@ body.embed-mode .bento-row {
 /* 1. 히스토리컬 %ile 게이지 (PER/PBR) — 토스 톤다운 */
 .persona-viz-gauge { position: relative; height: 8px; margin: 8px 0 4px; border-radius: 4px; overflow: visible; }
 .persona-viz-gauge-bar { width: 100%; height: 100%; border-radius: 4px;
-  background: linear-gradient(90deg,
-    rgba(34,197,94,0.55) 0%,
-    rgba(148,163,184,0.45) 50%,
-    rgba(239,68,68,0.55) 100%); }
+  background: var(--persona-gauge-spectrum); }
 .persona-viz-gauge-marker { position: absolute; top: -4px; width: 4px; height: 16px;
   background: var(--text); border-radius: 2px; transform: translateX(-50%);
   box-shadow: 0 0 0 2px var(--bg3); }
@@ -3572,7 +3585,7 @@ body.embed-mode .bento-row {
 .persona-viz-cycle { width: 100%; max-width: 220px; height: auto; margin: 12px auto; display: block; }
 .persona-viz-cycle-seg { fill: var(--surface-1); stroke: var(--border); stroke-width: 1;
   transition: all 0.5s var(--toss-ease); }
-.persona-viz-cycle-seg.is-current { fill: rgba(49,130,246,0.32); stroke: var(--accent); stroke-width: 2; }
+.persona-viz-cycle-seg.is-current { fill: var(--persona-accent-glow); stroke: var(--accent); stroke-width: 2; }
 .persona-viz-cycle-label { font-size: 13px; fill: var(--text3); font-weight: 700;
   dominant-baseline: middle; }
 .persona-viz-cycle-label.is-current { fill: var(--accent); font-weight: 800; font-size: 14px; }
@@ -3595,17 +3608,14 @@ body.embed-mode .bento-row {
 /* 5. B/B 6단계 스테퍼 — 양 끝 안 잘리게 inset 보정 + 톤다운 */
 .persona-viz-stepper { position: relative; height: 44px; margin: 10px 8px 6px; }
 .persona-viz-stepper-track { position: absolute; top: 14px; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg,
-    rgba(239,68,68,0.50) 0%,
-    rgba(148,163,184,0.40) 50%,
-    rgba(239,68,68,0.50) 100%);
+  background: var(--persona-stepper-track);
   border-radius: 2px; }
 .persona-viz-stepper-dot { position: absolute; top: 9px; transform: translateX(-50%);
   width: 12px; height: 12px; border-radius: 50%; background: var(--bg3);
   border: 2px solid var(--text3); z-index: 1; }
 .persona-viz-stepper-dot.is-current { width: 18px; height: 18px; top: 6px;
   background: var(--accent); border-color: var(--bg3);
-  box-shadow: 0 0 0 3px rgba(49,130,246,0.40); z-index: 2; }
+  box-shadow: 0 0 0 3px var(--persona-accent-glow); z-index: 2; }
 .persona-viz-stepper-label { position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
   font-size: 9px; color: var(--text3); white-space: nowrap; font-weight: 500; }
 .persona-viz-stepper-dot.is-current .persona-viz-stepper-label {
@@ -3616,7 +3626,7 @@ body.embed-mode .bento-row {
 .persona-viz-rate-track { position: absolute; top: 7px; left: 0; right: 0; height: 4px;
   background: var(--surface-1); border-radius: 2px; }
 .persona-viz-rate-threshold { position: absolute; top: 1px; width: 2px; height: 16px;
-  background: rgba(239,68,68,0.45); border-radius: 1px; }
+  background: var(--persona-bad-edge); border-radius: 1px; }
 .persona-viz-rate-zero { position: absolute; top: 3px; left: 50%; width: 1px; height: 12px;
   background: var(--text3); opacity: 0.4; }
 .persona-viz-rate-marker { position: absolute; top: 1px; width: 5px; height: 16px;
@@ -3659,9 +3669,9 @@ body.embed-mode .bento-row {
 
 /* ━━━ 운용 권고 강조 배너 (등급 카드 아래) ━━━ */
 .persona-action-banner {
-  background: linear-gradient(135deg, var(--accent-bg), rgba(79,158,250,0.08));
-  border: 1px solid rgba(49,130,246,0.35);
-  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent-bg), var(--persona-accent-bg));
+  border: 1px solid var(--persona-accent-glow);
+  border-radius: var(--persona-r-xl);
   padding: 22px 24px;
   display: flex; flex-direction: column; gap: 10px;
   margin-top: 14px;
@@ -3760,7 +3770,7 @@ body.embed-mode .bento-row {
 .persona-macro-inline {
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--persona-r-lg);
   padding: 18px 20px;
   display: flex; flex-direction: column; gap: 14px;
   margin-top: 14px;
@@ -3806,9 +3816,9 @@ body.embed-mode .bento-row {
 
 /* 운용 권고 카드 (큰 voice) */
 .persona-recommendation-card {
-  background: linear-gradient(135deg, var(--accent-bg), rgba(79,158,250,0.10));
-  border: 1px solid rgba(49,130,246,0.30);
-  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-bg), var(--persona-accent-bg));
+  border: 1px solid var(--persona-accent-glow);
+  border-radius: var(--persona-r-lg);
   padding: 18px 20px;
   display: flex; flex-direction: column; gap: 6px;
 }
@@ -3853,17 +3863,74 @@ body.embed-mode .bento-row {
 @media (max-width: 480px) {
   /* 더 작은 화면 — 스마트폰 세로 */
   #persona-view { padding: var(--s-3); }
-  .persona-grade-score { font-size: 32px; }
+  .persona-grade-score { font-size: 48px; }
+  .persona-grade-score-max { font-size: 18px; }
   .persona-grade-letter { font-size: 22px; padding: 3px 10px; }
-  .persona-grade-title { font-size: 16px; }
-  .persona-grade-score-row { gap: var(--s-3); }
+  .persona-grade-title { font-size: 19px; }
+  .persona-grade-company-sub { font-size: 12px; }
+  .persona-grade-price-formula { font-size: 12px; padding: 8px 10px; }
+  .persona-grade-score-row { gap: var(--s-3); flex-wrap: wrap; }
   .persona-card { padding: var(--s-3); }
   .persona-l2-card { padding: var(--s-3); }
   .persona-voice { padding-left: var(--s-2); }
   .persona-breakdown-row { flex-wrap: wrap; gap: 2px 8px; }
   .persona-breakdown-row .label { width: 100%; margin-left: 0; }
-  .persona-search-input { font-size: 14px; padding: 10px 12px; }
+  .persona-search-input { font-size: 14px; padding: 12px 14px; }
   .persona-search-dropdown { max-height: 200px; }
+
+  /* Mini Card — 2 column → 1 column 강제 (380px·480px 가독성) */
+  .persona-mini-grid { grid-template-columns: 1fr; gap: 10px; }
+  .persona-mini-card { padding: 16px 18px 14px; min-height: auto; }
+  .persona-mini-card-value { font-size: 24px; }
+  .persona-mini-card.has-viz { min-height: 220px; }
+  .persona-mini-card-name { font-size: 13px; }
+
+  /* 시각화 — 모바일 크기 조정 */
+  .persona-viz-cycle { max-width: 180px; }
+  .persona-quadrant-svg { max-width: 220px; }
+  .persona-viz-stepper-label { font-size: 8px; }
+  .persona-viz-stepper-dot.is-current .persona-viz-stepper-label { font-size: 9px; }
+
+  /* 4-bar — 항목명 짧게 */
+  .persona-viz-breakdown-row { grid-template-columns: 90px 1fr 56px; gap: 8px; font-size: 12px; }
+  .persona-viz-breakdown-name { font-size: 12px; }
+
+  /* 운용 권고 배너 */
+  .persona-action-banner { padding: 18px 18px; }
+  .persona-action-banner-voice { font-size: 18px; }
+  .persona-action-banner-sub { flex-direction: column; gap: 6px; align-items: flex-start; font-size: 12px; }
+  .persona-action-banner-reasoning { font-size: 12px; gap: 6px; }
+
+  /* 랜딩 첫 화면 */
+  .persona-landing { padding: 40px 16px; min-height: 280px; }
+  .persona-landing-icon { font-size: 44px; }
+  .persona-landing-title { font-size: 22px; }
+  .persona-landing-sub { font-size: 14px; }
+  .persona-landing-chip { padding: 7px 12px; font-size: 12px; }
+
+  /* 거시 환경 footer */
+  .persona-macro-footer { font-size: 12px; padding: 10px 12px; gap: 8px; }
+  .persona-macro-footer .text { font-size: 12px; }
+
+  /* tooltip 너비 모바일 */
+  .info-tip[data-tip]::after { width: 220px; right: -20px; font-size: 11px; }
+
+  /* L2 breakdown 카드 head */
+  .persona-l2-summary-score { font-size: 18px; }
+  .persona-l2-summary-label { font-size: 12px; }
+}
+
+@media (max-width: 380px) {
+  /* 초소형 — 갤럭시 폴드·구형 폰 */
+  #persona-view { padding: var(--s-2); }
+  .persona-grade-card { padding: var(--s-4); }
+  .persona-grade-title { font-size: 17px; }
+  .persona-grade-score { font-size: 42px; }
+  .persona-mini-card { padding: 14px 16px 12px; }
+  .persona-mini-card-value { font-size: 22px; }
+  .persona-viz-cycle { max-width: 150px; }
+  .persona-quadrant-svg { max-width: 200px; }
+  .persona-landing-chip { width: 100%; }
 }
 </style>
 
