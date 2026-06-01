@@ -2492,6 +2492,9 @@ body.embed-mode .bento-row {
         <button class="dash-tab" data-tab="sentiment" role="tab" aria-selected="false" type="button">
           <span class="dash-tab-icon">🔥</span><span class="dash-tab-label">분위기</span>
         </button>
+        <button class="dash-tab" data-tab="persona" role="tab" aria-selected="false" type="button">
+          <span class="dash-tab-icon">📊</span><span class="dash-tab-label">종목 분석</span>
+        </button>
       </nav>
 
       <!-- 5. 매크로 지표 -->
@@ -2736,6 +2739,248 @@ body.embed-mode .bento-row {
 
     <div class="chart-box" id="chart-box"><canvas id="detail-chart"></canvas></div>
     <div id="events-section"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     페르소나 v34 종목 분석 뷰 (Phase 5-UI / 2026-06-01)
+     - 검색창 + 자동완성 dropdown
+     - 종합 등급 카드 (composite_score + grade + voice_label)
+     - 4 L1 카드 (종목 평가 / 운용 권고 / 시장 진단 / 매크로 워치) — md 13번 §6.1
+     - Red Team 한 줄
+     - 전체 펼치기 → L2 카드 + Key Insight (Gemini)
+     ════════════════════════════════════════════════════════════ -->
+<style>
+/* ── 페르소나 분석 뷰 ── */
+#persona-view { padding: var(--s-6); max-width: 1200px; margin: 0 auto; }
+.persona-main { display: flex; flex-direction: column; gap: var(--s-5); }
+
+/* 상단 박은 검색창 */
+.persona-search-wrap { position: relative; margin-top: var(--s-3); }
+.persona-search-input {
+  width: 100%; padding: var(--s-4) var(--s-5);
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r-md); color: var(--text); font-size: 16px;
+  outline: none; transition: border-color 0.2s;
+}
+.persona-search-input:focus { border-color: var(--accent); }
+.persona-search-input::placeholder { color: var(--text3); }
+.persona-search-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--popup-bg); border: 1px solid var(--popup-border);
+  border-radius: var(--r-md); max-height: 320px; overflow-y: auto;
+  z-index: 10; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.persona-search-item {
+  padding: var(--s-3) var(--s-5); cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.persona-search-item:hover, .persona-search-item.active { background: var(--surface-2); }
+.persona-search-item:last-child { border-bottom: none; }
+.persona-search-item .name { color: var(--text); font-weight: 500; }
+.persona-search-item .ticker { color: var(--text3); font-size: 13px; font-variant-numeric: tabular-nums; }
+.persona-search-item .market { font-size: 11px; padding: 2px 6px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--text2); margin-left: var(--s-2); }
+
+/* 로딩 / 에러 */
+.persona-loading { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding: var(--s-9) 0; color: var(--text2); }
+.persona-loading .spinner { width: 32px; height: 32px; border: 3px solid var(--surface-2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.persona-error { padding: var(--s-5); background: rgba(239,68,68,0.10); border: 1px solid rgba(239,68,68,0.30); border-radius: var(--r-md); color: var(--red); font-size: 14px; }
+
+/* 종합 등급 카드 */
+.persona-grade-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: var(--s-6);
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.persona-grade-title { font-size: 20px; font-weight: 700; color: var(--text); }
+.persona-grade-meta { color: var(--text3); font-size: 13px; }
+.persona-grade-score-row { display: flex; align-items: baseline; gap: var(--s-4); flex-wrap: wrap; }
+.persona-grade-score { font-size: 48px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+.persona-grade-letter { font-size: 32px; font-weight: 700; padding: 4px var(--s-3); border-radius: var(--r-sm); line-height: 1; }
+.persona-grade-letter.SSS { background: rgba(220,38,38,0.18); color: #f87171; }
+.persona-grade-letter.SS  { background: rgba(234,88,12,0.18); color: #fb923c; }
+.persona-grade-letter.S   { background: rgba(245,158,11,0.18); color: #fbbf24; }
+.persona-grade-letter.A   { background: rgba(34,197,94,0.18);  color: #4ade80; }
+.persona-grade-letter.B   { background: rgba(96,165,250,0.18); color: #60a5fa; }
+.persona-grade-letter.C   { background: rgba(156,163,175,0.18);color: #d1d5db; }
+.persona-grade-letter.D   { background: rgba(107,114,128,0.18);color: #9ca3af; }
+.persona-grade-label { font-size: 16px; color: var(--text2); }
+.persona-grade-gauge { width: 100%; height: 6px; background: var(--surface-1); border-radius: var(--r-full); overflow: hidden; margin-top: var(--s-2); }
+.persona-grade-gauge-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
+
+/* 4 L1 카드 grid */
+.persona-l1-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-4); }
+.persona-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.persona-card-head {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  padding-bottom: var(--s-3); border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.persona-card-head .icon { margin-right: var(--s-2); }
+.persona-card-body { display: flex; flex-direction: column; gap: var(--s-2); }
+.persona-voice { color: var(--text2); font-size: 13.5px; line-height: 1.6; padding-left: var(--s-3); position: relative; }
+.persona-voice::before { content: "•"; position: absolute; left: 0; color: var(--text3); }
+.persona-voice strong { color: var(--text); font-weight: 600; }
+.persona-voice .num { font-variant-numeric: tabular-nums; color: var(--accent2); font-weight: 500; }
+.persona-voice .warn { color: var(--orange); font-weight: 500; }
+.persona-voice .good { color: var(--green); font-weight: 500; }
+.persona-voice .bad  { color: var(--red); font-weight: 500; }
+
+/* Red Team */
+.persona-redteam {
+  background: rgba(234,88,12,0.10); border: 1px solid rgba(234,88,12,0.30);
+  border-radius: var(--r-md); padding: var(--s-4) var(--s-5);
+  color: var(--text); font-size: 14px; line-height: 1.6;
+  display: flex; gap: var(--s-3); align-items: flex-start;
+}
+.persona-redteam .label { color: var(--orange); font-weight: 700; flex-shrink: 0; }
+
+/* 펼치기 버튼 */
+.persona-expand-btn {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: var(--s-4);
+  color: var(--text); font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; width: 100%;
+  display: flex; justify-content: center; align-items: center; gap: var(--s-2);
+}
+.persona-expand-btn:hover { background: var(--bg3); border-color: var(--border2); }
+
+/* L2 펼침 */
+.persona-l2-section { display: flex; flex-direction: column; gap: var(--s-4); animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.persona-l2-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-4); }
+.persona-l2-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-2);
+}
+.persona-l2-card .persona-card-head { font-size: 14px; color: var(--text2); }
+
+/* Key Insight */
+.persona-keyinsight {
+  background: var(--accent-bg); border: 1px solid rgba(49,130,246,0.40);
+  border-radius: var(--r-md); padding: var(--s-5);
+  color: var(--text); font-size: 15px; line-height: 1.7;
+}
+.persona-keyinsight-head {
+  display: block; font-weight: 700; color: var(--accent2);
+  margin-bottom: var(--s-2); font-size: 13px;
+}
+
+/* breakdown 점수 박은 표시 */
+.persona-breakdown { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-2); }
+.persona-breakdown-row { display: flex; justify-content: space-between; font-size: 13px; }
+.persona-breakdown-row .key { color: var(--text2); }
+.persona-breakdown-row .val { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
+.persona-breakdown-row .label { color: var(--text3); font-size: 11px; margin-left: var(--s-2); }
+
+/* 메타 */
+.persona-meta { font-size: 12px; color: var(--text3); text-align: center; padding: var(--s-3); border-top: 1px solid var(--border); }
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  #persona-view { padding: var(--s-4); }
+  .persona-l1-grid { grid-template-columns: 1fr; }
+  .persona-l2-grid { grid-template-columns: 1fr; }
+  .persona-grade-score { font-size: 36px; }
+  .persona-grade-letter { font-size: 24px; }
+  .persona-search-input { font-size: 15px; padding: var(--s-3) var(--s-4); }
+}
+</style>
+
+<div id="persona-view" data-tab-target="persona" class="tab-hidden">
+  <div class="persona-main">
+    <!-- 검색창 + 자동완성 -->
+    <div class="persona-search-wrap">
+      <input type="text" id="persona-search" class="persona-search-input"
+             placeholder="종목명 또는 티커 (예: 삼성전자, 005930, NVDA)"
+             autocomplete="off" spellcheck="false">
+      <div class="persona-search-dropdown" id="persona-search-dropdown" style="display:none;"></div>
+    </div>
+
+    <!-- 로딩 -->
+    <div class="persona-loading" id="persona-loading" style="display:none;">
+      <div class="spinner"></div>
+      <div>분석 중... (DART 사업보고서 + v34 룰 17종 산출)</div>
+    </div>
+
+    <!-- 에러 -->
+    <div class="persona-error" id="persona-error" style="display:none;"></div>
+
+    <!-- 분석 결과 -->
+    <div class="persona-result" id="persona-result" style="display:none;">
+      <!-- 종합 등급 카드 -->
+      <div class="persona-grade-card" id="persona-grade-card"></div>
+
+      <!-- 4 L1 카드 grid (collapsed) -->
+      <div class="persona-l1-grid">
+        <div class="persona-card" id="card-stock-eval">
+          <div class="persona-card-head"><span><span class="icon">📈</span>종목 평가</span></div>
+          <div class="persona-card-body" id="card-stock-eval-body"></div>
+        </div>
+        <div class="persona-card" id="card-ops-rec">
+          <div class="persona-card-head"><span><span class="icon">📊</span>운용 권고</span></div>
+          <div class="persona-card-body" id="card-ops-rec-body"></div>
+        </div>
+        <div class="persona-card" id="card-market-diag">
+          <div class="persona-card-head"><span><span class="icon">🌐</span>시장 진단</span></div>
+          <div class="persona-card-body" id="card-market-diag-body"></div>
+        </div>
+        <div class="persona-card" id="card-macro-watch">
+          <div class="persona-card-head"><span><span class="icon">🔭</span>매크로 워치</span></div>
+          <div class="persona-card-body" id="card-macro-watch-body"></div>
+        </div>
+      </div>
+
+      <!-- Red Team 한 줄 -->
+      <div class="persona-redteam" id="persona-redteam">
+        <span class="label">⚠ Red Team</span>
+        <span id="persona-redteam-text">—</span>
+      </div>
+
+      <!-- 전체 펼치기 -->
+      <button class="persona-expand-btn" id="persona-expand-btn" onclick="togglePersonaExpand()">
+        <span id="persona-expand-icon">▼</span>
+        <span id="persona-expand-label">자세히 보기 (펼치기)</span>
+      </button>
+
+      <!-- 펼침 영역 (L2) -->
+      <div class="persona-l2-section" id="persona-l2-section" style="display:none;">
+        <div class="persona-l2-grid">
+          <div class="persona-l2-card" id="l2-stock-eval">
+            <div class="persona-card-head">📈 종목 평가 (자세히)</div>
+            <div class="persona-card-body" id="l2-stock-eval-body"></div>
+          </div>
+          <div class="persona-l2-card" id="l2-ops-rec">
+            <div class="persona-card-head">📊 운용 권고 (자세히)</div>
+            <div class="persona-card-body" id="l2-ops-rec-body"></div>
+          </div>
+          <div class="persona-l2-card" id="l2-market-diag">
+            <div class="persona-card-head">🌐 시장 진단 (자세히)</div>
+            <div class="persona-card-body" id="l2-market-diag-body"></div>
+          </div>
+          <div class="persona-l2-card" id="l2-macro-watch">
+            <div class="persona-card-head">🔭 매크로 워치 (자세히)</div>
+            <div class="persona-card-body" id="l2-macro-watch-body"></div>
+          </div>
+        </div>
+
+        <!-- Key Insight (L2 Gemini 200자) -->
+        <div class="persona-keyinsight" id="persona-keyinsight" style="display:none;">
+          <span class="persona-keyinsight-head">💡 Key Insight (페르소나 voice)</span>
+          <span id="persona-keyinsight-text">—</span>
+        </div>
+      </div>
+
+      <!-- 메타 (data_source / quality / sources) -->
+      <div class="persona-meta" id="persona-meta"></div>
+    </div>
   </div>
 </div>
 
@@ -4253,6 +4498,54 @@ document.addEventListener('click', function(e) {
   const btn = e.target.closest('[data-cmp-period]');
   if (btn) renderCompareChart(btn.dataset.cmpPeriod);
 });
+
+// ═════════════════════════════════════════════════════════════
+// Phase 5-UI: dashboard-tabs 클릭 핸들러 (종목 분석 탭 신설)
+//   - 기존 5개 탭 (매크로/원자재/MDD/섹터/분위기) + 신규 'persona'
+//   - data-tab="X" 클릭 → [data-tab-target="X"] section만 표시
+//   - 다른 [data-tab-target]에 tab-hidden 클래스 추가
+//   - dash-tab.active + aria-selected 동기화
+// ═════════════════════════════════════════════════════════════
+(function() {
+  function switchDashTab(tabName) {
+    if (!tabName) return;
+    // 1) 버튼 active 토글
+    document.querySelectorAll('.dash-tab').forEach(function(btn) {
+      const isActive = btn.dataset.tab === tabName;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    // 2) 콘텐츠 표시/숨김 ([data-tab-target] 모두 검사)
+    document.querySelectorAll('[data-tab-target]').forEach(function(el) {
+      const target = el.getAttribute('data-tab-target');
+      if (target === tabName) el.classList.remove('tab-hidden');
+      else el.classList.add('tab-hidden');
+    });
+    // 3) localStorage 기억 (재방문 시 마지막 탭 복원)
+    try { localStorage.setItem('mh:dashTab', tabName); } catch (_e) {}
+    // 4) persona 탭 첫 진입 시 ticker 마스터 prefetch (한 번만)
+    if (tabName === 'persona' && typeof prefetchPersonaTickers === 'function') {
+      prefetchPersonaTickers();
+    }
+  }
+  // 클릭 이벤트 위임
+  document.addEventListener('click', function(e) {
+    const tabBtn = e.target.closest('.dash-tab[data-tab]');
+    if (tabBtn && tabBtn.closest('#dashboard-tabs')) {
+      switchDashTab(tabBtn.dataset.tab);
+    }
+  });
+  // 페이지 로드 시 — 첫 active 버튼의 탭 복원 (기존 active='macro' 또는 localStorage 우선)
+  document.addEventListener('DOMContentLoaded', function() {
+    let saved = null;
+    try { saved = localStorage.getItem('mh:dashTab'); } catch (_e) {}
+    const initialTab = saved || (document.querySelector('.dash-tab.active') || {}).dataset?.tab || 'macro';
+    // persona 탭이 신설된 직후 첫 진입 시 기존 사용자 경험 보존 — saved가 'persona'면 그대로
+    switchDashTab(initialTab);
+  });
+  // 전역 노출 (디버그용)
+  window.switchDashTab = switchDashTab;
+})();
 
 // ── RENDER: SECTOR HEATMAP ─────────────────────────────
 // Sector 시트 컬럼 구조 (A열=시장, B열=섹터, C열=등락률(%), D열=비중(%) [선택])
