@@ -3920,6 +3920,69 @@ body.embed-mode .bento-row {
   .persona-l2-summary-label { font-size: 12px; }
 }
 
+/* ━━━ Skeleton Loading (Stripe + Phantom 영감 — spinner 대신 카드 모양 placeholder) ━━━ */
+@keyframes personaSkeletonShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.persona-skeleton {
+  display: flex; flex-direction: column; gap: 14px;
+  animation: personaCardStagger 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+.persona-skeleton-grade {
+  height: 160px; border-radius: var(--persona-r-xl);
+  background: linear-gradient(90deg,
+    var(--surface-1) 0%, rgba(255,255,255,0.06) 50%, var(--surface-1) 100%);
+  background-size: 200% 100%;
+  animation: personaSkeletonShimmer 1.6s infinite linear;
+  position: relative; overflow: hidden;
+}
+.persona-skeleton-grade::after {
+  content: ''; position: absolute;
+  top: -50px; right: -80px; width: 280px; height: 280px;
+  background: radial-gradient(circle, var(--persona-accent-glow) 0%, transparent 70%);
+  filter: blur(40px); pointer-events: none;
+  animation: orbDrift 12s ease-in-out infinite;
+}
+.persona-skeleton-banner {
+  height: 110px; border-radius: var(--persona-r-xl);
+  background: linear-gradient(90deg,
+    var(--accent-bg) 0%, var(--persona-accent-bg) 50%, var(--accent-bg) 100%);
+  background-size: 200% 100%;
+  animation: personaSkeletonShimmer 1.6s infinite linear;
+  border-left: 4px solid var(--accent);
+}
+.persona-skeleton-section {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--persona-r-lg); padding: 18px 20px;
+}
+.persona-skeleton-section-head {
+  height: 22px; width: 180px;
+  background: linear-gradient(90deg,
+    var(--surface-1) 0%, rgba(255,255,255,0.06) 50%, var(--surface-1) 100%);
+  background-size: 200% 100%;
+  animation: personaSkeletonShimmer 1.6s infinite linear;
+  border-radius: 6px; margin-bottom: 16px;
+}
+.persona-skeleton-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+.persona-skeleton-card {
+  height: 200px; border-radius: var(--persona-r-lg);
+  background: linear-gradient(90deg,
+    var(--bg3) 0%, var(--surface-1) 50%, var(--bg3) 100%);
+  background-size: 200% 100%;
+  animation: personaSkeletonShimmer 1.6s infinite linear;
+  border: 1px solid var(--border);
+}
+@media (max-width: 480px) {
+  .persona-skeleton-grid { grid-template-columns: 1fr; gap: 10px; }
+  .persona-skeleton-grade { height: 140px; }
+  .persona-skeleton-card { height: 180px; }
+}
+
 @media (max-width: 380px) {
   /* 초소형 — 갤럭시 폴드·구형 폰 */
   #persona-view { padding: var(--s-2); }
@@ -3964,6 +4027,31 @@ body.embed-mode .bento-row {
         <button class="persona-landing-chip" onclick="_quickSearch('035420', 'NAVER')"><strong>035420</strong> NAVER</button>
         <button class="persona-landing-chip" onclick="_quickSearch('051910', 'LG화학')"><strong>051910</strong> LG화학</button>
         <button class="persona-landing-chip" onclick="_quickSearch('086520', '에코프로')"><strong>086520</strong> 에코프로</button>
+      </div>
+    </div>
+
+    <!-- Skeleton Loading (Stripe + Phantom 영감 — 응답 도착 전 카드 모양 표시) -->
+    <div class="persona-skeleton" id="persona-skeleton" style="display:none;">
+      <div class="persona-skeleton-grade"></div>
+      <div class="persona-skeleton-banner"></div>
+      <div class="persona-skeleton-section">
+        <div class="persona-skeleton-section-head"></div>
+        <div class="persona-skeleton-grid">
+          <div class="persona-skeleton-card"></div>
+          <div class="persona-skeleton-card"></div>
+          <div class="persona-skeleton-card"></div>
+          <div class="persona-skeleton-card"></div>
+          <div class="persona-skeleton-card"></div>
+          <div class="persona-skeleton-card"></div>
+        </div>
+      </div>
+      <div class="persona-skeleton-section">
+        <div class="persona-skeleton-section-head"></div>
+        <div class="persona-skeleton-grid">
+          <div class="persona-skeleton-card"></div>
+          <div class="persona-skeleton-card"></div>
+          <div class="persona-skeleton-card"></div>
+        </div>
       </div>
     </div>
 
@@ -8296,6 +8384,9 @@ window.addEventListener('resize', () => {
     const result = document.getElementById('persona-result');
     document.getElementById('persona-loading').style.display = 'none';
     document.getElementById('persona-error').style.display = 'none';
+    // Skeleton hide (Stripe morph 효과 — 카드 stagger fadeIn으로 자연 전환)
+    const skeleton = document.getElementById('persona-skeleton');
+    if (skeleton) skeleton.style.display = 'none';
     if (!data || !data.ok) {
       const err = document.getElementById('persona-error');
       err.style.display = '';
@@ -8409,6 +8500,9 @@ window.addEventListener('resize', () => {
     // 검색 시 랜딩 hide (Phantom 영감 — 매끄러운 전환)
     const landing = document.getElementById('persona-landing');
     if (landing) landing.style.display = 'none';
+    // Skeleton 먼저 표시 (Stripe 영감 — 카드 모양 위치 인지)
+    const skeleton = document.getElementById('persona-skeleton');
+    if (skeleton) skeleton.style.display = '';
     document.getElementById('persona-loading').style.display = '';
     document.getElementById('persona-error').style.display = 'none';
     document.getElementById('persona-result').style.display = 'none';
@@ -8426,6 +8520,8 @@ window.addEventListener('resize', () => {
     } catch (e) {
       _stopLoadingProgress();
       document.getElementById('persona-loading').style.display = 'none';
+      const sk = document.getElementById('persona-skeleton');
+      if (sk) sk.style.display = 'none';
       const err = document.getElementById('persona-error');
       err.style.display = '';
       err.textContent = '네트워크 오류: ' + (e.message || e);
