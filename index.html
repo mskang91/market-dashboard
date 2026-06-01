@@ -3626,11 +3626,8 @@ body.embed-mode .bento-row {
       <!-- 매크로 인라인 div 호환 (이제 안 씀, 빈 상태) -->
       <div id="persona-macro-inline" style="display:none"></div>
 
-      <!-- Red Team 한 줄 — 거시 환경 카드 바로 아래, 매크로 위험 관점 종합 -->
-      <div class="persona-redteam" id="persona-redteam">
-        <span class="label">⚠ Red Team · 거시 위험 관점</span>
-        <span id="persona-redteam-text">—</span>
-      </div>
+      <!-- (Red Team 박스 제거됨 — 사용자 요청) -->
+      <div id="persona-redteam" style="display:none"><span id="persona-redteam-text"></span></div>
 
       <!-- 전체 펼치기 -->
       <button class="persona-expand-btn" id="persona-expand-btn" onclick="togglePersonaExpand()">
@@ -7913,8 +7910,7 @@ window.addEventListener('resize', () => {
       summary: data.business_summary || data.summary || ''
     });
     renderL1Cards(data);
-    const rt = document.getElementById('persona-redteam-text');
-    if (rt) rt.textContent = data.red_team || '—';
+    // Red Team 박스 표시 제거됨 — data.red_team은 백엔드 응답에 남아있으나 UI에 노출 X
     renderL2Cards(data);
     const meta = document.getElementById('persona-meta');
     if (meta) meta.textContent = 'source: ' + (data._data_source || '?') + ' · ' + (data.cached ? 'cached' : 'live') + ' · ' + (data._response_ms || '?') + 'ms';
