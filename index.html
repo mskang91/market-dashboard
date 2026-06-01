@@ -3099,50 +3099,116 @@ body.embed-mode .bento-row {
 /* ━━━ Mini Card 시스템 (지표별 시각화) ━━━ */
 .persona-mini-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
   margin-top: 4px;
 }
 .persona-mini-card {
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 16px 16px 14px;
-  display: flex; flex-direction: column; gap: 6px;
-  min-height: 130px;
+  padding: 18px 18px 16px;
+  display: flex; flex-direction: column; gap: 7px;
+  min-height: 148px;
   position: relative;
   transition: transform 0.35s var(--toss-ease), box-shadow 0.35s var(--toss-ease), border-color 0.35s var(--toss-ease);
 }
 .persona-mini-card:hover { transform: translateY(-3px); box-shadow: var(--persona-shadow-hover); border-color: var(--border2); }
 .persona-mini-card-label {
-  font-size: 11px; font-weight: 700;
-  color: var(--accent2); letter-spacing: 0.04em;
+  font-size: 12px; font-weight: 800;
+  color: var(--accent2); letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .persona-mini-card-name {
-  font-size: 12px; color: var(--text3);
-  font-weight: 500; letter-spacing: -0.01em;
-  margin-top: -2px;
+  font-size: 14px; color: var(--text2);
+  font-weight: 600; letter-spacing: -0.01em;
+  margin-top: -2px; line-height: 1.35;
 }
 .persona-mini-card-value {
-  font-size: 26px; font-weight: 800;
+  font-size: 28px; font-weight: 800;
   color: var(--text);
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   margin-top: auto;
   line-height: 1.1;
 }
-.persona-mini-card-value.text { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.persona-mini-card-value.text { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
 .persona-mini-card-sub {
-  font-size: 11px; color: var(--text3); font-weight: 500;
-  letter-spacing: -0.01em;
+  font-size: 12px; color: var(--text3); font-weight: 500;
+  letter-spacing: -0.01em; line-height: 1.4;
 }
 .persona-mini-card-tag {
-  font-size: 11px; font-weight: 700;
-  padding: 3px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 11px; border-radius: 7px;
   align-self: flex-start;
   background: var(--surface-2); color: var(--text2);
   letter-spacing: -0.01em;
+}
+
+/* ⓘ info 버튼 + info panel */
+.persona-mini-card-info-btn {
+  position: absolute; top: 12px; right: 12px;
+  width: 22px; height: 22px;
+  border-radius: 50%; border: none;
+  background: var(--surface-2); color: var(--text3);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s var(--toss-ease);
+  padding: 0; line-height: 1;
+}
+.persona-mini-card-info-btn:hover { background: var(--accent); color: white; }
+.persona-mini-card.is-expanded { min-height: 0; }
+.persona-mini-card-info-panel {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: none;
+  animation: fadeInUp 0.4s var(--toss-ease);
+}
+.persona-mini-card.is-expanded .persona-mini-card-info-panel { display: block; }
+.persona-info-define { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 8px; }
+.persona-info-formula {
+  font-size: 12px; color: var(--text3);
+  background: var(--surface-1); padding: 8px 10px; border-radius: 8px;
+  margin-bottom: 10px; font-family: 'SF Mono', Consolas, monospace; letter-spacing: -0.01em;
+}
+.persona-info-section-title {
+  font-size: 11px; font-weight: 800; color: var(--accent2);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 6px; margin-top: 4px;
+}
+.persona-info-scale { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.persona-info-scale-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; padding: 5px 8px; border-radius: 6px;
+  background: var(--surface-1);
+}
+.persona-info-scale-range {
+  font-weight: 700; color: var(--text); min-width: 88px;
+  font-variant-numeric: tabular-nums; font-size: 12px;
+}
+.persona-info-scale-label { color: var(--text2); flex: 1; font-size: 12px; }
+.persona-info-scale-row.good { background: rgba(34,197,94,0.10); }
+.persona-info-scale-row.bad  { background: rgba(239,68,68,0.10); }
+.persona-info-scale-row.warn { background: rgba(249,115,22,0.10); }
+.persona-info-items { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.persona-info-item {
+  font-size: 12px; color: var(--text2); padding: 4px 8px;
+  background: var(--surface-1); border-radius: 6px; line-height: 1.45;
+}
+.persona-info-item-name { font-weight: 700; color: var(--text); margin-right: 6px; }
+.persona-info-note { font-size: 11px; color: var(--text3); font-style: italic; margin-top: 4px; }
+
+/* Style 사분면 SVG */
+.persona-quadrant-svg { width: 100%; max-width: 320px; margin: 8px auto; display: block; }
+.persona-quadrant-cell { fill: var(--surface-1); stroke: var(--border); }
+.persona-quadrant-cell.is-current { fill: rgba(49,130,246,0.20); stroke: var(--accent); stroke-width: 2; }
+.persona-quadrant-label { font-size: 10px; fill: var(--text2); font-weight: 600; }
+.persona-quadrant-label.is-current { fill: var(--accent); font-weight: 800; }
+.persona-quadrant-axis { font-size: 10px; fill: var(--text3); font-weight: 500; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .persona-mini-card-tag.good { background: rgba(34,197,94,0.18); color: #86efac; }
 .persona-mini-card-tag.bad { background: rgba(239,68,68,0.18); color: #fca5a5; }
@@ -6780,6 +6846,227 @@ window.addEventListener('resize', () => {
     loss_threshold:            { name: '손절 기준',        short: 'Stop' }
   };
 
+  // === 지표 상세 설명 (정의·산출법·의미 범례) — 13번/15번 명세 정합 ===
+  const _METRIC_INFO = {
+    per: {
+      define: '주가가 EPS(주당순이익)의 몇 배인지. 투자금을 회수하는 데 걸리는 햇수.',
+      formula: 'PER = 주가 ÷ 1주당 당기순이익(EPS)',
+      scale: [
+        { range: '< 10배',   label: '저평가 영역 (회수 빠름)',  cls: 'good' },
+        { range: '10~20배',  label: '평균 영역',                cls: 'neutral' },
+        { range: '> 20배',   label: '고평가 또는 성장 프리미엄', cls: 'bad' }
+      ],
+      note: '같은 업종·과거 5년 평균과 비교가 핵심 (히스토리컬 %ile 동행 표시)'
+    },
+    pbr: {
+      define: '시가총액이 자기자본(순자산)의 몇 배인지. 청산가치 대비 시장가격.',
+      formula: 'PBR = 주가 ÷ 주당순자산(BPS)',
+      scale: [
+        { range: '< 1배',    label: '청산가치 미달 (저평가 가능)', cls: 'good' },
+        { range: '1~2배',    label: '평균 영역',                   cls: 'neutral' },
+        { range: '> 2배',    label: '성장 프리미엄 또는 고평가',   cls: 'bad' }
+      ],
+      note: '자산의 질·업종 특성에 따라 해석 다름 (금융·정유는 1배 미만이 정상권)'
+    },
+    roe: {
+      define: '자기자본 1원으로 얼마나 이익을 내는가. 주주 관점 수익률.',
+      formula: 'ROE = 당기순이익 ÷ 자기자본 × 100 (듀퐁: 마진 × 회전율 × 레버리지)',
+      scale: [
+        { range: '≥ 15%',    label: '우수',                     cls: 'good' },
+        { range: '8~15%',    label: '보통',                     cls: 'neutral' },
+        { range: '< 8%',     label: '부족 (자본효율 낮음)',     cls: 'bad' }
+      ],
+      note: '레버리지로 부풀린 ROE는 위험. ROIC 동시 확인 권장'
+    },
+    roic: {
+      define: '자기자본 + 부채를 합친 전체 자본의 효율. 자본구조 영향 무관.',
+      formula: 'ROIC = NOPAT ÷ (자기자본 + 이자부채) × 100',
+      scale: [
+        { range: '≥ WACC + 4%p',  label: '가치 창출 (주주가치 ↑)', cls: 'good' },
+        { range: 'WACC ± 4%p',    label: '보통',                   cls: 'neutral' },
+        { range: '< WACC',        label: '가치 파괴 (이익 < 비용)', cls: 'bad' }
+      ],
+      note: '한국 평균 WACC ≈ 8~10%. ROIC > WACC면 자본 잘 굴리는 회사'
+    },
+    fcf_signal: {
+      define: '영업으로 번 현금에서 설비투자(CAPEX)를 빼고 남는 현금. 배당·자사주매입·M&A 능력.',
+      formula: 'FCF = 영업현금흐름 − CAPEX (최근 4분기 추세)',
+      scale: [
+        { range: '↑',        label: '회복·확장 (현금 누적)',   cls: 'good' },
+        { range: '→',        label: '안정',                    cls: 'neutral' },
+        { range: '↓',        label: '약화 (투자·운전자본 부담)', cls: 'bad' }
+      ],
+      note: '4분기 연속 추세를 봐야 함. 한 분기 변동은 노이즈'
+    },
+    cyclical_5_factor_score: {
+      define: '종목이 경기 사이클에 얼마나 민감한지 5요인으로 평가.',
+      formula: '5요인 중 부합 개수 / 5',
+      items: [
+        { name: '경기민감 업종', desc: '반도체·철강·화학·조선·정유·건설 등' },
+        { name: '매출 사이클',   desc: '확장기에 매출 ↑ / 침체기에 매출 ↓' },
+        { name: 'CAPEX 사이클',  desc: '호황 시 설비투자 ↑ / 불황 시 ↓' },
+        { name: '가격 결정력',   desc: '약함 = 외생 원자재·환율 추종' },
+        { name: '재고 사이클',   desc: '재고 부담 변동 폭 큼' }
+      ],
+      scale: [
+        { range: '4~5/5',    label: '강한 경기민감주 (사이클 의존)', cls: 'warn' },
+        { range: '2~3/5',    label: '혼합',                          cls: 'neutral' },
+        { range: '0~1/5',    label: '경기 둔감 (방어주 성격)',       cls: 'good' }
+      ]
+    },
+    cycle_phase: {
+      define: '사이클 4국면. ISM·미국채·EPS로 현재 경기 위치 판정.',
+      formula: 'ISM 제조업 PMI + 미국채 10년 + KOSPI 12개월 포워드 EPS',
+      items: [
+        { name: '희망', desc: '침체 직후 회복 시작 (ISM < 50이나 반등). 한국 수출주 매수 신호' },
+        { name: '성장', desc: 'ISM > 50 확장 + EPS 견인 + 멀티플 안정' },
+        { name: '낙관', desc: 'ISM 정점 + 멀티플 ↑ + 위험 ↑ (조정 임박)' },
+        { name: '절망', desc: 'ISM < 50 + EPS·멀티플 ↓ (바닥 임박)' }
+      ],
+      note: 'ISM 강조 영역: 희망=신규주문 / 성장=생산·고용 / 낙관=재고·자재가격 / 절망=수출·수입'
+    },
+    bull_bear_stage: {
+      define: '하워드 막스의 강세·약세 3단계. 시장 심리의 위치.',
+      formula: '사이클 + KOSPI 12M 수익률 + VIX + PER(5Y 대비)',
+      items: [
+        { name: '강세 1단계', desc: '소수 미래 지향적이 호전 믿기 시작 (KOSPI 12M < 10%)' },
+        { name: '강세 2단계', desc: '대부분 투자자가 호전 인지 (10~25%)' },
+        { name: '강세 3단계', desc: '모두가 영원히 호전 결론 (25%+, 위험 ↑)' },
+        { name: '약세 1단계', desc: '소수 신중한 사람들이 장밋빛 X 인식' },
+        { name: '약세 2단계', desc: '대부분이 약화 인식' },
+        { name: '약세 3단계', desc: '모두가 약화 확신 (바닥 임박 = 매수 적기)' }
+      ],
+      note: '단계 자체보다 단계 전환 시점이 매매 신호'
+    },
+    inflation_split: {
+      define: '인플레이션 유형 분류. 한국·미국 분리.',
+      formula: 'CPI + WTI YoY + 명목 성장률 + 환율 압력',
+      items: [
+        { name: '비용 (Cost-Push)', desc: '원자재·환율 상승이 견인 (WTI ↑·KRW 약세) — 기업 마진 압박' },
+        { name: '수요 (Demand-Pull)', desc: '명목 성장 견인 (성장률 8%+) — 매출 ↑·금리 인상' },
+        { name: '평온',             desc: '임계 미달 (안정 영역)' }
+      ],
+      note: '한국은 비용 인플레 빈도 ↑ (원자재 수입국 + 환율 영향 큼)'
+    },
+    style_quadrant: {
+      define: '4사분면 스타일 분류. 경기민감 vs 방어 × 가치 vs 성장.',
+      formula: '업종 매핑 + MSCI 성장 5지표 + ISM 4분면 (보조)',
+      quadrant: true
+    },
+    rate_speed_3m_bp: {
+      define: '미국채 10년 수익률의 3개월 변화 속도 (bp).',
+      formula: '(최근 종가 − 63영업일 전 종가) × 100',
+      scale: [
+        { range: '> +23bp',  label: '주식·채권 동반 매도 위험',    cls: 'bad' },
+        { range: '+20~23bp', label: '밸류에이션 하방 압력',        cls: 'warn' },
+        { range: '±20bp',    label: '정상 영역',                   cls: 'neutral' },
+        { range: '< -23bp',  label: '금리 인하 사이클 가능성',     cls: 'good' }
+      ],
+      note: '임계 23bp 출처: 슬라이드 ⑦ p23. 사이클 위치에 따라 영향 다름'
+    },
+    credit_spread: {
+      define: 'HY/IG 신용 스프레드 + 장단기 곡선 신호.',
+      formula: 'FRED HY 스프레드 (BAMLH0A0HYM2) + IG + 10Y-2Y',
+      items: [
+        { name: '확대', desc: 'HY 30일 +50bp 이상 = 경기 부정 우위' },
+        { name: '축소', desc: 'HY·IG 동시 축소 = 경기 긍정 우위' },
+        { name: '중립', desc: '변동 미미' },
+        { name: '곡선 역전', desc: '10Y < 2Y = 장기 침체 시그널' }
+      ]
+    },
+    loss_threshold: {
+      define: '손절 임계 평가 (개인 운용 보정).',
+      formula: '(현재가 − 평균 매수가) ÷ 평균 매수가 × 100',
+      scale: [
+        { range: '> -10%',    label: '정상 보유',                       cls: 'good' },
+        { range: '-10~-22%',  label: '본인 한계 도달 — 비중 축소',      cls: 'warn' },
+        { range: '-22~-45%',  label: '기관 매도 임계 — 손절 검토',      cls: 'bad' },
+        { range: '< -45%',    label: '손실 위험 — 확대 방지 차원 손절', cls: 'bad' }
+      ],
+      note: '본인 -10%는 운용 보정값 (슬라이드 ② 원본 -15% → -10% 보정)'
+    }
+  };
+
+  // ⓘ 토글 함수 (전역 노출 — onclick에서 직접 호출)
+  window.togglePersonaCardInfo = function(btn) {
+    const card = btn.closest('.persona-mini-card');
+    if (!card) return;
+    card.classList.toggle('is-expanded');
+  };
+
+  // Style 사분면 SVG 렌더
+  function _renderStyleQuadrant(currentValue) {
+    const cells = [
+      { name: '방어_가치',     desc: '음식료·통신·유틸', x: 0, y: 0 },
+      { name: '방어_성장',     desc: '헬스케어·바이오',   x: 1, y: 0 },
+      { name: '경기민감_가치', desc: '철강·정유·조선',    x: 0, y: 1 },
+      { name: '경기민감_성장', desc: '반도체·화학·소재',  x: 1, y: 1 }
+    ];
+    const cellW = 130, cellH = 70, pad = 28;
+    const svgW = pad + cellW * 2 + 24, svgH = pad + cellH * 2 + 24;
+    let html = '<svg class="persona-quadrant-svg" viewBox="0 0 ' + svgW + ' ' + svgH + '" xmlns="http://www.w3.org/2000/svg">';
+    // 축 라벨
+    html += '<text class="persona-quadrant-axis" x="' + (pad + cellW) + '" y="14" text-anchor="middle">← 가치        성장 →</text>';
+    html += '<text class="persona-quadrant-axis" x="14" y="' + (pad + cellH) + '" text-anchor="middle" transform="rotate(-90, 14, ' + (pad + cellH) + ')">← 경기민감        방어 →</text>';
+    // 4개 셀
+    cells.forEach(function(c) {
+      const isCurrent = (c.name === currentValue);
+      const xPx = pad + c.x * cellW;
+      const yPx = pad + c.y * cellH;
+      html += '<rect class="persona-quadrant-cell ' + (isCurrent ? 'is-current' : '') + '" x="' + xPx + '" y="' + yPx + '" width="' + cellW + '" height="' + cellH + '" rx="6"/>';
+      html += '<text class="persona-quadrant-label ' + (isCurrent ? 'is-current' : '') + '" x="' + (xPx + cellW / 2) + '" y="' + (yPx + cellH / 2 - 4) + '" text-anchor="middle">' + escapeHtml(c.name) + '</text>';
+      html += '<text class="persona-quadrant-label" x="' + (xPx + cellW / 2) + '" y="' + (yPx + cellH / 2 + 14) + '" text-anchor="middle" style="font-size:9px;font-weight:500">' + escapeHtml(c.desc) + '</text>';
+    });
+    html += '</svg>';
+    return html;
+  }
+
+  // info panel HTML 생성
+  function _miniCardInfoHtml(key, rawValue) {
+    const info = _METRIC_INFO[key];
+    if (!info) return '';
+    let html = '<div class="persona-mini-card-info-panel">';
+    if (info.define) html += '<div class="persona-info-define">' + escapeHtml(info.define) + '</div>';
+    if (info.formula) html += '<div class="persona-info-formula">' + escapeHtml(info.formula) + '</div>';
+    // 사분면 (style_quadrant 한정)
+    if (info.quadrant) {
+      const cur = _parseMetric(rawValue).value;
+      html += '<div class="persona-info-section-title">현재 위치</div>';
+      html += _renderStyleQuadrant(cur);
+    }
+    // 의미 범례 (scale)
+    if (info.scale && info.scale.length) {
+      html += '<div class="persona-info-section-title">의미 범례</div>';
+      html += '<div class="persona-info-scale">';
+      info.scale.forEach(function(s) {
+        html += '<div class="persona-info-scale-row ' + (s.cls || '') + '">'
+          +   '<span class="persona-info-scale-range">' + escapeHtml(s.range) + '</span>'
+          +   '<span class="persona-info-scale-label">' + escapeHtml(s.label) + '</span>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
+    // 구성요소 (items)
+    if (info.items && info.items.length) {
+      html += '<div class="persona-info-section-title">구성</div>';
+      html += '<div class="persona-info-items">';
+      info.items.forEach(function(it) {
+        if (typeof it === 'string') {
+          html += '<div class="persona-info-item">' + escapeHtml(it) + '</div>';
+        } else {
+          html += '<div class="persona-info-item">'
+            +   '<span class="persona-info-item-name">' + escapeHtml(it.name) + '</span>'
+            +   escapeHtml(it.desc || '')
+            + '</div>';
+        }
+      });
+      html += '</div>';
+    }
+    if (info.note) html += '<div class="persona-info-note">' + escapeHtml(info.note) + '</div>';
+    html += '</div>';
+    return html;
+  }
+
   // raw 결론 키워드 → tag 색상
   function _classifyTag(raw) {
     if (!raw || raw === 'N/A') return null;
@@ -6817,13 +7104,16 @@ window.addEventListener('resize', () => {
     const meta = _METRIC_LABELS[key] || { name: key, short: key };
     const p = _parseMetric(raw);
     const valCls = String(p.value).length > 8 ? 'persona-mini-card-value text' : 'persona-mini-card-value';
+    const hasInfo = !!_METRIC_INFO[key];
     return ''
       + '<div class="persona-mini-card">'
+      + (hasInfo ? '<button class="persona-mini-card-info-btn" onclick="togglePersonaCardInfo(this)" aria-label="' + escapeHtml(meta.name) + ' 자세히">ⓘ</button>' : '')
       +   '<div class="persona-mini-card-label">' + escapeHtml(meta.short) + '</div>'
       +   '<div class="persona-mini-card-name">' + escapeHtml(meta.name) + '</div>'
       +   '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>'
       + (p.sub ? '<div class="persona-mini-card-sub">' + escapeHtml(p.sub) + '</div>' : '')
       + (p.tag ? '<span class="persona-mini-card-tag ' + p.tag.cls + '">' + escapeHtml(p.tag.text) + '</span>' : '')
+      + (hasInfo ? _miniCardInfoHtml(key, raw) : '')
       + '</div>';
   }
 
