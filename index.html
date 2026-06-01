@@ -3384,6 +3384,34 @@ body.embed-mode .bento-row {
 .persona-action-banner-sub .item-label { color: var(--text3); margin-right: 5px; font-weight: 500; }
 .persona-action-banner-sub strong { color: var(--text); font-weight: 700; }
 
+/* 점수 근거 + 약점 영역 */
+.persona-action-banner-reasoning {
+  margin-top: 10px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+  font-size: 13px; color: var(--text2);
+}
+.persona-action-banner-reasoning .item-label {
+  color: var(--text3); font-weight: 600; margin-right: 8px;
+  font-size: 12px;
+}
+.persona-action-banner-breakdown .breakdown-line {
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+.persona-action-banner-breakdown strong { color: var(--text); font-weight: 800; }
+.persona-action-banner-breakdown strong.total { color: var(--accent); font-size: 14px; }
+.persona-action-banner-weak strong { color: var(--orange); font-weight: 800; }
+
+/* 등급 카드 회사 정보 sub */
+.persona-grade-company-sub {
+  font-size: 14px; color: var(--text2); font-weight: 600;
+  margin-top: 6px; letter-spacing: -0.01em;
+}
+.persona-grade-company-summary {
+  font-size: 13px; color: var(--text3); font-weight: 500;
+  margin-top: 4px; line-height: 1.5;
+}
+
 /* ━━━ 매크로 인라인 요약 (시장 위치 아래) ━━━ */
 .persona-macro-inline {
   background: var(--bg3);
@@ -7013,13 +7041,24 @@ window.addEventListener('resize', () => {
     requestAnimationFrame(frame);
   }
 
-  function renderGradeCard(cs, ticker, name) {
+  function renderGradeCard(cs, ticker, name, extraInfo) {
     const el = document.getElementById('persona-grade-card');
     if (!el) return;
     const grade = cs.grade || 'D';
     el.className = 'persona-grade-card grade-' + grade;
+    // 회사 정보 라인 (시장 + 산업) — extraInfo = { market, sector, summary }
+    const info = extraInfo || {};
+    const marketLabel = info.market || 'KR';
+    const sectorLabel = info.sector || '';
+    const summary = info.summary || '';
+    const companySubParts = [];
+    if (marketLabel) companySubParts.push(marketLabel + ' 상장');
+    if (sectorLabel) companySubParts.push(sectorLabel);
+    const companySub = companySubParts.length ? companySubParts.join(' · ') : '';
     el.innerHTML = ''
       + '<div class="persona-grade-title">' + escapeHtml(name) + '<span class="ticker-suffix">' + escapeHtml(ticker) + '</span></div>'
+      + (companySub ? '<div class="persona-grade-company-sub">' + escapeHtml(companySub) + '</div>' : '')
+      + (summary ? '<div class="persona-grade-company-summary">' + escapeHtml(summary) + '</div>' : '')
       + '<div class="persona-grade-score-row">'
       +   '<span class="persona-grade-score-wrap">'
       +     '<span class="persona-grade-score" id="persona-grade-score-num">0</span>'
@@ -7029,7 +7068,6 @@ window.addEventListener('resize', () => {
       +   '<span class="persona-grade-label">' + escapeHtml(cs.voice_label || '') + '</span>'
       + '</div>'
       + '<div class="persona-grade-gauge"><div class="persona-grade-gauge-fill" id="persona-grade-gauge-fill" style="width:0%; transition: width 1.5s var(--toss-ease);"></div></div>';
-    // 점수 카운트업 1.5초 + 게이지 연동
     setTimeout(function() {
       _countUp(document.getElementById('persona-grade-score-num'), cs.total || 0, 1500);
       const gauge = document.getElementById('persona-grade-gauge-fill');
@@ -7424,29 +7462,42 @@ window.addEventListener('resize', () => {
   }
 
   // === 운용 권고 강조 배너 (등급 카드 아래) ===
-  // data_source_summary는 백엔드 룰명("rules" / "DART real" 등) — 시청자에겐 raw 출처로 매핑
-  function _resolveDataSourceLabel(rawSummary) {
-    const s = String(rawSummary || '').toLowerCase();
-    const sources = [];
-    if (/dart|재무|회계/.test(s)) sources.push('DART');
-    if (/fred|금리|treasury|gauge/.test(s)) sources.push('FRED');
-    if (/yahoo|yfinance|krx|시총/.test(s)) sources.push('Yahoo·KRX');
-    if (/ecos|kosis|한은|한국은행/.test(s)) sources.push('ECOS·KOSIS');
-    // 기본 출처 (모든 종목 분석에 항상 포함)
-    if (sources.length === 0) return 'DART · FRED · KRX';
-    return sources.join(' · ');
+  // 모든 KR 종목 분석에 항상 사용되는 raw 데이터 출처 (정적 — 백엔드 data_source_summary 무시)
+  function _resolveDataSourceLabel() {
+    return 'DART · FRED · KRX · Yahoo · ECOS · KOSIS';
   }
   function _renderActionBanner(data) {
     const el = document.getElementById('persona-action-banner');
     if (!el) return;
     const m = data.metrics_labeled || {};
     const cs = data.composite_score || {};
+    const br = cs.breakdown || {};
+    const fin = (br.financial && br.financial.score) || 0;
+    const val = (br.valuation && br.valuation.score) || 0;
+    const cf  = (br.cashflow_growth && br.cashflow_growth.score) || 0;
+    const cm  = (br.cycle_macro && br.cycle_macro.score) || 0;
+    const total = cs.total || (fin + val + cf + cm);
+    // 약점 자동 식별 — 15/25 미만 = 약점
+    const weak = [];
+    if (fin < 15) weak.push('재무 건전성');
+    if (val < 15) weak.push('밸류에이션');
+    if (cf  < 15) weak.push('현금흐름·성장');
+    if (cm  < 15) weak.push('사이클 적합도');
     el.innerHTML = ''
       + '<div class="persona-action-banner-label">운용 권고</div>'
       + '<div class="persona-action-banner-voice">' + escapeHtml(data.voice || cs.voice_label || '권고 정보 없음') + '</div>'
       + '<div class="persona-action-banner-sub">'
       +   '<span><span class="item-label">사이클 적합도</span><strong>' + escapeHtml(m.cyclical_5_factor_score || 'N/A') + '</strong></span>'
-      +   '<span><span class="item-label">데이터 출처</span><strong>' + escapeHtml(_resolveDataSourceLabel(cs.data_source_summary)) + '</strong></span>'
+      +   '<span><span class="item-label">데이터 출처</span><strong>' + _resolveDataSourceLabel() + '</strong></span>'
+      + '</div>'
+      + '<div class="persona-action-banner-reasoning">'
+      +   '<div class="persona-action-banner-breakdown">'
+      +     '<span class="item-label">점수 근거</span>'
+      +     '<span class="breakdown-line">재무 <strong>' + fin + '</strong> · 밸류 <strong>' + val + '</strong> · 현금 <strong>' + cf + '</strong> · 사이클 <strong>' + cm + '</strong> = 총 <strong class="total">' + total + ' / 100</strong></span>'
+      +   '</div>'
+      + (weak.length
+          ? '<div class="persona-action-banner-weak"><span class="item-label">약점</span><strong>' + escapeHtml(weak.join(' · ')) + '</strong> (15 / 25 미만 카테고리)</div>'
+          : '<div class="persona-action-banner-weak"><span class="item-label">약점</span><strong>없음</strong> (전 카테고리 균형)</div>')
       + '</div>';
     el.style.display = '';
   }
@@ -7745,7 +7796,11 @@ window.addEventListener('resize', () => {
       result.style.display = 'none';
       return;
     }
-    renderGradeCard(data.composite_score || {}, data.ticker, data.name);
+    renderGradeCard(data.composite_score || {}, data.ticker, data.name, {
+      market: data.market || '',
+      sector: data.sector || data.industry || '',
+      summary: data.business_summary || data.summary || ''
+    });
     renderL1Cards(data);
     const rt = document.getElementById('persona-redteam-text');
     if (rt) rt.textContent = data.red_team || '—';
