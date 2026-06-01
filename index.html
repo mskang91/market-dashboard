@@ -2870,6 +2870,20 @@ body.embed-mode .bento-row {
   display: flex; justify-content: space-between; align-items: center;
   border-radius: 10px; gap: 12px;
   transition: background 0.18s var(--toss-ease), transform 0.18s var(--toss-ease);
+  opacity: 0;
+  animation: searchItemFadeIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.persona-search-item:nth-child(1) { animation-delay: 0.00s; }
+.persona-search-item:nth-child(2) { animation-delay: 0.03s; }
+.persona-search-item:nth-child(3) { animation-delay: 0.06s; }
+.persona-search-item:nth-child(4) { animation-delay: 0.09s; }
+.persona-search-item:nth-child(5) { animation-delay: 0.12s; }
+.persona-search-item:nth-child(6) { animation-delay: 0.15s; }
+.persona-search-item:nth-child(7) { animation-delay: 0.18s; }
+.persona-search-item:nth-child(8) { animation-delay: 0.21s; }
+@keyframes searchItemFadeIn {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 .persona-search-item:hover, .persona-search-item.active {
   background: var(--accent-bg);
@@ -3045,8 +3059,19 @@ body.embed-mode .bento-row {
 .persona-grade-gauge-fill {
   height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
   border-radius: 999px;
-  transition: width 0.8s var(--toss-ease);
-  box-shadow: 0 0 12px rgba(49,130,246,0.40);
+  transition: width 1.5s var(--toss-ease-snap);  /* spring overshoot — 살짝 오버 후 land */
+  box-shadow: 0 0 12px var(--persona-accent-glow);
+  position: relative;
+}
+/* 게이지 shimmer 흐름 (채워진 후 미세하게 빛 흐름) */
+.persona-grade-gauge-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+  background-size: 200% 100%;
+  border-radius: 999px;
+  animation: progressShimmer 3s linear infinite;
+  opacity: 0.6;
 }
 
 /* ━━━ 4 L1 카드 (토스 스타일 — 그룹 wide) ━━━ */
@@ -3148,7 +3173,21 @@ body.embed-mode .bento-row {
 .persona-expand-btn.is-expanded #persona-expand-icon { transform: rotate(180deg); }
 
 /* ━━━ L2 펼침 (토스 스타일) ━━━ */
-.persona-l2-section { display: flex; flex-direction: column; gap: 16px; animation: l2FadeIn 0.45s var(--toss-ease); }
+.persona-l2-section { display: flex; flex-direction: column; gap: 16px; animation: l2SpringSlide 0.55s var(--toss-ease-snap); }
+@keyframes l2SpringSlide {
+  0%   { opacity: 0; transform: translateY(-12px) scale(0.985); }
+  60%  { opacity: 1; transform: translateY(2px) scale(1.003); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* L2 카드 자체에 stagger 추가 */
+.persona-l2-section > .persona-l2-grid > * {
+  opacity: 0;
+  animation: personaCardStagger 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.persona-l2-section > .persona-l2-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.persona-l2-section > .persona-l2-grid > *:nth-child(2) { animation-delay: 0.12s; }
+.persona-l2-section > .persona-l2-grid > *:nth-child(3) { animation-delay: 0.19s; }
+.persona-l2-section > .persona-l2-grid > *:nth-child(4) { animation-delay: 0.26s; }
 @keyframes l2FadeIn {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: none; }
@@ -3289,9 +3328,28 @@ body.embed-mode .bento-row {
   margin-top: 12px; padding-top: 12px;
   border-top: 1px solid var(--border);
   display: none;
-  animation: fadeInUp 0.4s var(--toss-ease);
+  animation: fadeInUpSpring 0.5s var(--toss-ease-snap);
+  transform-origin: top center;
+}
+@keyframes fadeInUpSpring {
+  0%   { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  60%  { opacity: 1; transform: translateY(2px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 .persona-mini-card.is-expanded .persona-mini-card-info-panel { display: block; }
+
+/* Cycle/B/B/Style 시각화 호버 — 미세 scale + glow */
+.persona-mini-card.has-viz .persona-viz-cycle,
+.persona-mini-card.has-viz .persona-viz-stepper,
+.persona-mini-card.has-viz .persona-quadrant-svg {
+  transition: transform 0.4s var(--toss-ease), filter 0.4s var(--toss-ease);
+}
+.persona-mini-card.has-viz:hover .persona-viz-cycle,
+.persona-mini-card.has-viz:hover .persona-viz-stepper,
+.persona-mini-card.has-viz:hover .persona-quadrant-svg {
+  transform: scale(1.03);
+  filter: drop-shadow(0 4px 12px var(--persona-accent-soft));
+}
 .persona-info-define { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 8px; }
 .persona-info-formula {
   font-size: 12px; color: var(--text3);
