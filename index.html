@@ -2757,6 +2757,8 @@ body.embed-mode .bento-row {
 
 /* 상단 박은 검색창 */
 .persona-search-wrap { position: relative; margin-top: var(--s-3); }
+.persona-notice { background: var(--accent-bg); border: 1px solid rgba(49,130,246,0.30); border-radius: var(--r-md); padding: var(--s-3) var(--s-4); color: var(--text2); font-size: 13px; line-height: 1.55; margin-bottom: var(--s-3); display: flex; gap: var(--s-2); align-items: flex-start; }
+.persona-notice .icon { color: var(--accent2); flex-shrink: 0; }
 .persona-search-input {
   width: 100%; padding: var(--s-4) var(--s-5);
   background: var(--bg2); border: 1px solid var(--border);
@@ -2946,10 +2948,15 @@ body.embed-mode .bento-row {
 
 <div id="persona-view" data-tab-target="persona" class="tab-hidden">
   <div class="persona-main">
+    <!-- 안내 배너 — 현재 지원 범위 -->
+    <div class="persona-notice">
+      <span class="icon">ℹ</span>
+      <span>현재 <strong>한국 종목(KOSPI·KOSDAQ)</strong> 일부만 분석 가능합니다. 미국 종목 분석은 추후 지원 예정입니다.</span>
+    </div>
     <!-- 검색창 + 자동완성 -->
     <div class="persona-search-wrap">
       <input type="text" id="persona-search" class="persona-search-input"
-             placeholder="종목명 또는 티커 (예: 삼성전자, 005930, NVDA)"
+             placeholder="한국 종목명 또는 6자리 코드 (예: 삼성전자, 005930)"
              autocomplete="off" spellcheck="false">
       <div class="persona-search-dropdown" id="persona-search-dropdown" style="display:none;"></div>
     </div>
@@ -6818,7 +6825,7 @@ window.addEventListener('resize', () => {
       input.addEventListener('input', _onInput);
       input.addEventListener('keydown', _onKeyDown);
       input.addEventListener('blur', _onBlur);
-      input.setAttribute('placeholder', '종목명 또는 티커 (예: 삼성전자, 005930, NVDA)');
+      input.setAttribute('placeholder', '한국 종목명 또는 6자리 코드 (예: 삼성전자, 005930)');
     }
     if (dd && !dd._autocompleteBound) {
       dd._autocompleteBound = true;
