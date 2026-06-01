@@ -2783,10 +2783,16 @@ body.embed-mode .bento-row {
   outline: none; letter-spacing: -0.01em;
   transition: border-color 0.3s var(--toss-ease), box-shadow 0.3s var(--toss-ease), background 0.3s var(--toss-ease);
 }
+/* Linear + Uniswap 영감 — focus 시 expand glow */
 .persona-search-input:focus {
   border-color: var(--accent); background: var(--bg);
-  box-shadow: 0 0 0 4px rgba(49,130,246,0.10);
+  box-shadow:
+    0 0 0 4px rgba(49,130,246,0.15),
+    0 0 24px rgba(49,130,246,0.25),
+    0 4px 12px rgba(0,0,0,0.20);
+  transform: translateY(-1px);
 }
+.persona-search-input { transition: border-color 0.3s var(--toss-ease), box-shadow 0.3s var(--toss-ease), background 0.3s var(--toss-ease), transform 0.25s var(--toss-ease); }
 .persona-search-input::placeholder { color: var(--text3); font-weight: 500; }
 
 .persona-search-dropdown {
@@ -3413,6 +3419,75 @@ body.embed-mode .bento-row {
   color: var(--accent2); font-weight: 700; margin-right: 5px;
   font-variant-numeric: tabular-nums;
 }
+
+/* ━━━ Click ripple — 버튼·chip·자세히 보기 (Material Web3 wallet 영감) ━━━ */
+@keyframes personaRipple {
+  to { transform: scale(2.5); opacity: 0; }
+}
+.persona-ripple-container { position: relative; overflow: hidden; }
+.persona-ripple-effect {
+  position: absolute; border-radius: 50%;
+  background: rgba(49,130,246,0.35);
+  transform: scale(0); opacity: 1;
+  animation: personaRipple 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
+/* 자세히 보기 / chip / mini-card 클릭 — ripple 활성화 */
+.persona-expand-btn,
+.persona-landing-chip,
+.persona-mini-card-info-btn {
+  position: relative; overflow: hidden;
+}
+
+/* ━━━ ⓘ 호버 — accent ring + scale (Linear focus 영감) ━━━ */
+.persona-mini-card-info-btn {
+  transition: all 0.25s var(--toss-ease);
+}
+.persona-mini-card-info-btn:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(49,130,246,0.45);
+}
+.persona-mini-card-info-btn:active { transform: scale(0.95); }
+
+/* ━━━ Tooltip glassmorphism (info-tip data-tip 사용) — Uniswap 영감 ━━━ */
+.info-tip {
+  position: relative; cursor: help;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: color 0.2s var(--toss-ease);
+}
+.info-tip:hover { color: var(--accent); }
+.info-tip[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 8px); right: 0;
+  background: rgba(20, 22, 30, 0.92);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text); font-size: 12px; font-weight: 500;
+  padding: 10px 14px; border-radius: 10px;
+  width: 260px; line-height: 1.5; text-align: left;
+  letter-spacing: -0.01em;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity 0.25s var(--toss-ease), transform 0.25s var(--toss-ease);
+  pointer-events: none; z-index: 50;
+}
+.info-tip[data-tip]:hover::after {
+  opacity: 1; transform: translateY(0);
+}
+
+/* ━━━ 자세히 보기 버튼 — hover 강조 (Linear) ━━━ */
+.persona-expand-btn {
+  transition: background 0.25s var(--toss-ease), border-color 0.25s var(--toss-ease), transform 0.2s var(--toss-ease);
+}
+.persona-expand-btn:hover {
+  background: var(--accent-bg);
+  border-color: rgba(49,130,246,0.30);
+  transform: translateY(-1px);
+}
+.persona-expand-btn:active { transform: translateY(0); }
 
 /* ━━━ 시각화 7종 (히스토리컬 게이지 / WACC 막대 / sparkline / Cycle 원형 / B/B 스테퍼 / Rate 게이지 / 4-bar) ━━━ */
 
@@ -7232,15 +7307,31 @@ window.addEventListener('resize', () => {
     return res.json();
   }
 
+  // Phantom 영감 — 카운트업 + 마지막 0.3s scrambling (숫자 빠르게 바뀌며 land)
   function _countUp(el, target, dur) {
     if (!el) return;
     target = Math.max(0, Math.min(100, target | 0));
-    dur = dur || 900;
+    dur = dur || 1500;
     const start = performance.now();
+    const scrambleStart = dur * 0.75;  // 마지막 25% scrambling
+    const targetStr = String(target);
     function frame(now) {
-      const t = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - t, 3);  // ease-out cubic
-      el.textContent = Math.round(target * eased);
+      const elapsed = now - start;
+      const t = Math.min(1, elapsed / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      if (elapsed < scrambleStart) {
+        // 일반 count-up
+        el.textContent = Math.round(target * eased);
+      } else if (t < 1) {
+        // scrambling — 자릿수 유지하면서 마지막 자리만 빠르게 흔들기
+        const base = Math.round(target * eased);
+        // 마지막 1자리 ± 4 범위에서 흔들기
+        const jitter = Math.floor(Math.random() * 9) - 4;
+        const shown = Math.max(0, Math.min(100, base + jitter));
+        el.textContent = shown;
+      } else {
+        el.textContent = target;
+      }
       if (t < 1) requestAnimationFrame(frame);
       else el.textContent = target;
     }
@@ -8234,6 +8325,23 @@ window.addEventListener('resize', () => {
     _personaState.lastTicker = ticker;
   }
   window.handlePersonaSearch = handlePersonaSearch;
+
+  // Click ripple — 전역 이벤트 위임 (Web3 wallet 영감)
+  document.addEventListener('click', function(e) {
+    const target = e.target.closest('.persona-expand-btn, .persona-landing-chip, .persona-mini-card-info-btn');
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    const ripple = document.createElement('span');
+    ripple.className = 'persona-ripple-effect';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    target.appendChild(ripple);
+    setTimeout(function() { if (ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 700);
+  });
 
   // 랜딩 chip 클릭 — 검색창 채우기 + 검색 실행 (Linear 영감)
   window._quickSearch = function(ticker, name) {
