@@ -3133,6 +3133,8 @@ body.embed-mode .bento-row {
   line-height: 1.1;
 }
 .persona-mini-card-value.text { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+.persona-mini-card.has-viz { min-height: 200px; }
+.persona-mini-card.has-viz .persona-mini-card-value { font-size: 16px; font-weight: 700; opacity: 0.85; margin-top: 6px; }
 .persona-mini-card-sub {
   font-size: 12px; color: var(--text3); font-weight: 500;
   letter-spacing: -0.01em; line-height: 1.4;
@@ -3209,6 +3211,174 @@ body.embed-mode .bento-row {
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ━━━ 시각화 7종 (히스토리컬 게이지 / WACC 막대 / sparkline / Cycle 원형 / B/B 스테퍼 / Rate 게이지 / 4-bar) ━━━ */
+
+/* 1. 히스토리컬 %ile 게이지 (PER/PBR) */
+.persona-viz-gauge { position: relative; height: 10px; margin: 8px 0 4px; border-radius: 5px; overflow: visible; }
+.persona-viz-gauge-bar { width: 100%; height: 100%; border-radius: 5px;
+  background: linear-gradient(90deg, #22c55e 0%, #eab308 50%, #ef4444 100%); opacity: 0.85; }
+.persona-viz-gauge-marker { position: absolute; top: -4px; width: 4px; height: 18px;
+  background: var(--text); border-radius: 2px; transform: translateX(-50%);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.4); }
+.persona-viz-gauge-labels { display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--text3); margin-top: 6px; font-weight: 500; }
+
+/* 2. ROE/ROIC vs WACC 막대 */
+.persona-viz-wacc { position: relative; height: 10px; background: var(--surface-1); border-radius: 5px;
+  margin: 8px 0 4px; overflow: visible; }
+.persona-viz-wacc-bar { height: 100%; border-radius: 5px; transition: width 0.8s var(--toss-ease); }
+.persona-viz-wacc-bar.good { background: #22c55e; }
+.persona-viz-wacc-bar.bad  { background: #ef4444; }
+.persona-viz-wacc-bar.neutral { background: var(--accent); }
+.persona-viz-wacc-marker { position: absolute; top: -3px; width: 2px; height: 16px;
+  background: rgba(255,255,255,0.65); transform: translateX(-50%); }
+.persona-viz-wacc-labels { display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--text3); margin-top: 6px; font-weight: 500; }
+.persona-viz-wacc-labels .wacc-label { color: var(--accent2); font-weight: 700; }
+
+/* 3. FCF sparkline */
+.persona-viz-sparkline { width: 100%; height: 40px; margin: 6px 0; display: block; }
+.persona-viz-sparkline polyline { fill: none; stroke: var(--accent); stroke-width: 2;
+  stroke-linejoin: round; stroke-linecap: round; }
+.persona-viz-sparkline polyline.up { stroke: #22c55e; }
+.persona-viz-sparkline polyline.down { stroke: #ef4444; }
+.persona-viz-sparkline circle { r: 3.5; }
+.persona-viz-sparkline circle.up { fill: #22c55e; }
+.persona-viz-sparkline circle.down { fill: #ef4444; }
+.persona-viz-sparkline circle.neutral { fill: var(--accent); }
+
+/* 4. Cycle 원형 사이클 */
+.persona-viz-cycle { width: 100%; max-width: 150px; height: auto; margin: 8px auto; display: block; }
+.persona-viz-cycle-seg { fill: var(--surface-1); stroke: var(--border); stroke-width: 1;
+  transition: all 0.5s var(--toss-ease); }
+.persona-viz-cycle-seg.is-current { fill: rgba(49,130,246,0.32); stroke: var(--accent); stroke-width: 2; }
+.persona-viz-cycle-label { font-size: 10px; fill: var(--text3); font-weight: 600;
+  dominant-baseline: middle; }
+.persona-viz-cycle-label.is-current { fill: var(--accent); font-weight: 800; font-size: 11px; }
+.persona-viz-cycle-arrow-path { fill: none; stroke: var(--text3); stroke-width: 1.2;
+  stroke-linecap: round; opacity: 0.55; }
+.persona-viz-cycle-arrow-head { fill: var(--text3); opacity: 0.7; }
+
+/* 5. B/B 6단계 스테퍼 */
+.persona-viz-stepper { position: relative; height: 44px; margin: 10px 0 4px; padding: 0 8px; }
+.persona-viz-stepper-track { position: absolute; top: 14px; left: 8px; right: 8px; height: 3px;
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 33%, #84cc16 66%, #ef4444 100%);
+  border-radius: 2px; opacity: 0.75; }
+.persona-viz-stepper-dot { position: absolute; top: 9px; transform: translateX(-50%);
+  width: 12px; height: 12px; border-radius: 50%; background: var(--surface-2);
+  border: 2px solid var(--border); z-index: 1; }
+.persona-viz-stepper-dot.is-current { width: 18px; height: 18px; top: 6px;
+  background: var(--accent); border-color: white;
+  box-shadow: 0 0 0 4px rgba(49,130,246,0.30); z-index: 2; }
+.persona-viz-stepper-label { position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; color: var(--text3); white-space: nowrap; font-weight: 500; }
+.persona-viz-stepper-dot.is-current .persona-viz-stepper-label {
+  color: var(--accent); font-weight: 800; font-size: 10px; top: 22px; }
+
+/* 6. Rate Δ ±23bp 임계 게이지 */
+.persona-viz-rate { position: relative; height: 18px; margin: 8px 0 4px; }
+.persona-viz-rate-track { position: absolute; top: 7px; left: 0; right: 0; height: 4px;
+  background: var(--surface-1); border-radius: 2px; }
+.persona-viz-rate-threshold { position: absolute; top: 1px; width: 2px; height: 16px;
+  background: rgba(239,68,68,0.55); border-radius: 1px; }
+.persona-viz-rate-zero { position: absolute; top: 3px; left: 50%; width: 1px; height: 12px;
+  background: var(--text3); opacity: 0.5; }
+.persona-viz-rate-marker { position: absolute; top: 1px; width: 5px; height: 16px;
+  border-radius: 2.5px; transform: translateX(-50%); }
+.persona-viz-rate-marker.bad  { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.6); }
+.persona-viz-rate-marker.warn { background: #f59e0b; }
+.persona-viz-rate-marker.neutral { background: var(--accent); }
+.persona-viz-rate-marker.good { background: #22c55e; }
+.persona-viz-rate-labels { display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--text3); margin-top: 4px; font-weight: 500; }
+
+/* 7. L2 4 카테고리 수평 막대 */
+.persona-viz-breakdown { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+.persona-viz-breakdown-row { display: grid; grid-template-columns: 110px 1fr 64px;
+  gap: 12px; align-items: center; font-size: 13px; }
+.persona-viz-breakdown-name { color: var(--text2); font-weight: 600; }
+.persona-viz-breakdown-track { height: 10px; background: var(--surface-1);
+  border-radius: 5px; overflow: hidden; }
+.persona-viz-breakdown-fill { height: 100%; border-radius: 5px;
+  transition: width 0.9s var(--toss-ease); }
+.persona-viz-breakdown-fill.good    { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.persona-viz-breakdown-fill.neutral { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.persona-viz-breakdown-fill.bad     { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.persona-viz-breakdown-score { text-align: right; font-weight: 800; color: var(--text);
+  font-variant-numeric: tabular-nums; font-size: 13px; }
+
+/* ━━━ 운용 권고 강조 배너 (등급 카드 아래) ━━━ */
+.persona-action-banner {
+  background: linear-gradient(135deg, var(--accent-bg), rgba(79,158,250,0.08));
+  border: 1px solid rgba(49,130,246,0.35);
+  border-radius: 16px;
+  padding: 22px 24px;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 14px;
+  position: relative; overflow: hidden;
+}
+.persona-action-banner::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+  width: 4px; background: linear-gradient(180deg, var(--accent), var(--accent2));
+}
+.persona-action-banner-label {
+  font-size: 12px; font-weight: 800; color: var(--accent2);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.persona-action-banner-voice {
+  font-size: 22px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.02em; line-height: 1.4;
+}
+.persona-action-banner-sub {
+  font-size: 13px; color: var(--text2);
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  margin-top: 2px;
+}
+.persona-action-banner-sub .item-label { color: var(--text3); margin-right: 5px; font-weight: 500; }
+.persona-action-banner-sub strong { color: var(--text); font-weight: 700; }
+
+/* ━━━ 매크로 인라인 요약 (시장 위치 아래) ━━━ */
+.persona-macro-inline {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  margin-top: 14px;
+}
+.persona-macro-inline-head {
+  font-size: 14px; font-weight: 700; color: var(--text2);
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.persona-macro-inline-head .icon { font-size: 16px; }
+.persona-macro-inline-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .persona-macro-inline-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .persona-macro-inline-row { grid-template-columns: 1fr; }
+  .persona-action-banner { padding: 18px 20px; }
+  .persona-action-banner-voice { font-size: 19px; }
+}
+.persona-macro-inline-item { display: flex; flex-direction: column; gap: 4px; }
+.persona-macro-inline-item-name {
+  font-size: 11px; font-weight: 800; color: var(--accent2);
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.persona-macro-inline-item-value {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+.persona-macro-inline-item-sub {
+  font-size: 11px; color: var(--text3); font-weight: 500; line-height: 1.4;
 }
 .persona-mini-card-tag.good { background: rgba(34,197,94,0.18); color: #86efac; }
 .persona-mini-card-tag.bad { background: rgba(239,68,68,0.18); color: #fca5a5; }
@@ -3310,7 +3480,10 @@ body.embed-mode .bento-row {
       <!-- 종합 등급 카드 -->
       <div class="persona-grade-card" id="persona-grade-card"></div>
 
-      <!-- 4 L1 카드 grid (collapsed) -->
+      <!-- 운용 권고 배너 (등급 카드 바로 아래) -->
+      <div class="persona-action-banner" id="persona-action-banner" style="display:none;"></div>
+
+      <!-- L1 카드 grid (종목 평가 + 시장 위치 2개) -->
       <div class="persona-l1-grid">
         <div class="persona-card" id="card-stock-eval">
           <div class="persona-card-head">
@@ -3321,50 +3494,31 @@ body.embed-mode .bento-row {
                 <span class="persona-card-head-sub">재무 건전성과 밸류에이션</span>
               </span>
             </span>
-            <span class="info-tip" data-tip="기업의 수익성·자산가치·현금흐름을 종합 평가합니다. 낮은 PER/PBR + 높은 ROE/ROIC = 저평가된 우량주.">ⓘ</span>
+            <span class="info-tip" data-tip="PER·PBR 히스토리컬 게이지 + ROE·ROIC WACC 막대 + FCF 4분기 추세">ⓘ</span>
           </div>
           <div class="persona-card-body" id="card-stock-eval-body"></div>
-        </div>
-        <div class="persona-card" id="card-ops-rec">
-          <div class="persona-card-head">
-            <span class="head-title">
-              <span class="icon">📊</span>
-              <span class="head-title-wrap">
-                <span>운용 권고</span>
-                <span class="persona-card-head-sub">투자 의견과 사이클 적합도</span>
-              </span>
-            </span>
-            <span class="info-tip" data-tip="종합 등급 + 시클리컬 5요소로 매수 시점을 제안합니다. 최선호주·Anchor·Tier 2·Buy List·와칭·회피.">ⓘ</span>
-          </div>
-          <div class="persona-card-body" id="card-ops-rec-body"></div>
         </div>
         <div class="persona-card" id="card-market-diag">
           <div class="persona-card-head">
             <span class="head-title">
               <span class="icon">🌐</span>
               <span class="head-title-wrap">
-                <span>시장 진단</span>
-                <span class="persona-card-head-sub">현재 시장의 위치와 분위기</span>
+                <span>시장 위치</span>
+                <span class="persona-card-head-sub">사이클 국면 · 강세약세 단계 · 스타일 사분면</span>
               </span>
             </span>
-            <span class="info-tip" data-tip="경기 사이클(절망/희망/성장/낙관) + 강세약세 단계 + 인플레이션 분리로 시장 위치를 진단.">ⓘ</span>
+            <span class="info-tip" data-tip="Cycle 4국면 원형 + 강세약세 6단계 스테퍼 + 4사분면 스타일 분류">ⓘ</span>
           </div>
           <div class="persona-card-body" id="card-market-diag-body"></div>
         </div>
-        <div class="persona-card" id="card-macro-watch">
-          <div class="persona-card-head">
-            <span class="head-title">
-              <span class="icon">🔭</span>
-              <span class="head-title-wrap">
-                <span>매크로 워치</span>
-                <span class="persona-card-head-sub">거시 위험 신호와 손절 기준</span>
-              </span>
-            </span>
-            <span class="info-tip" data-tip="금리 속도(3개월 23bp 임계) + 신용 스프레드 + 손절매 기준으로 거시 위험을 모니터링.">ⓘ</span>
-          </div>
-          <div class="persona-card-body" id="card-macro-watch-body"></div>
-        </div>
       </div>
+
+      <!-- 매크로 인라인 요약 (시장 위치 아래) -->
+      <div class="persona-macro-inline" id="persona-macro-inline" style="display:none;"></div>
+
+      <!-- 호환 — 기존 ops-rec / macro-watch body 이름 유지용 (숨김) -->
+      <div id="card-ops-rec-body" style="display:none"></div>
+      <div id="card-macro-watch-body" style="display:none"></div>
 
       <!-- Red Team 한 줄 -->
       <div class="persona-redteam" id="persona-redteam">
@@ -6951,7 +7105,7 @@ window.addEventListener('resize', () => {
     style_quadrant: {
       define: '4사분면 스타일 분류. 경기민감 vs 방어 × 가치 vs 성장.',
       formula: '업종 매핑 + MSCI 성장 5지표 + ISM 4분면 (보조)',
-      quadrant: true
+      note: 'ISM 4분면 보조: ISM<50·상승=경기민감 압도(최고 매수) / ISM>50·상승=확장 / ISM>50·하락=방어 우위 / ISM<50·하락=방어'
     },
     rate_speed_3m_bp: {
       define: '미국채 10년 수익률의 3개월 변화 속도 (bp).',
@@ -6994,6 +7148,252 @@ window.addEventListener('resize', () => {
     card.classList.toggle('is-expanded');
   };
 
+  // === 파싱 헬퍼 4종 (raw string → 시각화용 숫자) ===
+  function _extractPctile(raw) {
+    if (!raw) return null;
+    const m = /(\d+(?:\.\d+)?)\s*%/.exec(String(raw));
+    return m ? parseFloat(m[1]) : null;
+  }
+  function _extractFirstNumber(raw) {
+    if (!raw) return null;
+    const m = /(-?\d+(?:\.\d+)?)/.exec(String(raw));
+    return m ? parseFloat(m[1]) : null;
+  }
+  function _extractBp(raw) {
+    if (!raw) return null;
+    const m = /(-?\d+(?:\.\d+)?)\s*bp/.exec(String(raw));
+    if (m) return parseFloat(m[1]);
+    return _extractFirstNumber(raw);
+  }
+  function _extractFraction(raw) {
+    if (!raw) return null;
+    const m = /(\d+)\s*\/\s*(\d+)/.exec(String(raw));
+    return m ? { num: parseInt(m[1], 10), den: parseInt(m[2], 10) } : null;
+  }
+
+  // === 시각화 헬퍼 7종 ===
+
+  // 1. 히스토리컬 %ile 게이지 (PER/PBR — "Forward 8.5 (히스토리컬 35%)" → 35)
+  function _renderHistoricalGauge(rawSub) {
+    const pctile = _extractPctile(rawSub);
+    if (pctile == null) return '';
+    const pos = Math.max(0, Math.min(100, pctile));
+    return ''
+      + '<div class="persona-viz-gauge">'
+      +   '<div class="persona-viz-gauge-bar"></div>'
+      +   '<div class="persona-viz-gauge-marker" style="left:' + pos + '%"></div>'
+      + '</div>'
+      + '<div class="persona-viz-gauge-labels"><span>저평가</span><span>' + pos.toFixed(0) + '%</span><span>고평가</span></div>';
+  }
+
+  // 2. ROE/ROIC vs WACC 막대 (현재값 vs 8~10% 임계)
+  function _renderWaccBar(raw) {
+    const cur = _extractFirstNumber(raw);
+    if (cur == null) return '';
+    const scale = 30, waccLow = 8, waccHigh = 10;
+    const curClamped = Math.max(0, Math.min(scale, cur));
+    const ratio = (curClamped / scale) * 100;
+    const waccMidRatio = (((waccLow + waccHigh) / 2) / scale) * 100;
+    const cls = cur >= waccHigh + 4 ? 'good' : (cur < waccLow ? 'bad' : 'neutral');
+    return ''
+      + '<div class="persona-viz-wacc">'
+      +   '<div class="persona-viz-wacc-bar ' + cls + '" style="width:' + ratio + '%"></div>'
+      +   '<div class="persona-viz-wacc-marker" style="left:' + waccMidRatio + '%"></div>'
+      + '</div>'
+      + '<div class="persona-viz-wacc-labels"><span>0%</span><span class="wacc-label">WACC ≈ 8~10%</span><span>30%+</span></div>';
+  }
+
+  // 3. FCF sparkline (signal '↑/→/↓' fallback — 백엔드 4Q raw 도착 시 폴리라인 정확화)
+  function _renderFcfSparkline(signal) {
+    let values, cls = 'neutral';
+    if (String(signal).indexOf('↑') >= 0) { values = [20, 32, 48, 70]; cls = 'up'; }
+    else if (String(signal).indexOf('↓') >= 0) { values = [70, 55, 38, 22]; cls = 'down'; }
+    else { values = [42, 48, 44, 46]; }
+    const w = 140, h = 40;
+    const max = Math.max.apply(null, values);
+    const min = Math.min.apply(null, values);
+    const range = max - min || 1;
+    const points = values.map(function(v, i) {
+      const x = (i / (values.length - 1)) * (w - 8) + 4;
+      const y = h - 4 - ((v - min) / range) * (h - 8);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    const lastIdx = values.length - 1;
+    const lastX = ((lastIdx / lastIdx) * (w - 8) + 4).toFixed(1);
+    const lastY = (h - 4 - ((values[lastIdx] - min) / range) * (h - 8)).toFixed(1);
+    return '<svg class="persona-viz-sparkline" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">'
+      + '<polyline class="' + cls + '" points="' + points + '" />'
+      + '<circle class="' + cls + '" cx="' + lastX + '" cy="' + lastY + '" r="3.5" />'
+      + '</svg>';
+  }
+
+  // 4. Cycle 4국면 원형 사이클
+  function _renderCyclePhaseRing(value) {
+    // 시계방향 순서: 희망(좌하) → 성장(좌상) → 낙관(우상) → 절망(우하)
+    const segs = [
+      { name: '희망', startDeg: 180, sweepDeg: 90, labelX: 38, labelY: 102 },
+      { name: '성장', startDeg: 270, sweepDeg: 90, labelX: 38, labelY: 58 },
+      { name: '낙관', startDeg: 0,   sweepDeg: 90, labelX: 122, labelY: 58 },
+      { name: '절망', startDeg: 90,  sweepDeg: 90, labelX: 122, labelY: 102 }
+    ];
+    const cx = 80, cy = 80, r = 56;
+    function pt(deg) {
+      const rad = deg * Math.PI / 180;
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+    let html = '<svg class="persona-viz-cycle" viewBox="0 0 160 160">';
+    segs.forEach(function(s) {
+      const isCur = s.name === value;
+      const a = pt(s.startDeg);
+      const b = pt(s.startDeg + s.sweepDeg);
+      html += '<path d="M ' + cx + ' ' + cy + ' L ' + a.x.toFixed(2) + ' ' + a.y.toFixed(2)
+        + ' A ' + r + ' ' + r + ' 0 0 1 ' + b.x.toFixed(2) + ' ' + b.y.toFixed(2) + ' Z" '
+        + 'class="persona-viz-cycle-seg ' + (isCur ? 'is-current' : '') + '"/>';
+      html += '<text x="' + s.labelX + '" y="' + s.labelY + '" class="persona-viz-cycle-label '
+        + (isCur ? 'is-current' : '') + '" text-anchor="middle">' + s.name + '</text>';
+    });
+    // 시계방향 화살표 (시각적 순환 힌트)
+    html += '<path d="M 50 26 Q 110 26 130 60" class="persona-viz-cycle-arrow-path"/>';
+    html += '<path d="M 128 53 L 134 60 L 126 64 Z" class="persona-viz-cycle-arrow-head"/>';
+    html += '</svg>';
+    return html;
+  }
+
+  // 5. B/B 6단계 스테퍼
+  function _renderBullBearStepper(value) {
+    const steps = ['약세_3단계', '약세_2단계', '약세_1단계', '강세_1단계', '강세_2단계', '강세_3단계'];
+    const labels = ['약세3', '약세2', '약세1', '강세1', '강세2', '강세3'];
+    // value 정규화 — 공백/언더바 차이 보정
+    const norm = String(value || '').replace(/\s+/g, '_');
+    const curIdx = steps.indexOf(norm);
+    let html = '<div class="persona-viz-stepper">';
+    html += '<div class="persona-viz-stepper-track"></div>';
+    steps.forEach(function(s, i) {
+      const isCur = i === curIdx;
+      const pos = (i / (steps.length - 1)) * 100;
+      html += '<div class="persona-viz-stepper-dot ' + (isCur ? 'is-current' : '') + '" style="left:' + pos + '%">';
+      html += '<span class="persona-viz-stepper-label">' + labels[i] + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  // 6. Rate Δ ±23bp 임계 게이지
+  function _renderRateGauge(raw) {
+    const bp = _extractBp(raw);
+    if (bp == null) return '';
+    const min = -30, max = 30;
+    const clamped = Math.max(min, Math.min(max, bp));
+    const pos = ((clamped - min) / (max - min)) * 100;
+    const cls = Math.abs(bp) >= 23 ? (bp > 0 ? 'bad' : 'good')
+              : (Math.abs(bp) >= 20 ? 'warn' : 'neutral');
+    // 임계 위치: -23 → (-23+30)/60*100 = 11.67% / +23 → 88.33%
+    return ''
+      + '<div class="persona-viz-rate">'
+      +   '<div class="persona-viz-rate-track"></div>'
+      +   '<div class="persona-viz-rate-threshold" style="left:11.67%"></div>'
+      +   '<div class="persona-viz-rate-zero"></div>'
+      +   '<div class="persona-viz-rate-threshold" style="left:88.33%"></div>'
+      +   '<div class="persona-viz-rate-marker ' + cls + '" style="left:' + pos + '%"></div>'
+      + '</div>'
+      + '<div class="persona-viz-rate-labels"><span>-23bp</span><span>0</span><span>+23bp</span></div>';
+  }
+
+  // 7. L2 4 카테고리 수평 막대 차트
+  function _renderBreakdownBars(breakdown) {
+    if (!breakdown) return '<div class="persona-voice">데이터 없음</div>';
+    const groups = [
+      { key: 'financial',       name: '재무 건전성' },
+      { key: 'valuation',       name: '밸류에이션' },
+      { key: 'cashflow_growth', name: '현금흐름·성장' },
+      { key: 'cycle_macro',     name: '사이클 적합도' }
+    ];
+    let html = '<div class="persona-viz-breakdown">';
+    groups.forEach(function(g) {
+      const b = breakdown[g.key] || { score: 0, max: 25 };
+      const maxVal = b.max || 25;
+      const ratio = Math.max(0, Math.min(100, (b.score / maxVal) * 100));
+      const cls = ratio >= 60 ? 'good' : (ratio >= 30 ? 'neutral' : 'bad');
+      html += '<div class="persona-viz-breakdown-row">'
+        +   '<span class="persona-viz-breakdown-name">' + g.name + '</span>'
+        +   '<div class="persona-viz-breakdown-track">'
+        +     '<div class="persona-viz-breakdown-fill ' + cls + '" style="width:0%"></div>'
+        +   '</div>'
+        +   '<span class="persona-viz-breakdown-score">' + b.score + ' / ' + maxVal + '</span>'
+        + '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+  // 4-bar 채우기 애니메이션 (innerHTML 후 RAF로 동작)
+  function _animateBreakdownBars(rootEl, breakdown) {
+    if (!rootEl || !breakdown) return;
+    const groups = [
+      { key: 'financial',       max: 25 },
+      { key: 'valuation',       max: 25 },
+      { key: 'cashflow_growth', max: 25 },
+      { key: 'cycle_macro',     max: 25 }
+    ];
+    const fills = rootEl.querySelectorAll('.persona-viz-breakdown-fill');
+    setTimeout(function() {
+      fills.forEach(function(el, i) {
+        const g = groups[i];
+        const b = breakdown[g.key] || { score: 0, max: g.max };
+        const ratio = Math.max(0, Math.min(100, (b.score / (b.max || g.max)) * 100));
+        el.style.width = ratio + '%';
+      });
+    }, 60);
+  }
+
+  // === 운용 권고 강조 배너 (등급 카드 아래) ===
+  function _renderActionBanner(data) {
+    const el = document.getElementById('persona-action-banner');
+    if (!el) return;
+    const m = data.metrics_labeled || {};
+    const cs = data.composite_score || {};
+    el.innerHTML = ''
+      + '<div class="persona-action-banner-label">운용 권고</div>'
+      + '<div class="persona-action-banner-voice">' + escapeHtml(data.voice || cs.voice_label || '권고 정보 없음') + '</div>'
+      + '<div class="persona-action-banner-sub">'
+      +   '<span><span class="item-label">사이클 적합도</span><strong>' + escapeHtml(m.cyclical_5_factor_score || 'N/A') + '</strong></span>'
+      +   '<span><span class="item-label">데이터 소스</span><strong>' + escapeHtml(cs.data_source_summary || 'rules') + '</strong></span>'
+      + '</div>';
+    el.style.display = '';
+  }
+
+  // === 매크로 인라인 요약 (시장 위치 아래) ===
+  function _renderMacroInline(v) {
+    const el = document.getElementById('persona-macro-inline');
+    if (!el) return;
+    const rateBp = _extractBp(v.rate_speed_3m_bp);
+    const rateBpDisplay = (rateBp != null) ? (rateBp > 0 ? '+' : '') + rateBp + 'bp' : (v.rate_speed_3m_bp || 'N/A');
+    el.innerHTML = ''
+      + '<div class="persona-macro-inline-head"><span class="icon">🔭</span> 거시 환경</div>'
+      + '<div class="persona-macro-inline-row">'
+      +   '<div class="persona-macro-inline-item">'
+      +     '<span class="persona-macro-inline-item-name">3개월 금리 변화</span>'
+      +     '<span class="persona-macro-inline-item-value">' + escapeHtml(rateBpDisplay) + '</span>'
+      +     _renderRateGauge(v.rate_speed_3m_bp)
+      +   '</div>'
+      +   '<div class="persona-macro-inline-item">'
+      +     '<span class="persona-macro-inline-item-name">인플레이션</span>'
+      +     '<span class="persona-macro-inline-item-value">' + escapeHtml(v.inflation_split || 'N/A') + '</span>'
+      +     '<span class="persona-macro-inline-item-sub">한국·미국 분리 분류</span>'
+      +   '</div>'
+      +   '<div class="persona-macro-inline-item">'
+      +     '<span class="persona-macro-inline-item-name">신용 스프레드</span>'
+      +     '<span class="persona-macro-inline-item-value">' + escapeHtml(v.credit_spread || 'N/A') + '</span>'
+      +     '<span class="persona-macro-inline-item-sub">HY/IG + 장단기 곡선</span>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="persona-macro-inline-item" style="margin-top:4px;padding-top:10px;border-top:1px solid var(--border)">'
+      +   '<span class="persona-macro-inline-item-name">손절 룰 (보유 시)</span>'
+      +   '<span class="persona-macro-inline-item-sub">본인 한계 -10% · 기관 매도 -22% · 손실 위험 -45%</span>'
+      + '</div>';
+    el.style.display = '';
+  }
+
   // Style 사분면 SVG 렌더
   function _renderStyleQuadrant(currentValue) {
     const cells = [
@@ -7028,12 +7428,6 @@ window.addEventListener('resize', () => {
     let html = '<div class="persona-mini-card-info-panel">';
     if (info.define) html += '<div class="persona-info-define">' + escapeHtml(info.define) + '</div>';
     if (info.formula) html += '<div class="persona-info-formula">' + escapeHtml(info.formula) + '</div>';
-    // 사분면 (style_quadrant 한정)
-    if (info.quadrant) {
-      const cur = _parseMetric(rawValue).value;
-      html += '<div class="persona-info-section-title">현재 위치</div>';
-      html += _renderStyleQuadrant(cur);
-    }
     // 의미 범례 (scale)
     if (info.scale && info.scale.length) {
       html += '<div class="persona-info-section-title">의미 범례</div>';
@@ -7100,17 +7494,45 @@ window.addEventListener('resize', () => {
     return { value: value, sub: sub, tag: _classifyTag(s) };
   }
 
+  // key별 main 시각화 분기 (value 다음에 들어가는 SVG/막대)
+  function _mainVizFor(key, raw, parsed) {
+    switch (key) {
+      case 'per':
+      case 'pbr':
+        return _renderHistoricalGauge(parsed.sub || raw);
+      case 'roe':
+      case 'roic':
+        return _renderWaccBar(raw);
+      case 'fcf_signal':
+        return _renderFcfSparkline(parsed.value || raw);
+      case 'cycle_phase':
+        return _renderCyclePhaseRing(parsed.value || raw);
+      case 'bull_bear_stage':
+        return _renderBullBearStepper(parsed.value || raw);
+      case 'style_quadrant':
+        return _renderStyleQuadrant(parsed.value || raw);
+      default:
+        return '';
+    }
+  }
+
   function _miniCard(key, raw) {
     const meta = _METRIC_LABELS[key] || { name: key, short: key };
     const p = _parseMetric(raw);
-    const valCls = String(p.value).length > 8 ? 'persona-mini-card-value text' : 'persona-mini-card-value';
     const hasInfo = !!_METRIC_INFO[key];
+    const mainViz = _mainVizFor(key, raw, p);
+    const isVizMain = !!mainViz;  // 시각화가 main이면 value 폰트 축소 + sub 위치 조정
+    const valCls = isVizMain
+      ? 'persona-mini-card-value text'  // 시각화 main 카드에서 value는 보조
+      : (String(p.value).length > 8 ? 'persona-mini-card-value text' : 'persona-mini-card-value');
     return ''
-      + '<div class="persona-mini-card">'
+      + '<div class="persona-mini-card' + (isVizMain ? ' has-viz' : '') + '">'
       + (hasInfo ? '<button class="persona-mini-card-info-btn" onclick="togglePersonaCardInfo(this)" aria-label="' + escapeHtml(meta.name) + ' 자세히">ⓘ</button>' : '')
       +   '<div class="persona-mini-card-label">' + escapeHtml(meta.short) + '</div>'
       +   '<div class="persona-mini-card-name">' + escapeHtml(meta.name) + '</div>'
-      +   '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>'
+      + (isVizMain
+          ? mainViz + '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>'
+          : '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>')
       + (p.sub ? '<div class="persona-mini-card-sub">' + escapeHtml(p.sub) + '</div>' : '')
       + (p.tag ? '<span class="persona-mini-card-tag ' + p.tag.cls + '">' + escapeHtml(p.tag.text) + '</span>' : '')
       + (hasInfo ? _miniCardInfoHtml(key, raw) : '')
@@ -7126,7 +7548,11 @@ window.addEventListener('resize', () => {
   function renderL1Cards(data) {
     const m = data.metrics_labeled || {};
     const v = data.v34_meta || {};
-    // 종목 평가 — 5개 지표
+
+    // [1] 운용 권고 — 등급 카드 바로 아래 배너로 이동
+    _renderActionBanner(data);
+
+    // [2] 종목 평가 — 5장 (시각화: PER/PBR 게이지 · ROE/ROIC WACC 막대 · FCF sparkline)
     _setMiniGrid('card-stock-eval-body', [
       { key: 'per',        raw: m.per },
       { key: 'pbr',        raw: m.pbr },
@@ -7134,26 +7560,17 @@ window.addEventListener('resize', () => {
       { key: 'roic',       raw: m.roic },
       { key: 'fcf_signal', raw: m.fcf_signal }
     ]);
-    // 운용 권고 — voice (강조 카드) + 사이클 적합도 mini
-    const opsEl = document.getElementById('card-ops-rec-body');
-    if (opsEl) {
-      opsEl.innerHTML = ''
-        + '<div class="persona-recommendation-card">' + escapeHtml(data.voice || '권고 정보 없음') + '</div>'
-        + '<div class="persona-mini-grid">' + _miniCard('cyclical_5_factor_score', m.cyclical_5_factor_score) + '</div>';
-    }
-    // 시장 진단 — 4개 거시 지표
+
+    // [3] 시장 위치 — 3장 (Cycle 원형 · B/B 스테퍼 · Style 사분면)
+    // CPI는 매크로 인라인으로 이동
     _setMiniGrid('card-market-diag-body', [
       { key: 'cycle_phase',     raw: v.cycle_phase },
       { key: 'bull_bear_stage', raw: v.bull_bear_stage },
-      { key: 'inflation_split', raw: v.inflation_split },
       { key: 'style_quadrant',  raw: v.style_quadrant }
     ]);
-    // 매크로 워치 — 3개 위험 지표
-    _setMiniGrid('card-macro-watch-body', [
-      { key: 'rate_speed_3m_bp', raw: v.rate_speed_3m_bp },
-      { key: 'credit_spread',    raw: v.credit_spread },
-      { key: 'loss_threshold',   raw: v.loss_threshold }
-    ]);
+
+    // [4] 매크로 인라인 요약 — Rate Δ 게이지 + CPI + Spread + 손절 룰
+    _renderMacroInline(v);
   }
 
   function fmtBreakdown(b) {
@@ -7167,10 +7584,20 @@ window.addEventListener('resize', () => {
   function renderL2Cards(data) {
     const cs = data.composite_score || {};
     const br = cs.breakdown || {};
-    document.getElementById('l2-stock-eval-body').innerHTML = fmtBreakdown(br.financial);
-    document.getElementById('l2-ops-rec-body').innerHTML = fmtBreakdown(br.valuation);
-    document.getElementById('l2-market-diag-body').innerHTML = fmtBreakdown(br.cashflow_growth);
-    document.getElementById('l2-macro-watch-body').innerHTML = fmtBreakdown(br.cycle_macro);
+    // 4 카테고리 수평 막대 (l2-stock-eval-body에 통합 표시)
+    const sumEl = document.getElementById('l2-stock-eval-body');
+    if (sumEl) {
+      sumEl.innerHTML = '<div style="font-size:13px;color:var(--text2);font-weight:600;margin-bottom:10px">점수 구성 (총 ' + (cs.total || 0) + ' / 100)</div>'
+        + _renderBreakdownBars(br);
+      _animateBreakdownBars(sumEl, br);
+    }
+    // 카테고리별 상세 (펼침)
+    const opsEl = document.getElementById('l2-ops-rec-body');
+    if (opsEl) opsEl.innerHTML = fmtBreakdown(br.valuation);
+    const mdEl = document.getElementById('l2-market-diag-body');
+    if (mdEl) mdEl.innerHTML = fmtBreakdown(br.cashflow_growth);
+    const macEl = document.getElementById('l2-macro-watch-body');
+    if (macEl) macEl.innerHTML = fmtBreakdown(br.cycle_macro);
     const penalties = cs.penalties_applied || [];
     if (penalties.length) {
       const pHtml = '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><div style="font-weight:600;color:var(--orange);margin-bottom:6px">⚠ 페널티 ' + penalties.length + '건</div>' + penalties.map(function(p) {
