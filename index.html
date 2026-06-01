@@ -2749,15 +2749,56 @@ body.embed-mode .bento-row {
 
 /* 상단 박은 검색창 */
 .persona-search-wrap { position: relative; margin-top: var(--s-3); }
-/* ━━━ 토스 디자인 토큰 ━━━ */
+/* ━━━ 토스 디자인 토큰 + 페르소나 시각 시스템 ━━━ */
 :root {
+  /* Easing */
   --toss-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --toss-ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);  /* spring */
+  --toss-ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 메달 (등급) */
   --persona-gold: #fbbf24;
   --persona-silver: #94a3b8;
   --persona-bronze: #f97316;
-  --persona-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
-  --persona-shadow-hover: 0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10);
+
+  /* Shadow tier */
+  --persona-shadow:        0 4px 16px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+  --persona-shadow-hover:  0 8px 24px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10);
+  --persona-shadow-glow:   0 0 24px rgba(49,130,246,0.25);
+
+  /* 시각 토큰 — good / bad / warn / neutral (4 단계 × 3 강도) */
+  --persona-good:        #22c55e;
+  --persona-good-soft:   rgba(34,197,94,0.85);
+  --persona-good-bg:     rgba(34,197,94,0.18);
+  --persona-good-fade:   rgba(34,197,94,0.10);
+  --persona-good-fg:     #86efac;
+
+  --persona-bad:         #ef4444;
+  --persona-bad-soft:    rgba(239,68,68,0.85);
+  --persona-bad-bg:      rgba(239,68,68,0.18);
+  --persona-bad-fade:    rgba(239,68,68,0.10);
+  --persona-bad-fg:      #fca5a5;
+
+  --persona-warn:        #f97316;
+  --persona-warn-soft:   rgba(249,115,22,0.85);
+  --persona-warn-bg:     rgba(249,115,22,0.18);
+  --persona-warn-fade:   rgba(249,115,22,0.10);
+  --persona-warn-fg:     #fdba74;
+
+  --persona-neutral:     #94a3b8;
+  --persona-neutral-bg:  rgba(148,163,184,0.18);
+  --persona-neutral-fade: rgba(148,163,184,0.10);
+  --persona-neutral-fg:  #cbd5e1;
+
+  /* Accent 그룹 (accent var와 동일 톤이지만 alpha 계열) */
+  --persona-accent-soft:  rgba(49,130,246,0.15);
+  --persona-accent-bg:    rgba(49,130,246,0.10);
+  --persona-accent-glow:  rgba(49,130,246,0.30);
+
+  /* Border-radius tier */
+  --persona-r-sm:  8px;
+  --persona-r-md:  10px;
+  --persona-r-lg:  14px;
+  --persona-r-xl:  16px;
 }
 
 .persona-notice {
@@ -3257,9 +3298,9 @@ body.embed-mode .bento-row {
   font-variant-numeric: tabular-nums; font-size: 12px;
 }
 .persona-info-scale-label { color: var(--text2); flex: 1; font-size: 12px; }
-.persona-info-scale-row.good { background: rgba(34,197,94,0.10); }
-.persona-info-scale-row.bad  { background: rgba(239,68,68,0.10); }
-.persona-info-scale-row.warn { background: rgba(249,115,22,0.10); }
+.persona-info-scale-row.good { background: var(--persona-good-fade); }
+.persona-info-scale-row.bad  { background: var(--persona-bad-fade); }
+.persona-info-scale-row.warn { background: var(--persona-warn-fade); }
 .persona-info-items { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
 .persona-info-item {
   font-size: 12px; color: var(--text2); padding: 4px 8px;
@@ -3508,8 +3549,8 @@ body.embed-mode .bento-row {
 .persona-viz-wacc { position: relative; height: 8px; background: var(--surface-1); border-radius: 4px;
   margin: 8px 0 4px; overflow: visible; }
 .persona-viz-wacc-bar { height: 100%; border-radius: 4px; transition: width 0.8s var(--toss-ease); }
-.persona-viz-wacc-bar.good    { background: rgba(34,197,94,0.85); }
-.persona-viz-wacc-bar.bad     { background: rgba(239,68,68,0.85); }
+.persona-viz-wacc-bar.good    { background: var(--persona-good-soft); }
+.persona-viz-wacc-bar.bad     { background: var(--persona-bad-soft); }
 .persona-viz-wacc-bar.neutral { background: var(--accent); }
 .persona-viz-wacc-marker { position: absolute; top: -3px; width: 2px; height: 14px;
   background: var(--text2); transform: translateX(-50%); opacity: 0.6; }
@@ -3521,10 +3562,10 @@ body.embed-mode .bento-row {
 .persona-viz-sparkline { width: 100%; height: 40px; margin: 6px 0; display: block; }
 .persona-viz-sparkline polyline { fill: none; stroke: var(--accent); stroke-width: 2;
   stroke-linejoin: round; stroke-linecap: round; }
-.persona-viz-sparkline polyline.up { stroke: var(--green); }
-.persona-viz-sparkline polyline.down { stroke: var(--red); }
-.persona-viz-sparkline circle.up { fill: var(--green); }
-.persona-viz-sparkline circle.down { fill: var(--red); }
+.persona-viz-sparkline polyline.up   { stroke: var(--persona-good); }
+.persona-viz-sparkline polyline.down { stroke: var(--persona-bad); }
+.persona-viz-sparkline circle.up      { fill: var(--persona-good); }
+.persona-viz-sparkline circle.down    { fill: var(--persona-bad); }
 .persona-viz-sparkline circle.neutral { fill: var(--accent); }
 
 /* 4. Cycle 원형 사이클 — 크기 키움 */
@@ -3580,10 +3621,10 @@ body.embed-mode .bento-row {
   background: var(--text3); opacity: 0.4; }
 .persona-viz-rate-marker { position: absolute; top: 1px; width: 5px; height: 16px;
   border-radius: 2.5px; transform: translateX(-50%); box-shadow: 0 0 0 2px var(--bg3); }
-.persona-viz-rate-marker.bad  { background: var(--red); }
-.persona-viz-rate-marker.warn { background: var(--orange); }
+.persona-viz-rate-marker.bad     { background: var(--persona-bad); }
+.persona-viz-rate-marker.warn    { background: var(--persona-warn); }
 .persona-viz-rate-marker.neutral { background: var(--accent); }
-.persona-viz-rate-marker.good { background: var(--green); }
+.persona-viz-rate-marker.good    { background: var(--persona-good); }
 .persona-viz-rate-labels { display: flex; justify-content: space-between;
   font-size: 10px; color: var(--text3); margin-top: 4px; font-weight: 500; }
 
@@ -3595,7 +3636,7 @@ body.embed-mode .bento-row {
   padding: 4px 0;
 }
 .persona-viz-stop-row strong {
-  color: var(--red); font-weight: 800;
+  color: var(--persona-bad); font-weight: 800;
   min-width: 48px; font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
@@ -3610,9 +3651,9 @@ body.embed-mode .bento-row {
   border-radius: 5px; overflow: hidden; }
 .persona-viz-breakdown-fill { height: 100%; border-radius: 5px;
   transition: width 0.9s var(--toss-ease); }
-.persona-viz-breakdown-fill.good    { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.persona-viz-breakdown-fill.good    { background: linear-gradient(90deg, var(--persona-good), #16a34a); }
 .persona-viz-breakdown-fill.neutral { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-.persona-viz-breakdown-fill.bad     { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.persona-viz-breakdown-fill.bad     { background: linear-gradient(90deg, var(--persona-bad), #dc2626); }
 .persona-viz-breakdown-score { text-align: right; font-weight: 800; color: var(--text);
   font-variant-numeric: tabular-nums; font-size: 13px; }
 
@@ -3662,7 +3703,7 @@ body.embed-mode .bento-row {
 }
 .persona-action-banner-breakdown strong { color: var(--text); font-weight: 800; }
 .persona-action-banner-breakdown strong.total { color: var(--accent); font-size: 14px; }
-.persona-action-banner-weak strong { color: var(--orange); font-weight: 800; }
+.persona-action-banner-weak strong { color: var(--persona-warn); font-weight: 800; }
 
 /* L2 카테고리 합계 헤더 + mini grid */
 .persona-l2-summary {
@@ -3756,12 +3797,12 @@ body.embed-mode .bento-row {
 .persona-macro-inline-item-sub {
   font-size: 11px; color: var(--text3); font-weight: 500; line-height: 1.4;
 }
-.persona-mini-card-tag.good { background: rgba(34,197,94,0.18); color: #86efac; }
-.persona-mini-card-tag.bad { background: rgba(239,68,68,0.18); color: #fca5a5; }
-.persona-mini-card-tag.warn { background: rgba(249,115,22,0.18); color: #fdba74; }
-.persona-mini-card-tag.neutral { background: rgba(148,163,184,0.18); color: #cbd5e1; }
-.persona-mini-card-tag.up { background: rgba(34,197,94,0.18); color: #86efac; }
-.persona-mini-card-tag.down { background: rgba(239,68,68,0.18); color: #fca5a5; }
+.persona-mini-card-tag.good    { background: var(--persona-good-bg);    color: var(--persona-good-fg); }
+.persona-mini-card-tag.bad     { background: var(--persona-bad-bg);     color: var(--persona-bad-fg); }
+.persona-mini-card-tag.warn    { background: var(--persona-warn-bg);    color: var(--persona-warn-fg); }
+.persona-mini-card-tag.neutral { background: var(--persona-neutral-bg); color: var(--persona-neutral-fg); }
+.persona-mini-card-tag.up      { background: var(--persona-good-bg);    color: var(--persona-good-fg); }
+.persona-mini-card-tag.down    { background: var(--persona-bad-bg);     color: var(--persona-bad-fg); }
 
 /* 운용 권고 카드 (큰 voice) */
 .persona-recommendation-card {
