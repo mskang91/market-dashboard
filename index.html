@@ -6578,16 +6578,226 @@ window.addEventListener('resize', () => {
     const input = document.getElementById('persona-search');
     if (input && !input._personaBound) {
       input._personaBound = true;
-      input.addEventListener('keyup', function(e) {
-        if (e.key === 'Enter') handlePersonaSearch(input.value);
-      });
+      // Enter 시 검색은 자동완성 모듈에서 처리 (dropdown 활성 종목 또는 input.value)
     }
   }
-  // DOMContentLoaded 이미 끝났을 가능성 → readyState 체크 후 즉시 또는 listener 등록
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', _initPersonaSearch);
   } else {
     _initPersonaSearch();
+  }
+})();
+</script>
+
+<script>
+// ═════════════════════════════════════════════════════════════
+// Phase 5-UI-5: 자동완성 dropdown (debounce + ↑↓ Enter ESC 키보드 nav)
+//   - SECTOR_STOCKS 153 + 종목_정규화_dict 시드 통합 (doGet ?action=tickers)
+//   - sessionStorage 30분 캐시 (페이지당 1회 fetch)
+//   - 입력 시 클라이언트 사이드 substring 매칭 (name OR ticker)
+//   - 최대 10개 표시 + 키보드 ↑↓ Enter ESC + 마우스 클릭
+// ═════════════════════════════════════════════════════════════
+(function() {
+  const TICKERS_URL = (typeof window.WEBAPP_URL === 'string' && window.WEBAPP_URL)
+    || 'https://script.google.com/macros/s/AKfycbxoyGTYyDFMB5IrSkQeZJkB6GGWvJOhGdMtCRRtXP91GRsWh8__v5Nr8sGLZtx_iRWDEQ/exec';
+  const CACHE_KEY = 'mh:persona:tickers:v1';
+  const CACHE_TTL_MS = 30 * 60 * 1000;  // 30분
+  let _tickers = null;        // 메모리 캐시
+  let _fetchPromise = null;   // 동시 호출 방지
+  let _activeIdx = -1;        // dropdown 활성 인덱스
+  let _shownList = [];        // 현재 dropdown에 표시 중인 ticker 배열
+
+  function _escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  async function fetchTickersFromServer() {
+    const url = TICKERS_URL + '?action=tickers';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.ok || !Array.isArray(data.items)) throw new Error('invalid response');
+    return data.items;
+  }
+
+  function _loadCache() {
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (Date.now() - obj.ts > CACHE_TTL_MS) return null;
+      return obj.items;
+    } catch (_e) { return null; }
+  }
+  function _saveCache(items) {
+    try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items: items })); } catch (_e) {}
+  }
+
+  async function prefetchTickers() {
+    if (_tickers) return _tickers;
+    const cached = _loadCache();
+    if (cached) { _tickers = cached; return _tickers; }
+    if (_fetchPromise) return _fetchPromise;
+    _fetchPromise = fetchTickersFromServer().then(function(items) {
+      _tickers = items;
+      _saveCache(items);
+      _fetchPromise = null;
+      return items;
+    }).catch(function(e) {
+      _fetchPromise = null;
+      throw e;
+    });
+    return _fetchPromise;
+  }
+  window.prefetchPersonaTickers = prefetchTickers;
+
+  function searchTickers(query, limit) {
+    if (!_tickers || !query) return [];
+    const q = query.toLowerCase().trim();
+    if (q.length < 1) return [];
+    const exact = [];      // ticker 완전 일치 우선
+    const startsTicker = []; // ticker 시작 일치
+    const startsName = [];   // name 시작 일치
+    const includes = [];     // 포함만
+    _tickers.forEach(function(it) {
+      const ticker = String(it.ticker || '').toLowerCase();
+      const name = String(it.name || '').toLowerCase();
+      if (ticker === q) exact.push(it);
+      else if (ticker.indexOf(q) === 0) startsTicker.push(it);
+      else if (name.indexOf(q) === 0) startsName.push(it);
+      else if (ticker.indexOf(q) >= 0 || name.indexOf(q) >= 0) includes.push(it);
+    });
+    return exact.concat(startsTicker).concat(startsName).concat(includes).slice(0, limit || 10);
+  }
+
+  function renderDropdown(items) {
+    const dd = document.getElementById('persona-search-dropdown');
+    if (!dd) return;
+    _shownList = items;
+    _activeIdx = -1;
+    if (!items.length) {
+      dd.style.display = 'none';
+      dd.innerHTML = '';
+      return;
+    }
+    dd.innerHTML = items.map(function(it, idx) {
+      const marketChip = it.market ? '<span class="market">' + _escHtml(it.market) + '</span>' : '';
+      return '<div class="persona-search-item" data-idx="' + idx + '" data-ticker="' + _escHtml(it.ticker) + '">'
+        + '<div><span class="name">' + _escHtml(it.name || it.ticker) + '</span>' + marketChip + '</div>'
+        + '<span class="ticker">' + _escHtml(it.ticker) + '</span>'
+        + '</div>';
+    }).join('');
+    dd.style.display = '';
+  }
+
+  function _updateActive(items) {
+    const dd = document.getElementById('persona-search-dropdown');
+    if (!dd) return;
+    dd.querySelectorAll('.persona-search-item').forEach(function(el, i) {
+      el.classList.toggle('active', i === _activeIdx);
+      if (i === _activeIdx) {
+        // 스크롤 따라가기
+        const top = el.offsetTop, bottom = top + el.offsetHeight;
+        if (top < dd.scrollTop) dd.scrollTop = top;
+        else if (bottom > dd.scrollTop + dd.clientHeight) dd.scrollTop = bottom - dd.clientHeight;
+      }
+    });
+  }
+
+  function hideDropdown() {
+    const dd = document.getElementById('persona-search-dropdown');
+    if (dd) { dd.style.display = 'none'; dd.innerHTML = ''; }
+    _activeIdx = -1;
+    _shownList = [];
+  }
+
+  // debounce
+  let _debounceTimer = null;
+  function _onInput(e) {
+    const q = e.target.value;
+    if (_debounceTimer) clearTimeout(_debounceTimer);
+    _debounceTimer = setTimeout(async function() {
+      try {
+        if (!_tickers) await prefetchTickers();
+      } catch (_e) { hideDropdown(); return; }
+      const items = searchTickers(q, 10);
+      renderDropdown(items);
+    }, 150);
+  }
+
+  function _onKeyDown(e) {
+    const dd = document.getElementById('persona-search-dropdown');
+    const visible = dd && dd.style.display !== 'none' && _shownList.length > 0;
+    if (e.key === 'ArrowDown') {
+      if (!visible) return;
+      e.preventDefault();
+      _activeIdx = (_activeIdx + 1) % _shownList.length;
+      _updateActive();
+    } else if (e.key === 'ArrowUp') {
+      if (!visible) return;
+      e.preventDefault();
+      _activeIdx = (_activeIdx - 1 + _shownList.length) % _shownList.length;
+      _updateActive();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      let ticker = null;
+      if (visible && _activeIdx >= 0 && _shownList[_activeIdx]) {
+        ticker = _shownList[_activeIdx].ticker;
+      } else if (visible && _shownList[0]) {
+        ticker = _shownList[0].ticker;   // 첫 매칭 자동 선택
+      } else {
+        ticker = (e.target.value || '').trim();  // dropdown 없으면 raw input
+      }
+      hideDropdown();
+      if (ticker && typeof window.handlePersonaSearch === 'function') {
+        e.target.value = ticker;
+        window.handlePersonaSearch(ticker);
+      }
+    } else if (e.key === 'Escape') {
+      hideDropdown();
+    }
+  }
+
+  function _onDropdownClick(e) {
+    const item = e.target.closest('.persona-search-item');
+    if (!item) return;
+    const ticker = item.getAttribute('data-ticker');
+    if (!ticker) return;
+    const input = document.getElementById('persona-search');
+    if (input) input.value = ticker;
+    hideDropdown();
+    if (typeof window.handlePersonaSearch === 'function') window.handlePersonaSearch(ticker);
+  }
+
+  function _onBlur() {
+    // 약간 지연 — dropdown 클릭이 먼저 처리되도록
+    setTimeout(hideDropdown, 150);
+  }
+
+  function _init() {
+    const input = document.getElementById('persona-search');
+    const dd = document.getElementById('persona-search-dropdown');
+    if (input && !input._autocompleteBound) {
+      input._autocompleteBound = true;
+      input.addEventListener('input', _onInput);
+      input.addEventListener('keydown', _onKeyDown);
+      input.addEventListener('blur', _onBlur);
+      input.setAttribute('placeholder', '종목명 또는 티커 (예: 삼성전자, 005930, NVDA)');
+    }
+    if (dd && !dd._autocompleteBound) {
+      dd._autocompleteBound = true;
+      dd.addEventListener('mousedown', function(e) { e.preventDefault(); });  // blur 방지
+      dd.addEventListener('click', _onDropdownClick);
+    }
+    // 종목 분석 탭 진입 시 prefetch (background)
+    prefetchTickers().catch(function() {});
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _init);
+  } else {
+    _init();
   }
 })();
 </script>
