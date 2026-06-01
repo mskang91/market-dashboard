@@ -4602,8 +4602,7 @@ function renderRaw(rows, liveData) {
     c('미국 기준금리',   '미국 기준금리',  'fed_rate', 2) +
     c('BoK 기준금리',    'BoK 기준금리',   'bok_rate', 2) +
     // Phase 1 #1 (5/30) — 신규 2종 (일본 10Y, TIPS 10Y)
-    c('일본 10년물',     '일본 10Y(%)',    'jp_10y',   2, 'us10y') +
-    c('TIPS 10년 실질',  'TIPS 10Y(%)',    'tips_10y', 2, 'us10y');
+    '';  // 일본 10Y / TIPS 10Y 카드 제거 (Macro History 시트에 컬럼 없음, v34 한일 상관은 보조)
 
   // B46 (5/19) — 한국 시장 종합 (KRX 공식) — 3개 sub-섹션
   // 1) 한국 밸류에이션 (PER/PBR 4)
