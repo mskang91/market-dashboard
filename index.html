@@ -7498,7 +7498,7 @@ window.addEventListener('resize', () => {
       + '<div class="persona-viz-rate-labels"><span>-23bp</span><span>0</span><span>+23bp</span></div>';
   }
 
-  // 7. L2 4 카테고리 수평 막대 차트
+  // 7. L2 4 카테고리 수평 막대 차트 — width를 즉시 ratio %로 박음 (display:none 시 transition 안 트리거 함정 회피)
   function _renderBreakdownBars(breakdown) {
     if (!breakdown) return '<div class="persona-voice">데이터 없음</div>';
     const groups = [
@@ -7516,7 +7516,7 @@ window.addEventListener('resize', () => {
       html += '<div class="persona-viz-breakdown-row">'
         +   '<span class="persona-viz-breakdown-name">' + g.name + '</span>'
         +   '<div class="persona-viz-breakdown-track">'
-        +     '<div class="persona-viz-breakdown-fill ' + cls + '" style="width:0%"></div>'
+        +     '<div class="persona-viz-breakdown-fill ' + cls + '" style="width:' + ratio.toFixed(1) + '%"></div>'
         +   '</div>'
         +   '<span class="persona-viz-breakdown-score">' + b.score + ' / ' + maxVal + '</span>'
         + '</div>';
@@ -7524,25 +7524,8 @@ window.addEventListener('resize', () => {
     html += '</div>';
     return html;
   }
-  // 4-bar 채우기 애니메이션 (innerHTML 후 RAF로 동작)
-  function _animateBreakdownBars(rootEl, breakdown) {
-    if (!rootEl || !breakdown) return;
-    const groups = [
-      { key: 'financial',       max: 25 },
-      { key: 'valuation',       max: 25 },
-      { key: 'cashflow_growth', max: 25 },
-      { key: 'cycle_macro',     max: 25 }
-    ];
-    const fills = rootEl.querySelectorAll('.persona-viz-breakdown-fill');
-    setTimeout(function() {
-      fills.forEach(function(el, i) {
-        const g = groups[i];
-        const b = breakdown[g.key] || { score: 0, max: g.max };
-        const ratio = Math.max(0, Math.min(100, (b.score / (b.max || g.max)) * 100));
-        el.style.width = ratio + '%';
-      });
-    }, 60);
-  }
+  // 4-bar 애니메이션 (호환 — 더 이상 호출 안 함. 인라인 width 즉시 박는 방식으로 변경)
+  function _animateBreakdownBars(_rootEl, _breakdown) { /* no-op */ }
 
   // === 운용 권고 강조 배너 (등급 카드 아래) ===
   // 모든 KR 종목 분석에 항상 사용되는 raw 데이터 출처 (정적 — 백엔드 data_source_summary 무시)
