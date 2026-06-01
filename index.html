@@ -2902,11 +2902,45 @@ body.embed-mode .bento-row {
 /* 모바일 반응형 */
 @media (max-width: 768px) {
   #persona-view { padding: var(--s-4); }
-  .persona-l1-grid { grid-template-columns: 1fr; }
-  .persona-l2-grid { grid-template-columns: 1fr; }
+  .persona-main { gap: var(--s-4); }
+  .persona-l1-grid { grid-template-columns: 1fr; gap: var(--s-3); }
+  .persona-l2-grid { grid-template-columns: 1fr; gap: var(--s-3); }
+  .persona-grade-card { padding: var(--s-5); }
+  .persona-grade-title { font-size: 17px; }
   .persona-grade-score { font-size: 36px; }
   .persona-grade-letter { font-size: 24px; }
+  .persona-grade-label { font-size: 14px; }
+  .persona-grade-meta { font-size: 12px; }
+  .persona-card { padding: var(--s-4); }
+  .persona-card-head { font-size: 14px; }
+  .persona-voice { font-size: 13px; line-height: 1.55; }
+  .persona-redteam { padding: var(--s-3) var(--s-4); font-size: 13px; flex-direction: column; gap: var(--s-2); }
+  .persona-redteam .label { font-size: 12px; }
+  .persona-expand-btn { padding: var(--s-3); font-size: 13px; }
+  .persona-l2-card { padding: var(--s-4); }
+  .persona-breakdown-row { font-size: 12px; }
+  .persona-breakdown-row .label { font-size: 10px; }
+  .persona-keyinsight { padding: var(--s-4); font-size: 14px; }
   .persona-search-input { font-size: 15px; padding: var(--s-3) var(--s-4); }
+  .persona-search-dropdown { max-height: 240px; }
+  .persona-search-item { padding: var(--s-3) var(--s-4); }
+  .persona-search-item .name { font-size: 14px; }
+  .persona-search-item .ticker { font-size: 12px; }
+}
+@media (max-width: 480px) {
+  /* 더 작은 화면 — 스마트폰 세로 */
+  #persona-view { padding: var(--s-3); }
+  .persona-grade-score { font-size: 32px; }
+  .persona-grade-letter { font-size: 22px; padding: 3px 10px; }
+  .persona-grade-title { font-size: 16px; }
+  .persona-grade-score-row { gap: var(--s-3); }
+  .persona-card { padding: var(--s-3); }
+  .persona-l2-card { padding: var(--s-3); }
+  .persona-voice { padding-left: var(--s-2); }
+  .persona-breakdown-row { flex-wrap: wrap; gap: 2px 8px; }
+  .persona-breakdown-row .label { width: 100%; margin-left: 0; }
+  .persona-search-input { font-size: 14px; padding: 10px 12px; }
+  .persona-search-dropdown { max-height: 200px; }
 }
 </style>
 
