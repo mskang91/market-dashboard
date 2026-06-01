@@ -2477,22 +2477,22 @@ body.embed-mode .bento-row {
       <!-- 4.6 데이터 탭 (Step B — IA 재구성, 5/14 추가) -->
       <!--      매크로(default) · 자산(원자재+ETF+코인) · MDD · 섹터 · 분위기 -->
       <nav class="dashboard-tabs" id="dashboard-tabs" role="tablist" aria-label="시장 데이터 카테고리">
-        <button class="dash-tab active" data-tab="macro" role="tab" aria-selected="true" type="button">
+        <button class="dash-tab active" data-tab="macro" role="tab" aria-selected="true" type="button" onclick="window.switchDashTab && window.switchDashTab('macro')">
           <span class="dash-tab-icon">🌐</span><span class="dash-tab-label">매크로</span>
         </button>
-        <button class="dash-tab" data-tab="assets" role="tab" aria-selected="false" type="button">
+        <button class="dash-tab" data-tab="assets" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('assets')">
           <span class="dash-tab-icon">⛽</span><span class="dash-tab-label">원자재·ETF·코인</span>
         </button>
-        <button class="dash-tab" data-tab="mdd" role="tab" aria-selected="false" type="button">
+        <button class="dash-tab" data-tab="mdd" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('mdd')">
           <span class="dash-tab-icon">📉</span><span class="dash-tab-label">MDD</span>
         </button>
-        <button class="dash-tab" data-tab="sector" role="tab" aria-selected="false" type="button">
+        <button class="dash-tab" data-tab="sector" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('sector')">
           <span class="dash-tab-icon">🗺</span><span class="dash-tab-label">섹터</span>
         </button>
-        <button class="dash-tab" data-tab="sentiment" role="tab" aria-selected="false" type="button">
+        <button class="dash-tab" data-tab="sentiment" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('sentiment')">
           <span class="dash-tab-icon">🔥</span><span class="dash-tab-label">분위기</span>
         </button>
-        <button class="dash-tab" data-tab="persona" role="tab" aria-selected="false" type="button">
+        <button class="dash-tab" data-tab="persona" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('persona')">
           <span class="dash-tab-icon">📊</span><span class="dash-tab-label">종목 분석</span>
         </button>
       </nav>
