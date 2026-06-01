@@ -2477,22 +2477,22 @@ body.embed-mode .bento-row {
       <!-- 4.6 데이터 탭 (Step B — IA 재구성, 5/14 추가) -->
       <!--      매크로(default) · 자산(원자재+ETF+코인) · MDD · 섹터 · 분위기 -->
       <nav class="dashboard-tabs" id="dashboard-tabs" role="tablist" aria-label="시장 데이터 카테고리">
-        <button class="dash-tab active" data-tab="macro" role="tab" aria-selected="true" type="button" onclick="window.switchDashTab && window.switchDashTab('macro')">
+        <button class="dash-tab active" data-tab="macro" role="tab" aria-selected="true" type="button">
           <span class="dash-tab-icon">🌐</span><span class="dash-tab-label">매크로</span>
         </button>
-        <button class="dash-tab" data-tab="assets" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('assets')">
+        <button class="dash-tab" data-tab="assets" role="tab" aria-selected="false" type="button">
           <span class="dash-tab-icon">⛽</span><span class="dash-tab-label">원자재·ETF·코인</span>
         </button>
-        <button class="dash-tab" data-tab="mdd" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('mdd')">
+        <button class="dash-tab" data-tab="mdd" role="tab" aria-selected="false" type="button">
           <span class="dash-tab-icon">📉</span><span class="dash-tab-label">MDD</span>
         </button>
-        <button class="dash-tab" data-tab="sector" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('sector')">
+        <button class="dash-tab" data-tab="sector" role="tab" aria-selected="false" type="button">
           <span class="dash-tab-icon">🗺</span><span class="dash-tab-label">섹터</span>
         </button>
-        <button class="dash-tab" data-tab="sentiment" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('sentiment')">
+        <button class="dash-tab" data-tab="sentiment" role="tab" aria-selected="false" type="button">
           <span class="dash-tab-icon">🔥</span><span class="dash-tab-label">분위기</span>
         </button>
-        <button class="dash-tab" data-tab="persona" role="tab" aria-selected="false" type="button" onclick="window.switchDashTab && window.switchDashTab('persona')">
+        <button class="dash-tab" data-tab="persona" role="tab" aria-selected="false" type="button">
           <span class="dash-tab-icon">📊</span><span class="dash-tab-label">종목 분석</span>
         </button>
       </nav>
@@ -4499,67 +4499,16 @@ document.addEventListener('click', function(e) {
   if (btn) renderCompareChart(btn.dataset.cmpPeriod);
 });
 
-// ═════════════════════════════════════════════════════════════
-// Phase 5-UI: dashboard-tabs 클릭 핸들러 (종목 분석 탭 신설)
-//   - 기존 5개 탭 (매크로/원자재/MDD/섹터/분위기) + 신규 'persona'
-//   - data-tab="X" 클릭 → [data-tab-target="X"] section만 표시
-//   - 다른 [data-tab-target]에 tab-hidden 클래스 추가
-//   - dash-tab.active + aria-selected 동기화
-// ═════════════════════════════════════════════════════════════
-(function() {
-  function switchDashTab(tabName) {
-    if (!tabName) return;
-    // 1) 버튼 active 토글
-    document.querySelectorAll('.dash-tab').forEach(function(btn) {
-      const isActive = btn.dataset.tab === tabName;
-      btn.classList.toggle('active', isActive);
-      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
-    // 2) 콘텐츠 표시/숨김 ([data-tab-target] 모두 검사)
-    document.querySelectorAll('[data-tab-target]').forEach(function(el) {
-      const target = el.getAttribute('data-tab-target');
-      if (target === tabName) el.classList.remove('tab-hidden');
-      else el.classList.add('tab-hidden');
-    });
-    // 3) localStorage 기억 (재방문 시 마지막 탭 복원)
-    try { localStorage.setItem('mh:dashTab', tabName); } catch (_e) {}
-    // 4) persona 탭 첫 진입 시 ticker 마스터 prefetch (한 번만)
-    if (tabName === 'persona' && typeof prefetchPersonaTickers === 'function') {
-      prefetchPersonaTickers();
-    }
-  }
-  // 클릭 이벤트 위임
-  document.addEventListener('click', function(e) {
-    const tabBtn = e.target.closest('.dash-tab[data-tab]');
-    if (tabBtn && tabBtn.closest('#dashboard-tabs')) {
-      switchDashTab(tabBtn.dataset.tab);
-    }
-  });
-  // 페이지 로드 시 — #persona-view를 #tab-market 안으로 이동 + 직접 핸들러 등록 + 첫 탭 복원
-  document.addEventListener('DOMContentLoaded', function() {
-    // 1) #persona-view가 #tab-market 외부에 있으면 안으로 이동 (구조 정합)
-    try {
-      const personaView = document.getElementById('persona-view');
-      const tabMarket = document.getElementById('tab-market');
-      if (personaView && tabMarket && !tabMarket.contains(personaView)) {
-        tabMarket.appendChild(personaView);
-      }
-    } catch (_e) {}
-    // 2) 각 dash-tab 버튼에 직접 핸들러 등록 (이벤트 위임이 다른 핸들러와 충돌해 안 잡힐 경우 대비)
-    document.querySelectorAll('#dashboard-tabs .dash-tab[data-tab]').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        switchDashTab(btn.dataset.tab);
-      });
-    });
-    // 3) localStorage 또는 기본 active 탭 복원
-    let saved = null;
-    try { saved = localStorage.getItem('mh:dashTab'); } catch (_e) {}
-    const initialTab = saved || (document.querySelector('.dash-tab.active') || {}).dataset?.tab || 'macro';
-    switchDashTab(initialTab);
-  });
-  // 전역 노출 (디버그용)
-  window.switchDashTab = switchDashTab;
-})();
+// Phase 5-UI: #persona-view를 #tab-market 안으로 이동 (기존 navigateToTab 시스템과 정합)
+//   기존 탭 시스템 (line 6300+ VALID_TABS/navigateToTab/setActiveTab — 5/16 commit 19e4437) 그대로 사용.
+//   M050 재발 방지: 새 switchDashTab 작성 X. 기존 시스템에 'persona' 탭만 합류.
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    const pv = document.getElementById('persona-view');
+    const tm = document.getElementById('tab-market');
+    if (pv && tm && !tm.contains(pv)) tm.appendChild(pv);
+  } catch (_e) {}
+});
 
 // ── RENDER: SECTOR HEATMAP ─────────────────────────────
 // Sector 시트 컬럼 구조 (A열=시장, B열=섹터, C열=등락률(%), D열=비중(%) [선택])
