@@ -4535,7 +4535,7 @@ document.addEventListener('click', function(e) {
       switchDashTab(tabBtn.dataset.tab);
     }
   });
-  // 페이지 로드 시 — #persona-view를 #tab-market 안으로 이동 + 첫 탭 복원
+  // 페이지 로드 시 — #persona-view를 #tab-market 안으로 이동 + 직접 핸들러 등록 + 첫 탭 복원
   document.addEventListener('DOMContentLoaded', function() {
     // 1) #persona-view가 #tab-market 외부에 있으면 안으로 이동 (구조 정합)
     try {
@@ -4545,7 +4545,13 @@ document.addEventListener('click', function(e) {
         tabMarket.appendChild(personaView);
       }
     } catch (_e) {}
-    // 2) localStorage 또는 기본 active 탭 복원
+    // 2) 각 dash-tab 버튼에 직접 핸들러 등록 (이벤트 위임이 다른 핸들러와 충돌해 안 잡힐 경우 대비)
+    document.querySelectorAll('#dashboard-tabs .dash-tab[data-tab]').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        switchDashTab(btn.dataset.tab);
+      });
+    });
+    // 3) localStorage 또는 기본 active 탭 복원
     let saved = null;
     try { saved = localStorage.getItem('mh:dashTab'); } catch (_e) {}
     const initialTab = saved || (document.querySelector('.dash-tab.active') || {}).dataset?.tab || 'macro';
