@@ -6330,5 +6330,174 @@ window.addEventListener('resize', () => {
   }
 })();
 </script>
+
+<script>
+// ═════════════════════════════════════════════════════════════
+// Phase 5-UI-4: 종목 분석 fetch + 4 카드 렌더 (Code.js handleAnalyze L1)
+//   - 검색창 Enter → handleAnalyze API → composite_score + L1 4 카드 + Red Team
+//   - 자세히 보기 토글 → L2 breakdown 4 카테고리
+// ═════════════════════════════════════════════════════════════
+(function() {
+  const ANALYZE_URL = (typeof window.WEBAPP_URL === 'string' && window.WEBAPP_URL)
+    || 'https://script.google.com/macros/s/AKfycbxoyGTYyDFMB5IrSkQeZJkB6GGWvJOhGdMtCRRtXP91GRsWh8__v5Nr8sGLZtx_iRWDEQ/exec';
+  const _personaState = { lastTicker: null, lastResult: null, expanded: false };
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  async function fetchPersonaAnalysis(ticker) {
+    const url = ANALYZE_URL + '?action=analyze&ticker=' + encodeURIComponent(ticker) + '&level=L1';
+    const res = await fetch(url, { method: 'GET' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  function renderGradeCard(cs, ticker, name) {
+    const el = document.getElementById('persona-grade-card');
+    if (!el) return;
+    const grade = cs.grade || 'D';
+    el.innerHTML = ''
+      + '<div class="persona-grade-title">' + escapeHtml(name) + ' <span style="color:var(--text3);font-weight:400;font-size:14px">(' + escapeHtml(ticker) + ')</span></div>'
+      + '<div class="persona-grade-meta">' + escapeHtml(cs.data_source_summary || '') + ' · DQ ' + (cs.data_quality_pct || 0) + '%</div>'
+      + '<div class="persona-grade-score-row">'
+      +   '<span class="persona-grade-score">' + (cs.total || 0) + '</span>'
+      +   '<span class="persona-grade-letter ' + grade + '">' + grade + '</span>'
+      +   '<span class="persona-grade-label">' + escapeHtml(cs.voice_label || '') + '</span>'
+      + '</div>'
+      + '<div class="persona-grade-gauge"><div class="persona-grade-gauge-fill" style="width:' + (cs.total || 0) + '%"></div></div>';
+  }
+
+  function setVoiceList(id, voices) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = voices.map(function(v) { return '<div class="persona-voice">' + v + '</div>'; }).join('');
+  }
+
+  function renderL1Cards(data) {
+    const m = data.metrics_labeled || {};
+    const v = data.v34_meta || {};
+    setVoiceList('card-stock-eval-body', [
+      'PER: <strong>' + escapeHtml(m.per || 'N/A') + '</strong>',
+      'PBR: <strong>' + escapeHtml(m.pbr || 'N/A') + '</strong>',
+      'ROE: <strong>' + escapeHtml(m.roe || 'N/A') + '</strong>',
+      'ROIC: <strong>' + escapeHtml(m.roic || 'N/A') + '</strong>',
+      'FCF: <strong>' + escapeHtml(m.fcf_signal || 'N/A') + '</strong>'
+    ]);
+    setVoiceList('card-ops-rec-body', [
+      escapeHtml(data.voice || 'N/A'),
+      'cyclical_5: <strong>' + escapeHtml(m.cyclical_5_factor_score || 'N/A') + '</strong>'
+    ]);
+    setVoiceList('card-market-diag-body', [
+      'cycle: <strong>' + escapeHtml(v.cycle_phase || 'N/A') + '</strong>',
+      'bull_bear: <strong>' + escapeHtml(v.bull_bear_stage || 'N/A') + '</strong>',
+      'inflation: <strong>' + escapeHtml(v.inflation_split || 'N/A') + '</strong>',
+      'style: <strong>' + escapeHtml(v.style_quadrant || 'N/A') + '</strong>'
+    ]);
+    setVoiceList('card-macro-watch-body', [
+      'rate_speed: <strong>' + escapeHtml(v.rate_speed_3m_bp || 'N/A') + '</strong>',
+      'credit: <strong>' + escapeHtml(v.credit_spread || 'N/A') + '</strong>',
+      'loss_threshold: ' + escapeHtml(v.loss_threshold || 'N/A')
+    ]);
+  }
+
+  function fmtBreakdown(b) {
+    if (!b || !b.details) return '<div class="persona-voice">데이터 없음</div>';
+    return '<div class="persona-breakdown-row" style="font-weight:700;color:var(--text);margin-bottom:6px"><span>합계</span><span class="val">' + b.score + ' / ' + b.max + '</span></div>'
+      + b.details.map(function(d) {
+        return '<div class="persona-breakdown-row"><span class="key">' + escapeHtml(d.key) + '</span><span class="val">' + escapeHtml(String(d.raw || '')) + '</span><span class="label">' + escapeHtml(d.label || '') + '</span></div>';
+      }).join('');
+  }
+
+  function renderL2Cards(data) {
+    const cs = data.composite_score || {};
+    const br = cs.breakdown || {};
+    document.getElementById('l2-stock-eval-body').innerHTML = fmtBreakdown(br.financial);
+    document.getElementById('l2-ops-rec-body').innerHTML = fmtBreakdown(br.valuation);
+    document.getElementById('l2-market-diag-body').innerHTML = fmtBreakdown(br.cashflow_growth);
+    document.getElementById('l2-macro-watch-body').innerHTML = fmtBreakdown(br.cycle_macro);
+    const penalties = cs.penalties_applied || [];
+    if (penalties.length) {
+      const pHtml = '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><div style="font-weight:600;color:var(--orange);margin-bottom:6px">⚠ 페널티 ' + penalties.length + '건</div>' + penalties.map(function(p) {
+        return '<div class="persona-voice"><strong>' + escapeHtml(p.rule || '') + '</strong> (' + escapeHtml(String(p.delta || '')) + '): ' + escapeHtml(p.reason || '') + '</div>';
+      }).join('') + '</div>';
+      document.getElementById('l2-stock-eval-body').innerHTML += pHtml;
+    }
+  }
+
+  function renderResult(data) {
+    const result = document.getElementById('persona-result');
+    document.getElementById('persona-loading').style.display = 'none';
+    document.getElementById('persona-error').style.display = 'none';
+    if (!data || !data.ok) {
+      const err = document.getElementById('persona-error');
+      err.style.display = '';
+      err.textContent = (data && data.error) ? (data.error + (data.hint ? ' — ' + data.hint : '')) : '결과 없음';
+      result.style.display = 'none';
+      return;
+    }
+    renderGradeCard(data.composite_score || {}, data.ticker, data.name);
+    renderL1Cards(data);
+    const rt = document.getElementById('persona-redteam-text');
+    if (rt) rt.textContent = data.red_team || '—';
+    renderL2Cards(data);
+    const meta = document.getElementById('persona-meta');
+    if (meta) meta.textContent = 'source: ' + (data._data_source || '?') + ' · ' + (data.cached ? 'cached' : 'live') + ' · ' + (data._response_ms || '?') + 'ms';
+    result.style.display = '';
+    _personaState.lastResult = data;
+  }
+
+  async function handlePersonaSearch(ticker) {
+    ticker = (ticker || '').trim();
+    if (!ticker) return;
+    document.getElementById('persona-loading').style.display = '';
+    document.getElementById('persona-error').style.display = 'none';
+    document.getElementById('persona-result').style.display = 'none';
+    _personaState.expanded = false;
+    const l2 = document.getElementById('persona-l2-section');
+    if (l2) l2.style.display = 'none';
+    try {
+      const data = await fetchPersonaAnalysis(ticker);
+      renderResult(data);
+    } catch (e) {
+      document.getElementById('persona-loading').style.display = 'none';
+      const err = document.getElementById('persona-error');
+      err.style.display = '';
+      err.textContent = '네트워크 오류: ' + (e.message || e);
+    }
+    _personaState.lastTicker = ticker;
+  }
+  window.handlePersonaSearch = handlePersonaSearch;
+
+  function togglePersonaExpand() {
+    _personaState.expanded = !_personaState.expanded;
+    const l2 = document.getElementById('persona-l2-section');
+    const icon = document.getElementById('persona-expand-icon');
+    const label = document.getElementById('persona-expand-label');
+    if (_personaState.expanded) {
+      if (l2) l2.style.display = '';
+      if (icon) icon.textContent = '▲';
+      if (label) label.textContent = '접기';
+    } else {
+      if (l2) l2.style.display = 'none';
+      if (icon) icon.textContent = '▼';
+      if (label) label.textContent = '자세히 보기 (펼치기)';
+    }
+  }
+  window.togglePersonaExpand = togglePersonaExpand;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('persona-search');
+    if (input) {
+      input.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') handlePersonaSearch(input.value);
+      });
+    }
+  });
+})();
+</script>
 </body>
 </html>
