@@ -2907,7 +2907,8 @@ body.embed-mode .bento-row {
     <!-- 로딩 -->
     <div class="persona-loading" id="persona-loading" style="display:none;">
       <div class="spinner"></div>
-      <div>분석 중... (DART 사업보고서 + v34 룰 17종 산출)</div>
+      <div id="persona-loading-msg" style="margin-top:8px; color: var(--text2); font-size: 14px;">한국거래소에서 해당 종목을 찾는 중입니다...</div>
+      <div id="persona-loading-progress" style="margin-top:6px; color: var(--text3); font-size: 12px;">1 / 4</div>
     </div>
 
     <!-- 에러 -->
@@ -6450,6 +6451,35 @@ window.addEventListener('resize', () => {
     _personaState.lastResult = data;
   }
 
+  // Progress 4단계 메시지 (시청자 신뢰 + UX)
+  const _LOADING_STEPS = [
+    '한국거래소에서 해당 종목을 찾는 중입니다',
+    '분석에 필요한 지표를 가져오는 중입니다',
+    '수집한 지표를 바탕으로 종목을 분석하고 있습니다',
+    '결과를 생성하는 중입니다'
+  ];
+  let _loadingStepTimer = null;
+
+  function _startLoadingProgress() {
+    let step = 0;
+    const msgEl = document.getElementById('persona-loading-msg');
+    const progEl = document.getElementById('persona-loading-progress');
+    function update() {
+      if (msgEl) msgEl.textContent = _LOADING_STEPS[step] + '...';
+      if (progEl) progEl.textContent = (step + 1) + ' / 4';
+    }
+    update();
+    _loadingStepTimer = setInterval(function() {
+      if (step < _LOADING_STEPS.length - 1) {
+        step++;
+        update();
+      }
+    }, 2500);  // 2.5초마다 다음 단계 (4단계 × 2.5초 = 10초 예상 응답 시간 매칭)
+  }
+  function _stopLoadingProgress() {
+    if (_loadingStepTimer) { clearInterval(_loadingStepTimer); _loadingStepTimer = null; }
+  }
+
   async function handlePersonaSearch(ticker) {
     ticker = (ticker || '').trim();
     if (!ticker) return;
@@ -6459,10 +6489,13 @@ window.addEventListener('resize', () => {
     _personaState.expanded = false;
     const l2 = document.getElementById('persona-l2-section');
     if (l2) l2.style.display = 'none';
+    _startLoadingProgress();
     try {
       const data = await fetchPersonaAnalysis(ticker);
+      _stopLoadingProgress();
       renderResult(data);
     } catch (e) {
+      _stopLoadingProgress();
       document.getElementById('persona-loading').style.display = 'none';
       const err = document.getElementById('persona-error');
       err.style.display = '';
