@@ -2784,6 +2784,12 @@ body.embed-mode .bento-row {
 
 /* 로딩 / 에러 */
 .persona-loading { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding: var(--s-9) 0; color: var(--text2); }
+.persona-loading-msg-wrap { position: relative; height: 22px; overflow: hidden; min-width: 260px; text-align: center; }
+.persona-loading-msg-item { position: absolute; left: 0; right: 0; top: 0; opacity: 0; transform: translateY(20px); transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); color: var(--text2); font-size: 14px; }
+.persona-loading-msg-item.is-active { opacity: 1; transform: translateY(0); }
+.persona-loading-msg-item.is-exit { opacity: 0; transform: translateY(-20px); }
+.persona-loading-progress-bar { width: 220px; height: 3px; background: var(--surface-1); border-radius: var(--r-full); overflow: hidden; margin-top: 4px; }
+.persona-loading-progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 .persona-loading .spinner { width: 32px; height: 32px; border: 3px solid var(--surface-2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .persona-error { padding: var(--s-5); background: rgba(239,68,68,0.10); border: 1px solid rgba(239,68,68,0.30); border-radius: var(--r-md); color: var(--red); font-size: 14px; }
@@ -2907,8 +2913,8 @@ body.embed-mode .bento-row {
     <!-- 로딩 -->
     <div class="persona-loading" id="persona-loading" style="display:none;">
       <div class="spinner"></div>
-      <div id="persona-loading-msg" style="margin-top:8px; color: var(--text2); font-size: 14px;">한국거래소에서 해당 종목을 찾는 중입니다...</div>
-      <div id="persona-loading-progress" style="margin-top:6px; color: var(--text3); font-size: 12px;">1 / 4</div>
+      <div class="persona-loading-msg-wrap" id="persona-loading-msg-wrap"></div>
+      <div class="persona-loading-progress-bar"><div class="persona-loading-progress-bar-fill" id="persona-loading-progress-bar"></div></div>
     </div>
 
     <!-- 에러 -->
@@ -6451,7 +6457,7 @@ window.addEventListener('resize', () => {
     _personaState.lastResult = data;
   }
 
-  // Progress 4단계 메시지 (시청자 신뢰 + UX)
+  // Progress 4단계 메시지 (시청자 신뢰 + UX) — 토스 마이크로 인터랙션
   const _LOADING_STEPS = [
     '한국거래소에서 해당 종목을 찾는 중입니다',
     '분석에 필요한 지표를 가져오는 중입니다',
@@ -6459,25 +6465,58 @@ window.addEventListener('resize', () => {
     '결과를 생성하는 중입니다'
   ];
   let _loadingStepTimer = null;
+  let _loadingStepIdx = 0;
+
+  // 마지막 응답 시간 기억 → 다음 호출 시 4단계 균등 분배
+  function _getAvgResponseMs() {
+    try {
+      const v = parseInt(localStorage.getItem('mh:persona:lastMs') || '0', 10);
+      if (v > 1500) return v;
+    } catch (_e) {}
+    return 12000;  // 기본 12초 (DART cold 호출 평균)
+  }
+
+  function _showLoadingStep(idx) {
+    const wrap = document.getElementById('persona-loading-msg-wrap');
+    const bar = document.getElementById('persona-loading-progress-bar');
+    if (!wrap) return;
+    // 기존 active 메시지 → exit (위로 슬라이드 + 페이드)
+    const prev = wrap.querySelector('.persona-loading-msg-item.is-active');
+    if (prev) {
+      prev.classList.remove('is-active');
+      prev.classList.add('is-exit');
+      setTimeout(function() { if (prev.parentNode) prev.parentNode.removeChild(prev); }, 400);
+    }
+    // 신규 메시지 → 아래에서 위로 슬라이드 + 페이드 인
+    const next = document.createElement('div');
+    next.className = 'persona-loading-msg-item';
+    next.textContent = _LOADING_STEPS[idx] + '...';
+    wrap.appendChild(next);
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { next.classList.add('is-active'); });
+    });
+    if (bar) bar.style.width = (((idx + 1) / _LOADING_STEPS.length) * 100) + '%';
+  }
 
   function _startLoadingProgress() {
-    let step = 0;
-    const msgEl = document.getElementById('persona-loading-msg');
-    const progEl = document.getElementById('persona-loading-progress');
-    function update() {
-      if (msgEl) msgEl.textContent = _LOADING_STEPS[step] + '...';
-      if (progEl) progEl.textContent = (step + 1) + ' / 4';
-    }
-    update();
+    _loadingStepIdx = 0;
+    _showLoadingStep(0);
+    const totalMs = _getAvgResponseMs();
+    const stepMs = Math.max(1500, Math.floor(totalMs / _LOADING_STEPS.length));
     _loadingStepTimer = setInterval(function() {
-      if (step < _LOADING_STEPS.length - 1) {
-        step++;
-        update();
+      if (_loadingStepIdx < _LOADING_STEPS.length - 1) {
+        _loadingStepIdx++;
+        _showLoadingStep(_loadingStepIdx);
       }
-    }, 2500);  // 2.5초마다 다음 단계 (4단계 × 2.5초 = 10초 예상 응답 시간 매칭)
+      // 마지막 단계에 도달하면 응답이 올 때까지 그대로 유지 (자연스러움)
+    }, stepMs);
   }
   function _stopLoadingProgress() {
     if (_loadingStepTimer) { clearInterval(_loadingStepTimer); _loadingStepTimer = null; }
+    const wrap = document.getElementById('persona-loading-msg-wrap');
+    if (wrap) wrap.innerHTML = '';
+    const bar = document.getElementById('persona-loading-progress-bar');
+    if (bar) bar.style.width = '0%';
   }
 
   async function handlePersonaSearch(ticker) {
@@ -6490,9 +6529,12 @@ window.addEventListener('resize', () => {
     const l2 = document.getElementById('persona-l2-section');
     if (l2) l2.style.display = 'none';
     _startLoadingProgress();
+    const _startMs = Date.now();
     try {
       const data = await fetchPersonaAnalysis(ticker);
       _stopLoadingProgress();
+      // 다음 호출 시 정확한 시간 분배를 위해 응답 시간 저장
+      try { localStorage.setItem('mh:persona:lastMs', String(Date.now() - _startMs)); } catch (_e) {}
       renderResult(data);
     } catch (e) {
       _stopLoadingProgress();
