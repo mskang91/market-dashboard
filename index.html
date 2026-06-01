@@ -3219,6 +3219,145 @@ body.embed-mode .bento-row {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ━━━ 🚀 빠른 임팩트 — Web3 영감 마이크로 인터랙션 인프라 ━━━ */
+
+/* 카드 stagger fadeIn — Phantom Wallet spring (부드럽게 / Linear 톤) */
+@keyframes personaCardStagger {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Gradient orb (등급 카드 뒤 — Phantom + Uniswap 영감, 미묘하게 0.25) */
+@keyframes orbDrift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(20px, -10px) scale(1.08); }
+}
+
+/* 카드 진입 stagger — JS에서 .is-stagger 클래스 + 인덱스 변수 부여 */
+.persona-result > * {
+  opacity: 0;
+  animation: personaCardStagger 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.persona-result > *:nth-child(1) { animation-delay: 0.00s; }
+.persona-result > *:nth-child(2) { animation-delay: 0.08s; }
+.persona-result > *:nth-child(3) { animation-delay: 0.16s; }
+.persona-result > *:nth-child(4) { animation-delay: 0.24s; }
+.persona-result > *:nth-child(5) { animation-delay: 0.32s; }
+.persona-result > *:nth-child(6) { animation-delay: 0.40s; }
+.persona-result > *:nth-child(7) { animation-delay: 0.48s; }
+.persona-result > *:nth-child(8) { animation-delay: 0.56s; }
+
+/* 등급 카드 — gradient orb 배경 (Phantom 영감, 미묘) */
+.persona-grade-card { position: relative; overflow: hidden; }
+.persona-grade-card::after {
+  content: '';
+  position: absolute;
+  top: -50px; right: -80px;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(49,130,246,0.25) 0%, rgba(49,130,246,0) 70%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbDrift 12s ease-in-out infinite;
+}
+.persona-grade-card > * { position: relative; z-index: 1; }
+/* Glassmorphism — 등급 카드만 (소극적) */
+.persona-grade-card {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%),
+    var(--bg3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Mini card 호버 — Phantom + Linear 영감 (lift + accent glow) */
+.persona-mini-card { transition: transform 0.35s var(--toss-ease), box-shadow 0.35s var(--toss-ease), border-color 0.35s var(--toss-ease); }
+.persona-mini-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(49,130,246,0.15), var(--persona-shadow-hover);
+  border-color: rgba(49,130,246,0.30);
+}
+
+/* 그라데이션 텍스트 (등급 카드 큰 숫자) — Uniswap 영감 */
+.persona-grade-score {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+/* ━━━ 랜딩 첫 화면 (검색 전 상태) ━━━ */
+.persona-landing {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  position: relative;
+  min-height: 360px;
+  animation: personaCardStagger 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+.persona-landing::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 480px; height: 280px;
+  background: radial-gradient(ellipse at center, rgba(49,130,246,0.18) 0%, rgba(49,130,246,0) 60%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+.persona-landing > * { position: relative; z-index: 1; }
+.persona-landing-icon {
+  font-size: 56px; margin-bottom: 14px;
+  filter: drop-shadow(0 0 24px rgba(49,130,246,0.35));
+}
+.persona-landing-title {
+  font-size: 26px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.02em; line-height: 1.3;
+  margin-bottom: 10px;
+}
+.persona-landing-sub {
+  font-size: 15px; color: var(--text2); font-weight: 500;
+  letter-spacing: -0.01em; line-height: 1.5;
+  max-width: 420px; margin-bottom: 28px;
+}
+.persona-landing-chips {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 8px; margin-top: 8px;
+}
+.persona-landing-chip-label {
+  width: 100%; font-size: 11px; font-weight: 700;
+  color: var(--accent2); letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.persona-landing-chip {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  cursor: pointer;
+  transition: all 0.25s var(--toss-ease);
+  letter-spacing: -0.01em;
+}
+.persona-landing-chip:hover {
+  background: var(--accent-bg);
+  border-color: rgba(49,130,246,0.30);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+.persona-landing-chip strong {
+  color: var(--accent2); font-weight: 700; margin-right: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ━━━ 시각화 7종 (히스토리컬 게이지 / WACC 막대 / sparkline / Cycle 원형 / B/B 스테퍼 / Rate 게이지 / 4-bar) ━━━ */
 
 /* 1. 히스토리컬 %ile 게이지 (PER/PBR) — 토스 톤다운 */
@@ -3569,6 +3708,24 @@ body.embed-mode .bento-row {
              placeholder="한국 종목명 또는 6자리 코드 (예: 삼성전자, 005930)"
              autocomplete="off" spellcheck="false">
       <div class="persona-search-dropdown" id="persona-search-dropdown" style="display:none;"></div>
+    </div>
+
+    <!-- 랜딩 첫 화면 (검색 전) — Linear + Phantom 영감 -->
+    <div class="persona-landing" id="persona-landing">
+      <div class="persona-landing-icon">🔍</div>
+      <div class="persona-landing-title">한국 상장 종목 분석</div>
+      <div class="persona-landing-sub">
+        종목명 또는 6자리 코드를 검색해서<br>
+        재무·밸류·사이클·매크로 종합 분석을 받아보세요.
+      </div>
+      <div class="persona-landing-chips">
+        <div class="persona-landing-chip-label">인기 검색</div>
+        <button class="persona-landing-chip" onclick="_quickSearch('005930', '삼성전자')"><strong>005930</strong> 삼성전자</button>
+        <button class="persona-landing-chip" onclick="_quickSearch('000660', 'SK하이닉스')"><strong>000660</strong> SK하이닉스</button>
+        <button class="persona-landing-chip" onclick="_quickSearch('035420', 'NAVER')"><strong>035420</strong> NAVER</button>
+        <button class="persona-landing-chip" onclick="_quickSearch('051910', 'LG화학')"><strong>051910</strong> LG화학</button>
+        <button class="persona-landing-chip" onclick="_quickSearch('086520', '에코프로')"><strong>086520</strong> 에코프로</button>
+      </div>
     </div>
 
     <!-- 로딩 -->
@@ -7985,6 +8142,9 @@ window.addEventListener('resize', () => {
   async function handlePersonaSearch(ticker) {
     ticker = (ticker || '').trim();
     if (!ticker) return;
+    // 검색 시 랜딩 hide (Phantom 영감 — 매끄러운 전환)
+    const landing = document.getElementById('persona-landing');
+    if (landing) landing.style.display = 'none';
     document.getElementById('persona-loading').style.display = '';
     document.getElementById('persona-error').style.display = 'none';
     document.getElementById('persona-result').style.display = 'none';
@@ -8009,6 +8169,15 @@ window.addEventListener('resize', () => {
     _personaState.lastTicker = ticker;
   }
   window.handlePersonaSearch = handlePersonaSearch;
+
+  // 랜딩 chip 클릭 — 검색창 채우기 + 검색 실행 (Linear 영감)
+  window._quickSearch = function(ticker, name) {
+    const input = document.getElementById('persona-search');
+    if (input) input.value = name + ' (' + ticker + ')';
+    const dropdown = document.getElementById('persona-search-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    handlePersonaSearch(ticker);
+  };
 
   function togglePersonaExpand() {
     _personaState.expanded = !_personaState.expanded;
