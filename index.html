@@ -3201,12 +3201,12 @@ body.embed-mode .bento-row {
 .persona-info-note { font-size: 11px; color: var(--text3); font-style: italic; margin-top: 4px; }
 
 /* Style 사분면 SVG */
-.persona-quadrant-svg { width: 100%; max-width: 320px; margin: 8px auto; display: block; }
-.persona-quadrant-cell { fill: var(--surface-1); stroke: var(--border); }
-.persona-quadrant-cell.is-current { fill: rgba(49,130,246,0.20); stroke: var(--accent); stroke-width: 2; }
-.persona-quadrant-label { font-size: 10px; fill: var(--text2); font-weight: 600; }
+.persona-quadrant-svg { width: 100%; max-width: 260px; margin: 8px auto; display: block; }
+.persona-quadrant-cell { fill: var(--surface-1); stroke: var(--border); stroke-width: 1; }
+.persona-quadrant-cell.is-current { fill: rgba(49,130,246,0.22); stroke: var(--accent); stroke-width: 2; }
+.persona-quadrant-label { font-size: 11px; fill: var(--text2); font-weight: 700; dominant-baseline: middle; }
 .persona-quadrant-label.is-current { fill: var(--accent); font-weight: 800; }
-.persona-quadrant-axis { font-size: 10px; fill: var(--text3); font-weight: 500; }
+.persona-quadrant-axis { font-size: 10px; fill: var(--text3); font-weight: 600; dominant-baseline: middle; }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(6px); }
@@ -3215,38 +3215,40 @@ body.embed-mode .bento-row {
 
 /* ━━━ 시각화 7종 (히스토리컬 게이지 / WACC 막대 / sparkline / Cycle 원형 / B/B 스테퍼 / Rate 게이지 / 4-bar) ━━━ */
 
-/* 1. 히스토리컬 %ile 게이지 (PER/PBR) */
-.persona-viz-gauge { position: relative; height: 10px; margin: 8px 0 4px; border-radius: 5px; overflow: visible; }
-.persona-viz-gauge-bar { width: 100%; height: 100%; border-radius: 5px;
-  background: linear-gradient(90deg, #22c55e 0%, #eab308 50%, #ef4444 100%); opacity: 0.85; }
-.persona-viz-gauge-marker { position: absolute; top: -4px; width: 4px; height: 18px;
+/* 1. 히스토리컬 %ile 게이지 (PER/PBR) — 토스 톤다운 */
+.persona-viz-gauge { position: relative; height: 8px; margin: 8px 0 4px; border-radius: 4px; overflow: visible; }
+.persona-viz-gauge-bar { width: 100%; height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg,
+    rgba(34,197,94,0.55) 0%,
+    rgba(148,163,184,0.45) 50%,
+    rgba(239,68,68,0.55) 100%); }
+.persona-viz-gauge-marker { position: absolute; top: -4px; width: 4px; height: 16px;
   background: var(--text); border-radius: 2px; transform: translateX(-50%);
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.4); }
+  box-shadow: 0 0 0 2px var(--bg3); }
 .persona-viz-gauge-labels { display: flex; justify-content: space-between;
   font-size: 10px; color: var(--text3); margin-top: 6px; font-weight: 500; }
 
-/* 2. ROE/ROIC vs WACC 막대 */
-.persona-viz-wacc { position: relative; height: 10px; background: var(--surface-1); border-radius: 5px;
+/* 2. ROE/ROIC vs WACC 막대 — 톤다운 */
+.persona-viz-wacc { position: relative; height: 8px; background: var(--surface-1); border-radius: 4px;
   margin: 8px 0 4px; overflow: visible; }
-.persona-viz-wacc-bar { height: 100%; border-radius: 5px; transition: width 0.8s var(--toss-ease); }
-.persona-viz-wacc-bar.good { background: #22c55e; }
-.persona-viz-wacc-bar.bad  { background: #ef4444; }
+.persona-viz-wacc-bar { height: 100%; border-radius: 4px; transition: width 0.8s var(--toss-ease); }
+.persona-viz-wacc-bar.good    { background: rgba(34,197,94,0.85); }
+.persona-viz-wacc-bar.bad     { background: rgba(239,68,68,0.85); }
 .persona-viz-wacc-bar.neutral { background: var(--accent); }
-.persona-viz-wacc-marker { position: absolute; top: -3px; width: 2px; height: 16px;
-  background: rgba(255,255,255,0.65); transform: translateX(-50%); }
+.persona-viz-wacc-marker { position: absolute; top: -3px; width: 2px; height: 14px;
+  background: var(--text2); transform: translateX(-50%); opacity: 0.6; }
 .persona-viz-wacc-labels { display: flex; justify-content: space-between;
   font-size: 10px; color: var(--text3); margin-top: 6px; font-weight: 500; }
 .persona-viz-wacc-labels .wacc-label { color: var(--accent2); font-weight: 700; }
 
-/* 3. FCF sparkline */
+/* 3. FCF sparkline — accent 단색 톤 */
 .persona-viz-sparkline { width: 100%; height: 40px; margin: 6px 0; display: block; }
 .persona-viz-sparkline polyline { fill: none; stroke: var(--accent); stroke-width: 2;
   stroke-linejoin: round; stroke-linecap: round; }
-.persona-viz-sparkline polyline.up { stroke: #22c55e; }
-.persona-viz-sparkline polyline.down { stroke: #ef4444; }
-.persona-viz-sparkline circle { r: 3.5; }
-.persona-viz-sparkline circle.up { fill: #22c55e; }
-.persona-viz-sparkline circle.down { fill: #ef4444; }
+.persona-viz-sparkline polyline.up { stroke: var(--green); }
+.persona-viz-sparkline polyline.down { stroke: var(--red); }
+.persona-viz-sparkline circle.up { fill: var(--green); }
+.persona-viz-sparkline circle.down { fill: var(--red); }
 .persona-viz-sparkline circle.neutral { fill: var(--accent); }
 
 /* 4. Cycle 원형 사이클 */
@@ -3261,36 +3263,39 @@ body.embed-mode .bento-row {
   stroke-linecap: round; opacity: 0.55; }
 .persona-viz-cycle-arrow-head { fill: var(--text3); opacity: 0.7; }
 
-/* 5. B/B 6단계 스테퍼 */
-.persona-viz-stepper { position: relative; height: 44px; margin: 10px 0 4px; padding: 0 8px; }
-.persona-viz-stepper-track { position: absolute; top: 14px; left: 8px; right: 8px; height: 3px;
-  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 33%, #84cc16 66%, #ef4444 100%);
-  border-radius: 2px; opacity: 0.75; }
+/* 5. B/B 6단계 스테퍼 — 양 끝 안 잘리게 inset 보정 + 톤다운 */
+.persona-viz-stepper { position: relative; height: 44px; margin: 10px 8px 6px; }
+.persona-viz-stepper-track { position: absolute; top: 14px; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg,
+    rgba(239,68,68,0.50) 0%,
+    rgba(148,163,184,0.40) 50%,
+    rgba(239,68,68,0.50) 100%);
+  border-radius: 2px; }
 .persona-viz-stepper-dot { position: absolute; top: 9px; transform: translateX(-50%);
-  width: 12px; height: 12px; border-radius: 50%; background: var(--surface-2);
-  border: 2px solid var(--border); z-index: 1; }
+  width: 12px; height: 12px; border-radius: 50%; background: var(--bg3);
+  border: 2px solid var(--text3); z-index: 1; }
 .persona-viz-stepper-dot.is-current { width: 18px; height: 18px; top: 6px;
-  background: var(--accent); border-color: white;
-  box-shadow: 0 0 0 4px rgba(49,130,246,0.30); z-index: 2; }
+  background: var(--accent); border-color: var(--bg3);
+  box-shadow: 0 0 0 3px rgba(49,130,246,0.40); z-index: 2; }
 .persona-viz-stepper-label { position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
   font-size: 9px; color: var(--text3); white-space: nowrap; font-weight: 500; }
 .persona-viz-stepper-dot.is-current .persona-viz-stepper-label {
   color: var(--accent); font-weight: 800; font-size: 10px; top: 22px; }
 
-/* 6. Rate Δ ±23bp 임계 게이지 */
+/* 6. Rate Δ ±23bp 임계 게이지 — accent + 톤다운 */
 .persona-viz-rate { position: relative; height: 18px; margin: 8px 0 4px; }
 .persona-viz-rate-track { position: absolute; top: 7px; left: 0; right: 0; height: 4px;
   background: var(--surface-1); border-radius: 2px; }
 .persona-viz-rate-threshold { position: absolute; top: 1px; width: 2px; height: 16px;
-  background: rgba(239,68,68,0.55); border-radius: 1px; }
+  background: rgba(239,68,68,0.45); border-radius: 1px; }
 .persona-viz-rate-zero { position: absolute; top: 3px; left: 50%; width: 1px; height: 12px;
-  background: var(--text3); opacity: 0.5; }
+  background: var(--text3); opacity: 0.4; }
 .persona-viz-rate-marker { position: absolute; top: 1px; width: 5px; height: 16px;
-  border-radius: 2.5px; transform: translateX(-50%); }
-.persona-viz-rate-marker.bad  { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.6); }
-.persona-viz-rate-marker.warn { background: #f59e0b; }
+  border-radius: 2.5px; transform: translateX(-50%); box-shadow: 0 0 0 2px var(--bg3); }
+.persona-viz-rate-marker.bad  { background: var(--red); }
+.persona-viz-rate-marker.warn { background: var(--orange); }
 .persona-viz-rate-marker.neutral { background: var(--accent); }
-.persona-viz-rate-marker.good { background: #22c55e; }
+.persona-viz-rate-marker.good { background: var(--green); }
 .persona-viz-rate-labels { display: flex; justify-content: space-between;
   font-size: 10px; color: var(--text3); margin-top: 4px; font-weight: 500; }
 
@@ -3356,8 +3361,8 @@ body.embed-mode .bento-row {
 .persona-macro-inline-head .icon { font-size: 16px; }
 .persona-macro-inline-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  gap: 18px;
   align-items: start;
 }
 @media (max-width: 768px) {
@@ -7227,16 +7232,16 @@ window.addEventListener('resize', () => {
       + '</svg>';
   }
 
-  // 4. Cycle 4국면 원형 사이클
+  // 4. Cycle 4국면 원형 사이클 (시계방향: 희망=좌상 → 성장=우상 → 낙관=우하 → 절망=좌하)
   function _renderCyclePhaseRing(value) {
-    // 시계방향 순서: 희망(좌하) → 성장(좌상) → 낙관(우상) → 절망(우하)
-    const segs = [
-      { name: '희망', startDeg: 180, sweepDeg: 90, labelX: 38, labelY: 102 },
-      { name: '성장', startDeg: 270, sweepDeg: 90, labelX: 38, labelY: 58 },
-      { name: '낙관', startDeg: 0,   sweepDeg: 90, labelX: 122, labelY: 58 },
-      { name: '절망', startDeg: 90,  sweepDeg: 90, labelX: 122, labelY: 102 }
-    ];
     const cx = 80, cy = 80, r = 56;
+    // SVG 좌표: x→오른쪽, y→아래. 각도: 0°=오른쪽, 90°=아래, 180°=왼쪽, 270°=위
+    const segs = [
+      { name: '희망', startDeg: 180, sweepDeg: 90, labelX: 46, labelY: 50 },   // 좌상 (180~270°)
+      { name: '성장', startDeg: 270, sweepDeg: 90, labelX: 114, labelY: 50 },  // 우상 (270~360°)
+      { name: '낙관', startDeg: 0,   sweepDeg: 90, labelX: 114, labelY: 114 }, // 우하 (0~90°)
+      { name: '절망', startDeg: 90,  sweepDeg: 90, labelX: 46, labelY: 114 }   // 좌하 (90~180°)
+    ];
     function pt(deg) {
       const rad = deg * Math.PI / 180;
       return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
@@ -7249,12 +7254,13 @@ window.addEventListener('resize', () => {
       html += '<path d="M ' + cx + ' ' + cy + ' L ' + a.x.toFixed(2) + ' ' + a.y.toFixed(2)
         + ' A ' + r + ' ' + r + ' 0 0 1 ' + b.x.toFixed(2) + ' ' + b.y.toFixed(2) + ' Z" '
         + 'class="persona-viz-cycle-seg ' + (isCur ? 'is-current' : '') + '"/>';
+    });
+    // 라벨은 호 위에 별도로 그려서 잘림 방지
+    segs.forEach(function(s) {
+      const isCur = s.name === value;
       html += '<text x="' + s.labelX + '" y="' + s.labelY + '" class="persona-viz-cycle-label '
         + (isCur ? 'is-current' : '') + '" text-anchor="middle">' + s.name + '</text>';
     });
-    // 시계방향 화살표 (시각적 순환 힌트)
-    html += '<path d="M 50 26 Q 110 26 130 60" class="persona-viz-cycle-arrow-path"/>';
-    html += '<path d="M 128 53 L 134 60 L 126 64 Z" class="persona-viz-cycle-arrow-head"/>';
     html += '</svg>';
     return html;
   }
@@ -7362,7 +7368,7 @@ window.addEventListener('resize', () => {
     el.style.display = '';
   }
 
-  // === 매크로 인라인 요약 (시장 위치 아래) ===
+  // === 매크로 인라인 요약 (시장 위치 아래 — 4 column 한 줄) ===
   function _renderMacroInline(v) {
     const el = document.getElementById('persona-macro-inline');
     if (!el) return;
@@ -7386,36 +7392,43 @@ window.addEventListener('resize', () => {
       +     '<span class="persona-macro-inline-item-value">' + escapeHtml(v.credit_spread || 'N/A') + '</span>'
       +     '<span class="persona-macro-inline-item-sub">HY/IG + 장단기 곡선</span>'
       +   '</div>'
-      + '</div>'
-      + '<div class="persona-macro-inline-item" style="margin-top:4px;padding-top:10px;border-top:1px solid var(--border)">'
-      +   '<span class="persona-macro-inline-item-name">손절 룰 (보유 시)</span>'
-      +   '<span class="persona-macro-inline-item-sub">본인 한계 -10% · 기관 매도 -22% · 손실 위험 -45%</span>'
+      +   '<div class="persona-macro-inline-item">'
+      +     '<span class="persona-macro-inline-item-name">손절 룰 (보유 시)</span>'
+      +     '<span class="persona-macro-inline-item-value" style="font-size:13px;line-height:1.4">-10% · -22% · -45%</span>'
+      +     '<span class="persona-macro-inline-item-sub">본인 한계 / 기관 매도 / 손실 위험</span>'
+      +   '</div>'
       + '</div>';
     el.style.display = '';
   }
 
-  // Style 사분면 SVG 렌더
+  // Style 사분면 SVG (mini card 안 좁은 너비에서도 안 깨지게 크기 안정화 + 축 라벨 좌·우/상·하 박스 외부)
   function _renderStyleQuadrant(currentValue) {
+    // 4사분면 배치 (x=0 가치 · x=1 성장 / y=0 방어 · y=1 경기민감)
     const cells = [
       { name: '방어_가치',     desc: '음식료·통신·유틸', x: 0, y: 0 },
-      { name: '방어_성장',     desc: '헬스케어·바이오',   x: 1, y: 0 },
-      { name: '경기민감_가치', desc: '철강·정유·조선',    x: 0, y: 1 },
-      { name: '경기민감_성장', desc: '반도체·화학·소재',  x: 1, y: 1 }
+      { name: '방어_성장',     desc: '헬스케어·바이오', x: 1, y: 0 },
+      { name: '경기민감_가치', desc: '철강·정유·조선',  x: 0, y: 1 },
+      { name: '경기민감_성장', desc: '반도체·화학·소재', x: 1, y: 1 }
     ];
-    const cellW = 130, cellH = 70, pad = 28;
-    const svgW = pad + cellW * 2 + 24, svgH = pad + cellH * 2 + 24;
-    let html = '<svg class="persona-quadrant-svg" viewBox="0 0 ' + svgW + ' ' + svgH + '" xmlns="http://www.w3.org/2000/svg">';
-    // 축 라벨
-    html += '<text class="persona-quadrant-axis" x="' + (pad + cellW) + '" y="14" text-anchor="middle">← 가치        성장 →</text>';
-    html += '<text class="persona-quadrant-axis" x="14" y="' + (pad + cellH) + '" text-anchor="middle" transform="rotate(-90, 14, ' + (pad + cellH) + ')">← 경기민감        방어 →</text>';
+    // 일정 비율 SVG — viewBox만으로 크기 조정. cell 자체 글자 안 깨지게 충분히 크게
+    const cellW = 90, cellH = 60, padX = 24, padY = 20;
+    const svgW = padX * 2 + cellW * 2;
+    const svgH = padY * 2 + cellH * 2 + 12;  // 아래 라벨 공간
+    let html = '<svg class="persona-quadrant-svg" viewBox="0 0 ' + svgW + ' ' + svgH + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">';
+    // 상단 축 라벨 (가치 ← → 성장)
+    html += '<text class="persona-quadrant-axis" x="' + (padX + cellW / 2) + '" y="14" text-anchor="middle">가치</text>';
+    html += '<text class="persona-quadrant-axis" x="' + (padX + cellW + cellW / 2) + '" y="14" text-anchor="middle">성장</text>';
+    // 좌측 축 라벨 (방어 / 경기민감) — 회전 X, 셀 좌측에 가로로 표기
+    html += '<text class="persona-quadrant-axis" x="' + (padX / 2) + '" y="' + (padY + cellH / 2 + 4) + '" text-anchor="middle" style="font-size:9px">방어</text>';
+    html += '<text class="persona-quadrant-axis" x="' + (padX / 2) + '" y="' + (padY + cellH + cellH / 2 + 4) + '" text-anchor="middle" style="font-size:9px">경기<tspan x="' + (padX / 2) + '" dy="10">민감</tspan></text>';
     // 4개 셀
     cells.forEach(function(c) {
       const isCurrent = (c.name === currentValue);
-      const xPx = pad + c.x * cellW;
-      const yPx = pad + c.y * cellH;
+      const xPx = padX + c.x * cellW;
+      const yPx = padY + c.y * cellH;
       html += '<rect class="persona-quadrant-cell ' + (isCurrent ? 'is-current' : '') + '" x="' + xPx + '" y="' + yPx + '" width="' + cellW + '" height="' + cellH + '" rx="6"/>';
-      html += '<text class="persona-quadrant-label ' + (isCurrent ? 'is-current' : '') + '" x="' + (xPx + cellW / 2) + '" y="' + (yPx + cellH / 2 - 4) + '" text-anchor="middle">' + escapeHtml(c.name) + '</text>';
-      html += '<text class="persona-quadrant-label" x="' + (xPx + cellW / 2) + '" y="' + (yPx + cellH / 2 + 14) + '" text-anchor="middle" style="font-size:9px;font-weight:500">' + escapeHtml(c.desc) + '</text>';
+      html += '<text class="persona-quadrant-label ' + (isCurrent ? 'is-current' : '') + '" x="' + (xPx + cellW / 2) + '" y="' + (yPx + cellH / 2 - 2) + '" text-anchor="middle">' + escapeHtml(c.name.replace('_', ' ')) + '</text>';
+      html += '<text class="persona-quadrant-label" x="' + (xPx + cellW / 2) + '" y="' + (yPx + cellH / 2 + 14) + '" text-anchor="middle" style="font-size:8px;font-weight:500;opacity:0.7">' + escapeHtml(c.desc) + '</text>';
     });
     html += '</svg>';
     return html;
@@ -7469,10 +7482,14 @@ window.addEventListener('resize', () => {
     // '→ XXX' 패턴이면 결론만 추출
     const arrow = /→\s*(.+)$/.exec(s);
     if (arrow) label = arrow[1].trim();
-    // 키워드 매칭 (good/bad/warn 순서 — good을 먼저)
+    // good (초록) — 명확한 호재
     if (/우수|저평가|확장|회복|개선|강함|안정|적정|양호|건전/.test(label)) return { text: label.slice(0, 8), cls: 'good' };
+    // bad (빨강) — 명확한 악재
     if (/위험|고평가|침체|악화|약함|불안정|부족|악성|취약/.test(label))     return { text: label.slice(0, 8), cls: 'bad'  };
-    if (/주의|경계|둔화|후기|중립|혼조|보통/.test(label))                   return { text: label.slice(0, 8), cls: 'warn' };
+    // warn (주황) — 경계 신호
+    if (/주의|경계|둔화|후기/.test(label))                                  return { text: label.slice(0, 8), cls: 'warn' };
+    // neutral (회색) — 중간 / 일반
+    if (/중립|혼조|보통|평온|평균/.test(label))                             return { text: label.slice(0, 8), cls: 'neutral' };
     return null;
   }
 
