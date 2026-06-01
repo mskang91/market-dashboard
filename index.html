@@ -3429,6 +3429,28 @@ body.embed-mode .bento-row {
   font-size: 13px; color: var(--text3); font-weight: 500;
   margin-top: 4px; line-height: 1.5;
 }
+/* 주가 공식 라인 (등급 카드) */
+.persona-grade-price-formula {
+  font-size: 13px; color: var(--text2); font-weight: 500;
+  margin-top: 8px; padding: 8px 12px;
+  background: var(--surface-1); border-radius: 8px;
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+}
+.persona-grade-price-formula strong { color: var(--text); font-weight: 800; }
+
+/* STOP footer (거시 환경 카드 안 마지막) */
+.persona-macro-footer {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  font-size: 12px;
+}
+.persona-macro-footer .icon { color: var(--orange); font-size: 14px; }
+.persona-macro-footer .label {
+  font-weight: 700; color: var(--accent2);
+  letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px;
+}
+.persona-macro-footer .text { color: var(--text2); font-weight: 500; }
 
 /* ━━━ 매크로 인라인 요약 (시장 위치 아래) ━━━ */
 .persona-macro-inline {
@@ -3912,7 +3934,7 @@ const MACRO_REF = {
     { badge: 'badge-orange', range: '30 ~ 40', desc: '공포 — 급락 위험, 방어 포지션 고려' },
     { badge: 'badge-red', range: '40 이상', desc: '극단 공포 — 패닉셀, 역발상 매수 탐색' },
   ]},
-  feargreed: { title: 'Fear & Greed 참조표', rows: [
+  feargreed: { title: '미국시장 공포탐욕지수 참조표', rows: [
     { badge: 'badge-red', range: '0 ~ 25', desc: '극단 공포 — 역발상 매수 기회 탐색' },
     { badge: 'badge-orange', range: '25 ~ 45', desc: '공포 — 시장 과도한 비관' },
     { badge: 'badge-yellow', range: '45 ~ 55', desc: '중립 — 균형 상태' },
@@ -4092,7 +4114,7 @@ const DETAIL = {
   us10y:      { title:'미국채 10년물',   sub:'미국 국채 10년 수익률 · 20년 추이',  sheet:'Macro History', dateCol:'날짜', valCol:'미10년물(%)',    color:'#c084fc', pct:true },
   vix:        { title:'VIX',             sub:'변동성 공포 지수 · 20년 추이',       sheet:'Macro History', dateCol:'날짜', valCol:'VIX',            color:'#ef4444' },
   dxy:        { title:'DXY',             sub:'달러 인덱스 · 20년 추이',            sheet:'Macro History', dateCol:'날짜', valCol:'DXY',            color:'#a3e635' },
-  feargreed:  { title:'Fear & Greed',    sub:'CNN 공포탐욕 지수 · 20년 추이',     sheet:'Macro History', dateCol:'날짜', valCol:'Fear&Greed',     color:'#fb923c' },
+  feargreed:  { title:'미국시장 공포탐욕지수',    sub:'CNN Fear & Greed · 0~100 · 20년 추이',     sheet:'Macro History', dateCol:'날짜', valCol:'Fear&Greed',     color:'#fb923c' },
   wti:        { title:'WTI 유가',         sub:'WTI 원유 선물 · 20년 추이',         sheet:'Macro History', dateCol:'날짜', valCol:'WTI(USD)',       color:'#fbbf24' },
 
   // ── B73 + B75 (5/18) — 모든 카드 상세보기 ──
@@ -4570,9 +4592,9 @@ function renderRaw(rows, liveData) {
     // 기타 5 (모바일 default 숨김)
     c('USD / JPY',    'USD/JPY',    'usdjpy', 2, 'usdjpy') +
     c('USD / CNY',    'USD/CNY',    'usdcny', 3, 'usdcny') +
-    c('CNN Fear&Greed', 'Fear&Greed',  'feargreed', 0, 'feargreed') +
-    c('한국 Fear&Greed', 'KR Fear&Greed', '', 0, 'feargreed') +
-    c('Crypto Fear&Greed', 'Crypto F&G', '', 0, '') +
+    c('미국시장 공포탐욕지수', 'Fear&Greed',  'feargreed', 0, 'feargreed') +
+    c('한국시장 공포탐욕지수', 'KR Fear&Greed', '', 0, 'feargreed') +
+    c('Crypto 공포탐욕지수', 'Crypto F&G', '', 0, '') +
     // B44 (5/18) — FRED 매크로 지표 (B73: 상세보기 key 활성화 + 5/18 저녁 미국 기준금리 추가)
     c('Core PCE',        'Core PCE',       'pce_core', 2) +
     c('미국 실업률 (%)', '실업률(%)',      'unemp',    1) +
@@ -5636,7 +5658,7 @@ const CARD_INFO = {
   usdjpy:   '달러엔 환율. 상승 시 엔화 약세, 캐리트레이드 청산 신호로도 활용.',
   dxy:      '달러인덱스 (6개 통화 대비). 상승 시 신흥국·원자재·금에 부담.',
   vix:      'S&P500 변동성 "공포지수". 상승 시 시장 불안 ↑, 옵션 헷지 수요 증가.',
-  feargreed:'CNN 시장 심리 종합 지수(0~100). 낮을수록 공포, 높을수록 탐욕.',
+  feargreed:'미국시장 공포탐욕지수(0~100). CNN 시장 심리 종합. 낮을수록 공포, 높을수록 탐욕.',
   us10y:    '미국 10년물 국채금리. 글로벌 자산 할인율 기준. 상승 시 성장주·채권 부담.',
   wti:      '미국산 원유 기준가. 인플레이션·에너지주·항공·수송 비용에 직접 영향.',
   gold:     '안전자산·인플레 헷지. 실질금리 하락기와 위기 시 수요 증가.',
@@ -6167,7 +6189,7 @@ const SEARCH_INDEX = [
   { label:'미국채 10년물',    key:'us10y',      tags:['미국채','10년','tnx','국채','금리','treasury'] },
   { label:'VIX',             key:'vix',        tags:['변동성','공포지수','volatility'] },
   { label:'DXY',             key:'dxy',        tags:['달러인덱스','달러강세','dollar index'] },
-  { label:'CNN Fear&Greed',  key:'feargreed',  tags:['공포탐욕','fng','cnn','분위기'] },
+  { label:'미국시장 공포탐욕지수',  key:'feargreed',  tags:['공포탐욕','fng','cnn','분위기','미국시장'] },
   { label:'Core PCE',        key:'pce_core',   tags:['pce','인플레','인플레이션','core'] },
   { label:'미국 실업률',      key:'unemp',      tags:['unrate','실업','고용','unemployment'] },
   { label:'미국 기준금리',    key:'fed_rate',   tags:['미국금리','fed','연준','fomc','정책금리','fedfunds'] },
@@ -6236,18 +6258,8 @@ const SEARCH_INDEX = [
   { label:'KOSPI 기타법인 순매수',  key:'kospi_other_net',  tags:['kospi','기타법인','순매수','other','krx'] },
   { label:'KOSDAQ 개인 순매수',     key:'kosdaq_indiv_net', tags:['kosdaq','개인','순매수','individual','krx'] },
   { label:'KOSDAQ 기타법인 순매수', key:'kosdaq_other_net', tags:['kosdaq','기타법인','순매수','other','krx'] },
-  // B45 (5/19) — 채권수익률
-  { label:'국고채 1년',     key:'ktb_1y',   tags:['국고채','채권','bond','1년','treasury','krx'] },
-  { label:'국고채 2년',     key:'ktb_2y',   tags:['국고채','채권','2년','krx'] },
-  { label:'국고채 3년',     key:'ktb_3y',   tags:['국고채','채권','3년','krx'] },
-  { label:'국고채 5년',     key:'ktb_5y',   tags:['국고채','채권','5년','krx'] },
-  { label:'국고채 10년',    key:'ktb_10y',  tags:['국고채','채권','10년','벤치마크','krx'] },
-  { label:'국고채 20년',    key:'ktb_20y',  tags:['국고채','채권','20년','장기','krx'] },
-  { label:'국고채 30년',    key:'ktb_30y',  tags:['국고채','채권','30년','초장기','krx'] },
-  { label:'국민주택 5년',   key:'nhf_5y',   tags:['국민주택','채권','5년','krx'] },
-  { label:'회사채 AA-',     key:'corp_aa',  tags:['회사채','aa','우량','corp','krx'] },
-  { label:'회사채 BBB-',    key:'corp_bbb', tags:['회사채','bbb','투기','high yield','krx'] },
-  { label:'CD 91일',        key:'cd_91d',   tags:['cd','91일','단기금리','krx'] },
+  // B45 (5/19) — 채권수익률 (페르소나 v34 정리: 3년만 벤치마크로 유지)
+  { label:'국고채 3년',     key:'ktb_3y',   tags:['국고채','채권','3년','벤치마크','krx'] },
 ];
 
 let _searchOpen = false;
@@ -7061,7 +7073,6 @@ window.addEventListener('resize', () => {
     if (!el) return;
     const grade = cs.grade || 'D';
     el.className = 'persona-grade-card grade-' + grade;
-    // 회사 정보 라인 (시장 + 산업) — extraInfo = { market, sector, summary }
     const info = extraInfo || {};
     const marketLabel = info.market || 'KR';
     const sectorLabel = info.sector || '';
@@ -7070,10 +7081,17 @@ window.addEventListener('resize', () => {
     if (marketLabel) companySubParts.push(marketLabel + ' 상장');
     if (sectorLabel) companySubParts.push(sectorLabel);
     const companySub = companySubParts.length ? companySubParts.join(' · ') : '';
+    // v34 §5.1 주가 공식 한 줄 (ROE × BPS × PER → 단순화)
+    const m = info.metrics || {};
+    const roeStr  = m.roe != null  ? Number(m.roe).toFixed(1) + '%' : '—';
+    const perStr  = m.forward_per_12m != null ? Number(m.forward_per_12m).toFixed(1) + 'x' : (m.per != null ? Number(m.per).toFixed(1) + 'x' : '—');
+    const pbrStr  = m.pbr != null  ? Number(m.pbr).toFixed(1) + 'x' : '—';
+    const priceFormula = '주가 공식 — ROE <strong>' + escapeHtml(roeStr) + '</strong> · PER <strong>' + escapeHtml(perStr) + '</strong> · PBR <strong>' + escapeHtml(pbrStr) + '</strong>';
     el.innerHTML = ''
       + '<div class="persona-grade-title">' + escapeHtml(name) + '<span class="ticker-suffix">' + escapeHtml(ticker) + '</span></div>'
       + (companySub ? '<div class="persona-grade-company-sub">' + escapeHtml(companySub) + '</div>' : '')
       + (summary ? '<div class="persona-grade-company-summary">' + escapeHtml(summary) + '</div>' : '')
+      + '<div class="persona-grade-price-formula">' + priceFormula + '</div>'
       + '<div class="persona-grade-score-row">'
       +   '<span class="persona-grade-score-wrap">'
       +     '<span class="persona-grade-score" id="persona-grade-score-num">0</span>'
@@ -7251,13 +7269,12 @@ window.addEventListener('resize', () => {
       note: '임계 23bp 출처: 슬라이드 ⑦ p23. 사이클 위치에 따라 영향 다름'
     },
     credit_spread: {
-      define: 'HY/IG 신용 스프레드 + 장단기 곡선 신호.',
-      formula: 'FRED HY 스프레드 (BAMLH0A0HYM2) + IG + 10Y-2Y',
+      define: '신용 위험 신호. 확대=경기 부정 · 축소=긍정 · 중립=변동 미미.',
+      formula: '미국 HY/IG 스프레드 30일 변화 + 장단기 곡선 (10Y-2Y) 종합',
       items: [
-        { name: '확대', desc: 'HY 30일 +50bp 이상 = 경기 부정 우위' },
-        { name: '축소', desc: 'HY·IG 동시 축소 = 경기 긍정 우위' },
-        { name: '중립', desc: '변동 미미' },
-        { name: '곡선 역전', desc: '10Y < 2Y = 장기 침체 시그널' }
+        { name: '확대', desc: '경기 부정 신호 (위험 자산 회피)' },
+        { name: '축소', desc: '경기 긍정 신호 (위험 선호)' },
+        { name: '중립', desc: '변동 미미 (방향 불명확)' }
       ]
     },
     loss_threshold: {
@@ -7283,9 +7300,15 @@ window.addEventListener('resize', () => {
       note: '30% 이하 = 저평가 / 70% 이상 = 고평가'
     },
     'EV/EBITDA': {
-      define: '기업가치(EV) ÷ EBITDA. 인수합병 관점 가치평가.',
+      define: '기업가치(시총+순부채) ÷ EBITDA. 인수합병 관점 가치평가.',
       formula: '(시총 + 순부채) ÷ EBITDA',
-      note: 'CAPEX heavy 업종 비교용. 10배 이하 저평가, 15배+ 고평가'
+      scale: [
+        { range: '≤ 5배',  label: '저평가 (강한 가치)',     cls: 'good' },
+        { range: '5~8배',  label: '저평가',                 cls: 'good' },
+        { range: '8~12배', label: '평균',                   cls: 'neutral' },
+        { range: '> 12배', label: '고평가 (성장 프리미엄)', cls: 'bad' }
+      ],
+      note: 'CAPEX heavy 업종 비교용 (반도체·정유·조선·철강·건설)'
     },
     DCF_vs_mcap: {
       define: 'DCF 시사 가치 대비 현재 시총 비율. 100%면 균형.',
@@ -7528,9 +7551,9 @@ window.addEventListener('resize', () => {
   function _animateBreakdownBars(_rootEl, _breakdown) { /* no-op */ }
 
   // === 운용 권고 강조 배너 (등급 카드 아래) ===
-  // 모든 KR 종목 분석에 항상 사용되는 raw 데이터 출처 (정적 — 백엔드 data_source_summary 무시)
+  // 데이터 출처 축약 (시청자 학술 부담 ↓)
   function _resolveDataSourceLabel() {
-    return 'DART · FRED · KRX · Yahoo · ECOS · KOSIS';
+    return 'DART + 공공 매크로 (6종)';
   }
   function _renderActionBanner(data) {
     const el = document.getElementById('persona-action-banner');
@@ -7792,13 +7815,15 @@ window.addEventListener('resize', () => {
     // [1] 운용 권고 — 등급 카드 바로 아래 배너
     _renderActionBanner(data);
 
-    // [2] 종목 평가 — 5장
+    // [2] 종목 평가 — 6장 (EV/EBITDA 추가 — v34 §5.5.2 #34)
+    const evEbitdaRaw = m.ev_ebitda != null ? (Number(m.ev_ebitda).toFixed(1) + ' → ' + (m.ev_ebitda <= 8 ? '저평가' : m.ev_ebitda <= 12 ? '평균' : '고평가')) : null;
     _setMiniGrid('card-stock-eval-body', [
       { key: 'per',        raw: m.per },
       { key: 'pbr',        raw: m.pbr },
       { key: 'roe',        raw: m.roe },
       { key: 'roic',       raw: m.roic },
-      { key: 'fcf_signal', raw: m.fcf_signal }
+      { key: 'fcf_signal', raw: m.fcf_signal },
+      { key: 'EV/EBITDA',  raw: evEbitdaRaw }
     ]);
 
     // [3] 시장 위치 — 3장 (Cycle 원형 · B/B 스테퍼 · Style 사분면)
@@ -7808,13 +7833,23 @@ window.addEventListener('resize', () => {
       { key: 'style_quadrant',  raw: v.style_quadrant }
     ]);
 
-    // [4] 거시 환경 — 4장 (Rate Δ 게이지 · CPI · Spread · 손절 룰) 모두 mini card 동일 위계
+    // [4] 거시 환경 — 3장 (Rate Δ · CPI · Spread). STOP은 footer로 강등
     _setMiniGrid('card-macro-watch-body', [
       { key: 'rate_speed_3m_bp', raw: v.rate_speed_3m_bp },
       { key: 'inflation_split',  raw: v.inflation_split },
-      { key: 'credit_spread',    raw: v.credit_spread },
-      { key: 'loss_threshold',   raw: v.loss_threshold || '본인 -10% · 기관 -22% · 위험 -45%' }
+      { key: 'credit_spread',    raw: v.credit_spread }
     ]);
+    // [4-footer] 손절 룰 — 보유 시 가이드 (시청자 정적 룰)
+    const macEl = document.getElementById('card-macro-watch-body');
+    if (macEl) {
+      macEl.insertAdjacentHTML('beforeend',
+        '<div class="persona-macro-footer">'
+        +   '<span class="icon">⚠</span>'
+        +   '<span class="label">보유 시 손절 룰</span>'
+        +   '<span class="text">개인 한계 -10% · 기관 매도 -22% · 손실 위험 -45%</span>'
+        + '</div>'
+      );
+    }
   }
 
   function fmtBreakdown(b) {
@@ -7890,7 +7925,8 @@ window.addEventListener('resize', () => {
     renderGradeCard(data.composite_score || {}, data.ticker, data.name, {
       market: data.market || '',
       sector: data.sector || data.industry || '',
-      summary: data.business_summary || data.summary || ''
+      summary: data.business_summary || data.summary || '',
+      metrics: data._metrics_raw || {}  // 백엔드 m.roe / m.per / m.pbr 전달
     });
     renderL1Cards(data);
     // Red Team 박스 표시 제거됨 — data.red_team은 백엔드 응답에 남아있으나 UI에 노출 X
