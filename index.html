@@ -7124,7 +7124,13 @@ window.addEventListener('resize', () => {
     '매출_YoY':                { name: '매출 YoY',         short: '매출' },
     'CAPEX_효율':              { name: 'CAPEX 효율',       short: 'CAPEX' },
     'cyclical_5요소':          { name: '경기민감 5요인',   short: '5F' },
-    rate_speed_3m:             { name: '3개월 금리 변화',  short: 'Rate Δ' }
+    rate_speed_3m:             { name: '3개월 금리 변화',  short: 'Rate Δ' },
+    // financial details 키
+    ROE:                       { name: '자기자본수익률',   short: 'ROE' },
+    ROIC:                      { name: '투하자본수익률',   short: 'ROIC' },
+    net_margin:                { name: '순이익률',         short: '순이익률' },
+    leverage:                  { name: '자기자본 레버리지', short: '레버리지' },
+    debt_ratio:                { name: '부채비율',         short: '부채' }
   };
 
   // === 지표 상세 설명 (정의·산출법·의미 범례) — 13번/15번 명세 정합 ===
@@ -7852,11 +7858,26 @@ window.addEventListener('resize', () => {
   function renderL2Cards(data) {
     const cs = data.composite_score || {};
     const br = cs.breakdown || {};
-    // 4 카테고리 수평 막대 (l2-stock-eval-body에 통합 표시)
+    // 점수 구성 종합 — 4-bar + 재무 건전성 details mini grid (financial 카테고리)
     const sumEl = document.getElementById('l2-stock-eval-body');
     if (sumEl) {
-      sumEl.innerHTML = '<div style="font-size:13px;color:var(--text2);font-weight:600;margin-bottom:10px">점수 구성 (총 ' + (cs.total || 0) + ' / 100)</div>'
+      let html = '<div style="font-size:13px;color:var(--text2);font-weight:600;margin-bottom:10px">점수 구성 (총 ' + (cs.total || 0) + ' / 100)</div>'
         + _renderBreakdownBars(br);
+      // financial details도 mini grid로 (재무 건전성 자세히)
+      if (br.financial && br.financial.details && br.financial.details.length) {
+        html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">'
+          + '<div class="persona-l2-summary"><span class="persona-l2-summary-label">재무 건전성 자세히</span><span class="persona-l2-summary-score">' + br.financial.score + ' <span class="max">/ ' + br.financial.max + '</span></span></div>'
+          + '<div class="persona-mini-grid persona-l2-grid-mini">'
+          +   br.financial.details.map(function(d) {
+                const raw = (d.label && String(d.label).trim())
+                  ? (String(d.raw || '') + ' → ' + d.label)
+                  : String(d.raw || '');
+                return _miniCard(d.key, raw);
+              }).join('')
+          + '</div>'
+          + '</div>';
+      }
+      sumEl.innerHTML = html;
       _animateBreakdownBars(sumEl, br);
     }
     // 카테고리별 상세 (펼침)
