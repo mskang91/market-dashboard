@@ -6489,14 +6489,21 @@ window.addEventListener('resize', () => {
   }
   window.togglePersonaExpand = togglePersonaExpand;
 
-  document.addEventListener('DOMContentLoaded', function() {
+  function _initPersonaSearch() {
     const input = document.getElementById('persona-search');
-    if (input) {
+    if (input && !input._personaBound) {
+      input._personaBound = true;
       input.addEventListener('keyup', function(e) {
         if (e.key === 'Enter') handlePersonaSearch(input.value);
       });
     }
-  });
+  }
+  // DOMContentLoaded 이미 끝났을 가능성 → readyState 체크 후 즉시 또는 listener 등록
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _initPersonaSearch);
+  } else {
+    _initPersonaSearch();
+  }
 })();
 </script>
 </body>
