@@ -2532,15 +2532,7 @@ body.embed-mode .bento-row {
         <div class="cards g3" id="kr-market-cards"></div>
       </div>
 
-      <!-- Phase 1 #3 (5/30) — KR 시총 주별 변화 트래커 -->
-      <div class="section" data-tab-target="macro" style="--sc:#0ea5e9;--sc-glow:rgba(14,165,233,0.35)">
-        <div class="section-header">
-          <div class="section-bar"></div>
-          <span class="section-title">📈 KR 시총 주별 변화</span>
-          <span class="section-badge">주간 · KOSPI/KOSDAQ 시총 4주·12주·52주 변화율 (토요일 09:30 KST 자동)</span>
-        </div>
-        <div class="cards g3" id="kr-mcap-weekly-cards"></div>
-      </div>
+      <!-- (KR 시총 주별 변화 카드 제거 — 사용자가 KR_Mcap_Weekly 시트 폐기, 운영 X) -->
 
       <!-- B92 (5/20) — 한국 수급 Top 10 (외국인 순매수 + 공매도 거래) -->
       <div class="section" data-tab-target="macro" style="--sc:#f97316;--sc-glow:rgba(249,115,22,0.35)">
@@ -4627,12 +4619,11 @@ function renderRaw(rows, liveData) {
       { label:'기타법인',  col:'KOSDAQ 기타법인순매수',  key:'kosdaq_other_net' },
     ]);
 
-  // Phase 1 #3 (5/30) — KR 시총 주별 변화 카드 (KOSPI/KOSDAQ × 4주·12주·52주 = 6 카드)
-  //   source: KR_Mcap_Weekly 시트 마지막 row (snapshot_kr_mcap_weekly가 매주 토요일 append)
-  //   카드: 4주% / 12주% / 52주% (KOSPI + KOSDAQ 각각)
+  // Phase 1 #3 (5/30) — KR 시총 주별 변화 카드 [폐기 6/1: 시트 사용자 폐기]
+  //   카드 자체 HTML 제거됨 → JS 비활성 (el 없음 → early return)
   (function renderKrMcapWeekly() {
     const el = document.getElementById('kr-mcap-weekly-cards');
-    if (!el) return;
+    if (!el) return;  // 카드 div 제거됨 → 자동 skip
     fetchSheet('KR_Mcap_Weekly').then(table => {
       const r = toRows(table);
       if (!r || r.length === 0) {
