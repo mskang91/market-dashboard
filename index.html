@@ -3265,14 +3265,14 @@ body.embed-mode .bento-row {
 .persona-viz-sparkline circle.down { fill: var(--red); }
 .persona-viz-sparkline circle.neutral { fill: var(--accent); }
 
-/* 4. Cycle 원형 사이클 */
-.persona-viz-cycle { width: 100%; max-width: 150px; height: auto; margin: 8px auto; display: block; }
+/* 4. Cycle 원형 사이클 — 크기 키움 */
+.persona-viz-cycle { width: 100%; max-width: 220px; height: auto; margin: 12px auto; display: block; }
 .persona-viz-cycle-seg { fill: var(--surface-1); stroke: var(--border); stroke-width: 1;
   transition: all 0.5s var(--toss-ease); }
 .persona-viz-cycle-seg.is-current { fill: rgba(49,130,246,0.32); stroke: var(--accent); stroke-width: 2; }
-.persona-viz-cycle-label { font-size: 10px; fill: var(--text3); font-weight: 600;
+.persona-viz-cycle-label { font-size: 13px; fill: var(--text3); font-weight: 700;
   dominant-baseline: middle; }
-.persona-viz-cycle-label.is-current { fill: var(--accent); font-weight: 800; font-size: 11px; }
+.persona-viz-cycle-label.is-current { fill: var(--accent); font-weight: 800; font-size: 14px; }
 .persona-viz-cycle-arrow-path { fill: none; stroke: var(--text3); stroke-width: 1.2;
   stroke-linecap: round; opacity: 0.55; }
 .persona-viz-cycle-arrow-head { fill: var(--text3); opacity: 0.7; }
@@ -3488,7 +3488,7 @@ body.embed-mode .bento-row {
     <!-- 안내 배너 — 현재 지원 범위 -->
     <div class="persona-notice">
       <span class="icon">ℹ</span>
-      <span>현재 <strong>한국 종목(KOSPI·KOSDAQ)</strong> 일부만 분석 가능합니다. 미국 종목 분석은 추후 지원 예정입니다.</span>
+      <span>현재 <strong>한국 상장 종목 전체(KOSPI·KOSDAQ)</strong> 분석 가능합니다. 미국 종목 분석은 추후 지원 예정입니다.</span>
     </div>
     <!-- 검색창 + 자동완성 -->
     <div class="persona-search-wrap">
@@ -7879,7 +7879,7 @@ window.addEventListener('resize', () => {
 (function() {
   const TICKERS_URL = (typeof window.WEBAPP_URL === 'string' && window.WEBAPP_URL)
     || 'https://script.google.com/macros/s/AKfycbxoyGTYyDFMB5IrSkQeZJkB6GGWvJOhGdMtCRRtXP91GRsWh8__v5Nr8sGLZtx_iRWDEQ/exec';
-  const CACHE_KEY = 'mh:persona:tickers:v1';
+  const CACHE_KEY = 'mh:persona:tickers:v2';  /* v2: dart_corp_map 3967 종목 포함 */
   const CACHE_TTL_MS = 30 * 60 * 1000;  // 30분
   let _tickers = null;        // 메모리 캐시
   let _fetchPromise = null;   // 동시 호출 방지
