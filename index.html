@@ -2980,7 +2980,44 @@ body.embed-mode .bento-row {
   50%      { opacity: 1;   transform: scale(1.1); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.persona-error { padding: var(--s-5); background: rgba(239,68,68,0.10); border: 1px solid rgba(239,68,68,0.30); border-radius: var(--r-md); color: var(--red); font-size: 14px; }
+.persona-error {
+  padding: 28px 24px;
+  background: var(--persona-bad-fade);
+  border: 1px solid var(--persona-bad-bg);
+  border-radius: var(--persona-r-lg);
+  color: var(--text2); font-size: 14px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 12px;
+  animation: personaCardStagger 0.5s var(--toss-ease) forwards;
+  opacity: 0;
+}
+.persona-error-icon { font-size: 48px; opacity: 0.85; }
+.persona-error-title { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+.persona-error-message { font-size: 14px; color: var(--text2); line-height: 1.5; max-width: 480px; }
+.persona-error-hint { font-size: 13px; color: var(--text3); margin-top: 4px; max-width: 480px; line-height: 1.5; }
+.persona-error-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+.persona-error-btn {
+  padding: 10px 20px; border-radius: var(--persona-r-md);
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg3); color: var(--text);
+  transition: all 0.25s var(--toss-ease);
+  position: relative; overflow: hidden;
+}
+.persona-error-btn:hover {
+  background: var(--accent-bg);
+  border-color: var(--persona-accent-glow);
+  transform: translateY(-1px);
+}
+.persona-error-btn:active { transform: translateY(0); }
+.persona-error-btn.primary {
+  background: var(--accent); color: white;
+  border-color: var(--accent);
+}
+.persona-error-btn.primary:hover {
+  background: var(--accent2);
+  box-shadow: 0 4px 12px var(--persona-accent-glow);
+}
 
 /* ━━━ 종합 등급 카드 (토스 스타일) ━━━ */
 .persona-grade-card {
@@ -3978,6 +4015,45 @@ body.embed-mode .bento-row {
   .persona-l2-summary-label { font-size: 12px; }
 }
 
+/* ━━━ 접근성 (a11y) — Linear 영감 focus-visible outline ━━━ */
+.persona-mini-card-info-btn:focus-visible,
+.persona-landing-chip:focus-visible,
+.persona-expand-btn:focus-visible,
+.persona-error-btn:focus-visible,
+.persona-search-input:focus-visible,
+.persona-search-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--persona-accent-soft);
+}
+.persona-search-input:focus-visible { outline: none; }  /* focus 자체 스타일 유지, focus-visible은 box-shadow로 */
+
+/* prefers-reduced-motion — 사용자 OS 설정 존중 (Linear 영감) */
+@media (prefers-reduced-motion: reduce) {
+  .persona-result > *,
+  .persona-skeleton,
+  .persona-landing,
+  .persona-l2-section,
+  .persona-l2-section > .persona-l2-grid > *,
+  .persona-search-item,
+  .persona-error,
+  .persona-loading,
+  .persona-mini-card-info-panel {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+  }
+  .persona-grade-gauge-fill { transition: width 0.3s linear !important; }
+  .persona-mini-card-value { animation: none !important; }
+  .persona-viz-cycle-seg.is-current,
+  .persona-viz-stepper-dot.is-current { transition: none !important; }
+  .persona-grade-card::after,
+  .persona-landing::before,
+  .persona-loading::before { animation: none !important; }
+  .persona-mini-card:hover,
+  .persona-mini-card.has-viz:hover .persona-viz-cycle,
+  .persona-mini-card.has-viz:hover .persona-quadrant-svg { transform: none !important; }
+}
+
 /* ━━━ Skeleton Loading (Stripe + Phantom 영감 — spinner 대신 카드 모양 placeholder) ━━━ */
 @keyframes personaSkeletonShimmer {
   0%   { background-position: -200% 0; }
@@ -4066,8 +4142,12 @@ body.embed-mode .bento-row {
     <div class="persona-search-wrap">
       <input type="text" id="persona-search" class="persona-search-input"
              placeholder="한국 종목명 또는 6자리 코드 (예: 삼성전자, 005930)"
-             autocomplete="off" spellcheck="false">
-      <div class="persona-search-dropdown" id="persona-search-dropdown" style="display:none;"></div>
+             autocomplete="off" spellcheck="false"
+             aria-label="한국 상장 종목 검색"
+             aria-autocomplete="list" aria-controls="persona-search-dropdown"
+             role="combobox" aria-expanded="false">
+      <div class="persona-search-dropdown" id="persona-search-dropdown" style="display:none;"
+           role="listbox" aria-label="검색 결과"></div>
     </div>
 
     <!-- 랜딩 첫 화면 (검색 전) — Linear + Phantom 영감 -->
@@ -8438,18 +8518,81 @@ window.addEventListener('resize', () => {
     }
   }
 
+  // 에러 패턴별 친절한 UI 매핑 (4종)
+  function _renderPersonaError(opts) {
+    const err = document.getElementById('persona-error');
+    if (!err) return;
+    const o = opts || {};
+    const icon = o.icon || '⚠';
+    const title = o.title || '오류가 발생했습니다';
+    const message = o.message || '';
+    const hint = o.hint || '';
+    const actions = (o.actions || []).map(function(a) {
+      return '<button class="persona-error-btn' + (a.primary ? ' primary' : '') + '" onclick="' + escapeHtml(a.onclick || '') + '">' + escapeHtml(a.label) + '</button>';
+    }).join('');
+    err.innerHTML = ''
+      + '<div class="persona-error-icon" aria-hidden="true">' + icon + '</div>'
+      + '<div class="persona-error-title">' + escapeHtml(title) + '</div>'
+      + (message ? '<div class="persona-error-message">' + escapeHtml(message) + '</div>' : '')
+      + (hint ? '<div class="persona-error-hint">' + escapeHtml(hint) + '</div>' : '')
+      + (actions ? '<div class="persona-error-actions">' + actions + '</div>' : '');
+    err.style.display = '';
+    err.setAttribute('role', 'alert');
+  }
+
   function renderResult(data) {
     const result = document.getElementById('persona-result');
     document.getElementById('persona-loading').style.display = 'none';
     document.getElementById('persona-error').style.display = 'none';
-    // Skeleton hide (Stripe morph 효과 — 카드 stagger fadeIn으로 자연 전환)
     const skeleton = document.getElementById('persona-skeleton');
     if (skeleton) skeleton.style.display = 'none';
     if (!data || !data.ok) {
-      const err = document.getElementById('persona-error');
-      err.style.display = '';
-      err.textContent = (data && data.error) ? (data.error + (data.hint ? ' — ' + data.hint : '')) : '결과 없음';
+      const code = data && data.error ? data.error : 'unknown';
+      const lastTicker = _personaState.lastTicker || '';
       result.style.display = 'none';
+      // 에러 패턴별 분기
+      if (code === 'ticker_not_found') {
+        _renderPersonaError({
+          icon: '🔍',
+          title: '종목을 찾지 못했습니다',
+          message: '"' + lastTicker + '" 종목명 또는 6자리 코드가 정확한지 확인해 주세요.',
+          hint: '예: 005930 (삼성전자) · 000660 (SK하이닉스). 한국 상장 종목(KOSPI/KOSDAQ)만 지원합니다.',
+          actions: [
+            { label: '다시 검색', primary: true, onclick: "document.getElementById('persona-search').focus()" }
+          ]
+        });
+      } else if (code === 'us_not_supported') {
+        _renderPersonaError({
+          icon: '🇰🇷',
+          title: '한국 상장 종목만 분석 가능',
+          message: '현재 미국 종목 분석은 추후 지원 예정입니다 (Finnhub 통합 후).',
+          hint: '한국 종목명 또는 6자리 코드로 다시 검색해 주세요.',
+          actions: [
+            { label: '다시 검색', primary: true, onclick: "document.getElementById('persona-search').focus()" }
+          ]
+        });
+      } else if (code === 'dart_fetch_failed' || (data && data.hint && /dart/i.test(data.hint))) {
+        _renderPersonaError({
+          icon: '⚠',
+          title: 'DART 데이터 fetch 실패',
+          message: '해당 종목의 사업보고서 fetch에 실패했습니다.',
+          hint: '일부 신생 IPO 종목 또는 합병·분사 이력 있는 종목은 일시적으로 분석이 어려울 수 있습니다.',
+          actions: [
+            { label: '다시 시도', primary: true, onclick: 'handlePersonaSearch(' + JSON.stringify(lastTicker) + ')' },
+            { label: '다른 종목 검색', onclick: "document.getElementById('persona-search').focus()" }
+          ]
+        });
+      } else {
+        _renderPersonaError({
+          icon: '⚠',
+          title: '분석에 실패했습니다',
+          message: (data && data.error) ? String(data.error) : '알 수 없는 오류',
+          hint: data && data.hint ? data.hint : '잠시 후 다시 시도해 주세요.',
+          actions: [
+            { label: '다시 시도', primary: true, onclick: 'handlePersonaSearch(' + JSON.stringify(lastTicker) + ')' }
+          ]
+        });
+      }
       return;
     }
     renderGradeCard(data.composite_score || {}, data.ticker, data.name, {
@@ -8580,9 +8723,15 @@ window.addEventListener('resize', () => {
       document.getElementById('persona-loading').style.display = 'none';
       const sk = document.getElementById('persona-skeleton');
       if (sk) sk.style.display = 'none';
-      const err = document.getElementById('persona-error');
-      err.style.display = '';
-      err.textContent = '네트워크 오류: ' + (e.message || e);
+      _renderPersonaError({
+        icon: '📡',
+        title: '네트워크 오류',
+        message: '서버 연결에 실패했습니다.',
+        hint: 'Wi-Fi 또는 4G 연결을 확인하고 다시 시도해 주세요. 오류: ' + (e.message || e),
+        actions: [
+          { label: '다시 시도', primary: true, onclick: 'handlePersonaSearch(' + JSON.stringify(ticker) + ')' }
+        ]
+      });
     }
     _personaState.lastTicker = ticker;
   }
