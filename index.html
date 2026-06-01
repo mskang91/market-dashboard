@@ -306,8 +306,8 @@ body.light .flow-row:hover { background: rgba(0,0,0,0.03); }
 body.light .flow-row .flow-bar-left,
 body.light .flow-row .flow-bar-right { background: rgba(0,0,0,0.04); }
 
-.flow-row.up .flow-value { color: var(--green); }
-.flow-row.down .flow-value { color: var(--red); }
+.flow-row.up .flow-value { color: var(--persona-good, var(--green)); }
+.flow-row.down .flow-value { color: var(--persona-bad, var(--red)); }
 .flow-row.neutral .flow-value { color: var(--text3); }
 
 /* 모바일: 막대 숨김 + 텍스트만 */
@@ -505,14 +505,25 @@ body.light .dash-tab:hover { background: rgba(0, 0, 0, 0.04); }
 .market-mini-badge:hover { transform: translateY(-1px) scale(1.005); }
 .market-mini-badge:active { transform: scale(0.99); transition: transform 0.08s; }
 body.light .card { background: var(--bg2); }
-.card-label { font-size: 12px; color: #94a3b8; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.2px; display: flex; align-items: center; gap: 5px; }
-.card-value { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.card-label {
+  font-size: 12px;
+  color: var(--persona-neutral, #94a3b8);
+  margin-bottom: 8px; font-weight: 700;
+  letter-spacing: 0.04em; display: flex; align-items: center; gap: 5px;
+  text-transform: uppercase;
+}
+.card-value {
+  font-size: 22px; font-weight: 800;
+  color: var(--text); margin-bottom: 5px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
 .card-change { font-size: 12px; display: flex; align-items: center; gap: 5px; }
 .card-pct { font-weight: 600; }
 .card-abs { color: var(--text3); font-size: 11px; }
 .card-date { font-size: 10px; color: var(--text3); margin-top: 6px; letter-spacing: 0.2px; }
-.pos { color: var(--green); }
-.neg { color: var(--red); }
+.pos { color: var(--persona-good, var(--green)); }
+.neg { color: var(--persona-bad, var(--red)); }
 .neu { color: var(--text2); }
 
 /* MDD */
@@ -1380,27 +1391,40 @@ body.light .news-list-mobile .news-card-m { background: linear-gradient(145deg, 
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   z-index: 9999;
   align-items: flex-start;
   justify-content: center;
   padding-top: 12vh;
 }
-.search-overlay.open { display: flex; animation: searchFadeIn 0.18s ease; }
+.search-overlay.open { display: flex; animation: searchFadeIn 0.25s var(--toss-ease); }
 @keyframes searchFadeIn { from { opacity:0; } to { opacity:1; } }
 .search-palette {
   width: min(560px, calc(100vw - 32px));
-  background: var(--bg2, #1E1E24);
-  border: 1px solid var(--border2, rgba(255,255,255,0.1));
-  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%),
+    var(--bg2, #1E1E24);
+  border: 1px solid var(--persona-accent-glow, rgba(255,255,255,0.10));
+  border-radius: var(--persona-r-xl, 16px);
   overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
-  animation: searchSlideUp 0.22s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:
+    0 24px 64px rgba(0,0,0,0.55),
+    0 0 64px var(--persona-accent-soft, rgba(49,130,246,0.15)),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: searchSlideUp 0.4s var(--toss-ease-snap, cubic-bezier(0.34, 1.56, 0.64, 1));
+  position: relative;
+}
+.search-palette::before {
+  content: ''; position: absolute;
+  top: -40px; right: -60px; width: 200px; height: 200px;
+  background: radial-gradient(circle, var(--persona-accent-glow, rgba(49,130,246,0.30)) 0%, transparent 70%);
+  filter: blur(30px); pointer-events: none; opacity: 0.6;
 }
 @keyframes searchSlideUp {
-  from { transform: translateY(-12px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  0%   { transform: translateY(-16px) scale(0.97); opacity: 0; }
+  60%  { transform: translateY(2px) scale(1.005); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 .search-input-wrap {
   display: flex;
