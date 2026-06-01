@@ -3107,7 +3107,7 @@ body.embed-mode .bento-row {
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 18px 18px 16px;
+  padding: 20px 22px 18px;
   display: flex; flex-direction: column; gap: 7px;
   min-height: 148px;
   position: relative;
@@ -3312,6 +3312,20 @@ body.embed-mode .bento-row {
 .persona-viz-rate-marker.good { background: var(--green); }
 .persona-viz-rate-labels { display: flex; justify-content: space-between;
   font-size: 10px; color: var(--text3); margin-top: 4px; font-weight: 500; }
+
+/* 8. STOP 손절 기준 3단계 줄바꿈 리스트 */
+.persona-viz-stop { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 4px; }
+.persona-viz-stop-row {
+  display: flex; align-items: baseline; gap: 10px;
+  font-size: 13px; line-height: 1.45;
+  padding: 4px 0;
+}
+.persona-viz-stop-row strong {
+  color: var(--red); font-weight: 800;
+  min-width: 48px; font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.persona-viz-stop-row span { color: var(--text2); font-weight: 600; }
 
 /* 7. L2 4 카테고리 수평 막대 */
 .persona-viz-breakdown { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
@@ -3554,9 +3568,9 @@ body.embed-mode .bento-row {
       <!-- 매크로 인라인 div 호환 (이제 안 씀, 빈 상태) -->
       <div id="persona-macro-inline" style="display:none"></div>
 
-      <!-- Red Team 한 줄 -->
+      <!-- Red Team 한 줄 — 거시 환경 카드 바로 아래, 매크로 위험 관점 종합 -->
       <div class="persona-redteam" id="persona-redteam">
-        <span class="label">⚠ Red Team</span>
+        <span class="label">⚠ Red Team · 거시 위험 관점</span>
         <span id="persona-redteam-text">—</span>
       </div>
 
@@ -7169,11 +7183,11 @@ window.addEventListener('resize', () => {
       formula: '(현재가 − 평균 매수가) ÷ 평균 매수가 × 100',
       scale: [
         { range: '> -10%',    label: '정상 보유',                       cls: 'good' },
-        { range: '-10~-22%',  label: '본인 한계 도달 — 비중 축소',      cls: 'warn' },
+        { range: '-10~-22%',  label: '개인 기준 도달 — 비중 축소',      cls: 'warn' },
         { range: '-22~-45%',  label: '기관 매도 임계 — 손절 검토',      cls: 'bad' },
         { range: '< -45%',    label: '손실 위험 — 확대 방지 차원 손절', cls: 'bad' }
       ],
-      note: '본인 -10%는 운용 보정값 (슬라이드 ② 원본 -15% → -10% 보정)'
+      note: '개인 -10%는 운용 보정값 (슬라이드 ② 원본 -15% → -10% 보정)'
     }
   };
 
@@ -7384,6 +7398,18 @@ window.addEventListener('resize', () => {
   }
 
   // === 운용 권고 강조 배너 (등급 카드 아래) ===
+  // data_source_summary는 백엔드 룰명("rules" / "DART real" 등) — 시청자에겐 raw 출처로 매핑
+  function _resolveDataSourceLabel(rawSummary) {
+    const s = String(rawSummary || '').toLowerCase();
+    const sources = [];
+    if (/dart|재무|회계/.test(s)) sources.push('DART');
+    if (/fred|금리|treasury|gauge/.test(s)) sources.push('FRED');
+    if (/yahoo|yfinance|krx|시총/.test(s)) sources.push('Yahoo·KRX');
+    if (/ecos|kosis|한은|한국은행/.test(s)) sources.push('ECOS·KOSIS');
+    // 기본 출처 (모든 종목 분석에 항상 포함)
+    if (sources.length === 0) return 'DART · FRED · KRX';
+    return sources.join(' · ');
+  }
   function _renderActionBanner(data) {
     const el = document.getElementById('persona-action-banner');
     if (!el) return;
@@ -7394,7 +7420,7 @@ window.addEventListener('resize', () => {
       + '<div class="persona-action-banner-voice">' + escapeHtml(data.voice || cs.voice_label || '권고 정보 없음') + '</div>'
       + '<div class="persona-action-banner-sub">'
       +   '<span><span class="item-label">사이클 적합도</span><strong>' + escapeHtml(m.cyclical_5_factor_score || 'N/A') + '</strong></span>'
-      +   '<span><span class="item-label">데이터 소스</span><strong>' + escapeHtml(cs.data_source_summary || 'rules') + '</strong></span>'
+      +   '<span><span class="item-label">데이터 출처</span><strong>' + escapeHtml(_resolveDataSourceLabel(cs.data_source_summary)) + '</strong></span>'
       + '</div>';
     el.style.display = '';
   }
@@ -7441,17 +7467,17 @@ window.addEventListener('resize', () => {
       { name: '경기민감_가치', desc: '철강·정유·조선',  x: 0, y: 1 },
       { name: '경기민감_성장', desc: '반도체·화학·소재', x: 1, y: 1 }
     ];
-    // 일정 비율 SVG — viewBox만으로 크기 조정. cell 자체 글자 안 깨지게 충분히 크게
-    const cellW = 90, cellH = 60, padX = 24, padY = 20;
+    // 외곽 여백 ↑ (사분면 ↔ 범례 간격 확보)
+    const cellW = 90, cellH = 60, padX = 44, padY = 32;
     const svgW = padX * 2 + cellW * 2;
-    const svgH = padY * 2 + cellH * 2 + 12;  // 아래 라벨 공간
+    const svgH = padY * 2 + cellH * 2 + 12;
     let html = '<svg class="persona-quadrant-svg" viewBox="0 0 ' + svgW + ' ' + svgH + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">';
-    // 상단 축 라벨 (가치 ← → 성장)
-    html += '<text class="persona-quadrant-axis" x="' + (padX + cellW / 2) + '" y="14" text-anchor="middle">가치</text>';
-    html += '<text class="persona-quadrant-axis" x="' + (padX + cellW + cellW / 2) + '" y="14" text-anchor="middle">성장</text>';
-    // 좌측 축 라벨 (방어 / 경기민감) — 회전 X, 셀 좌측에 가로로 표기
-    html += '<text class="persona-quadrant-axis" x="' + (padX / 2) + '" y="' + (padY + cellH / 2 + 4) + '" text-anchor="middle" style="font-size:9px">방어</text>';
-    html += '<text class="persona-quadrant-axis" x="' + (padX / 2) + '" y="' + (padY + cellH + cellH / 2 + 4) + '" text-anchor="middle" style="font-size:9px">경기<tspan x="' + (padX / 2) + '" dy="10">민감</tspan></text>';
+    // 상단 축 라벨 (가치 / 성장) — 셀 위 여백에 표기
+    html += '<text class="persona-quadrant-axis" x="' + (padX + cellW / 2) + '" y="18" text-anchor="middle">가치</text>';
+    html += '<text class="persona-quadrant-axis" x="' + (padX + cellW + cellW / 2) + '" y="18" text-anchor="middle">성장</text>';
+    // 좌측 축 라벨 (방어 / 경기민감) — 좌측 여백에 가로 표기
+    html += '<text class="persona-quadrant-axis" x="' + (padX - 10) + '" y="' + (padY + cellH / 2 + 4) + '" text-anchor="end" style="font-size:10px">방어</text>';
+    html += '<text class="persona-quadrant-axis" x="' + (padX - 10) + '" y="' + (padY + cellH + cellH / 2) + '" text-anchor="end" style="font-size:10px">경기<tspan x="' + (padX - 10) + '" dy="11">민감</tspan></text>';
     // 4개 셀
     cells.forEach(function(c) {
       const isCurrent = (c.name === currentValue);
@@ -7559,9 +7585,21 @@ window.addEventListener('resize', () => {
         return _renderBullBearStepper(parsed.value || raw);
       case 'style_quadrant':
         return _renderStyleQuadrant(parsed.value || raw);
+      case 'loss_threshold':
+        return _renderStopList();
       default:
         return '';
     }
+  }
+
+  // 손절 기준 3단계 줄바꿈 리스트
+  function _renderStopList() {
+    return ''
+      + '<div class="persona-viz-stop">'
+      +   '<div class="persona-viz-stop-row"><strong>-10%</strong><span>개인 기준</span></div>'
+      +   '<div class="persona-viz-stop-row"><strong>-22%</strong><span>기관 매도</span></div>'
+      +   '<div class="persona-viz-stop-row"><strong>-45%</strong><span>손실 위험</span></div>'
+      + '</div>';
   }
 
   function _miniCard(key, raw) {
