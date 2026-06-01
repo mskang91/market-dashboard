@@ -3133,8 +3133,22 @@ body.embed-mode .bento-row {
   line-height: 1.1;
 }
 .persona-mini-card-value.text { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
-.persona-mini-card.has-viz { min-height: 200px; }
-.persona-mini-card.has-viz .persona-mini-card-value { font-size: 16px; font-weight: 700; opacity: 0.85; margin-top: 6px; }
+.persona-mini-card.has-viz { min-height: 240px; }
+.persona-mini-card.has-viz .persona-mini-card-value { font-size: 17px; font-weight: 800; opacity: 0.95; margin-top: 8px; color: var(--text); }
+
+/* mini card 안 정의·산출법 인라인 (ⓘ 안 눌러도 보임) */
+.persona-mini-card-define {
+  font-size: 12px; color: var(--text2); line-height: 1.45;
+  margin-top: auto; padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-weight: 500;
+}
+.persona-mini-card.has-viz .persona-mini-card-define { margin-top: 10px; }
+.persona-mini-card-formula {
+  font-size: 11px; color: var(--text3); line-height: 1.4;
+  margin-top: 4px; font-weight: 500;
+  letter-spacing: -0.01em;
+}
 .persona-mini-card-sub {
   font-size: 12px; color: var(--text3); font-weight: 500;
   letter-spacing: -0.01em; line-height: 1.4;
@@ -3518,12 +3532,27 @@ body.embed-mode .bento-row {
         </div>
       </div>
 
-      <!-- 매크로 인라인 요약 (시장 위치 아래) -->
-      <div class="persona-macro-inline" id="persona-macro-inline" style="display:none;"></div>
+      <!-- 거시 환경 카드 (종목 평가·시장 위치와 동일 위계) -->
+      <div class="persona-l1-grid" style="margin-top:14px">
+        <div class="persona-card" id="card-macro-watch">
+          <div class="persona-card-head">
+            <span class="head-title">
+              <span class="icon">🔭</span>
+              <span class="head-title-wrap">
+                <span>거시 환경</span>
+                <span class="persona-card-head-sub">거시 위험 신호와 손절 기준</span>
+              </span>
+            </span>
+            <span class="info-tip" data-tip="3개월 금리 변화(±23bp 임계) + 인플레이션 분류 + 신용 스프레드 + 손절 룰">ⓘ</span>
+          </div>
+          <div class="persona-card-body" id="card-macro-watch-body"></div>
+        </div>
+      </div>
 
-      <!-- 호환 — 기존 ops-rec / macro-watch body 이름 유지용 (숨김) -->
+      <!-- 호환 — 기존 ops-rec body 이름 유지용 (숨김) -->
       <div id="card-ops-rec-body" style="display:none"></div>
-      <div id="card-macro-watch-body" style="display:none"></div>
+      <!-- 매크로 인라인 div 호환 (이제 안 씀, 빈 상태) -->
+      <div id="persona-macro-inline" style="display:none"></div>
 
       <!-- Red Team 한 줄 -->
       <div class="persona-redteam" id="persona-redteam">
@@ -7076,6 +7105,7 @@ window.addEventListener('resize', () => {
     cycle_phase: {
       define: '사이클 4국면. ISM·미국채·EPS로 현재 경기 위치 판정.',
       formula: 'ISM 제조업 PMI + 미국채 10년 + KOSPI 12개월 포워드 EPS',
+      _persistInline: true,
       items: [
         { name: '희망', desc: '침체 직후 회복 시작 (ISM < 50이나 반등). 한국 수출주 매수 신호' },
         { name: '성장', desc: 'ISM > 50 확장 + EPS 견인 + 멀티플 안정' },
@@ -7087,6 +7117,7 @@ window.addEventListener('resize', () => {
     bull_bear_stage: {
       define: '하워드 막스의 강세·약세 3단계. 시장 심리의 위치.',
       formula: '사이클 + KOSPI 12M 수익률 + VIX + PER(5Y 대비)',
+      _persistInline: true,
       items: [
         { name: '강세 1단계', desc: '소수 미래 지향적이 호전 믿기 시작 (KOSPI 12M < 10%)' },
         { name: '강세 2단계', desc: '대부분 투자자가 호전 인지 (10~25%)' },
@@ -7535,13 +7566,21 @@ window.addEventListener('resize', () => {
 
   function _miniCard(key, raw) {
     const meta = _METRIC_LABELS[key] || { name: key, short: key };
+    const info = _METRIC_INFO[key];
     const p = _parseMetric(raw);
-    const hasInfo = !!_METRIC_INFO[key];
+    const hasInfo = !!info;
     const mainViz = _mainVizFor(key, raw, p);
-    const isVizMain = !!mainViz;  // 시각화가 main이면 value 폰트 축소 + sub 위치 조정
+    const isVizMain = !!mainViz;
     const valCls = isVizMain
-      ? 'persona-mini-card-value text'  // 시각화 main 카드에서 value는 보조
+      ? 'persona-mini-card-value text'
       : (String(p.value).length > 8 ? 'persona-mini-card-value text' : 'persona-mini-card-value');
+    // 정의·산출법 인라인 (ⓘ 안 눌러도 보임 — 모든 카드 동일 위계)
+    const inlineDefine = (info && info.define)
+      ? '<div class="persona-mini-card-define">' + escapeHtml(info.define) + '</div>'
+      : '';
+    const inlineFormula = (info && info.formula)
+      ? '<div class="persona-mini-card-formula">' + escapeHtml(info.formula) + '</div>'
+      : '';
     return ''
       + '<div class="persona-mini-card' + (isVizMain ? ' has-viz' : '') + '">'
       + (hasInfo ? '<button class="persona-mini-card-info-btn" onclick="togglePersonaCardInfo(this)" aria-label="' + escapeHtml(meta.name) + ' 자세히">ⓘ</button>' : '')
@@ -7552,6 +7591,8 @@ window.addEventListener('resize', () => {
           : '<div class="' + valCls + '">' + escapeHtml(p.value) + '</div>')
       + (p.sub ? '<div class="persona-mini-card-sub">' + escapeHtml(p.sub) + '</div>' : '')
       + (p.tag ? '<span class="persona-mini-card-tag ' + p.tag.cls + '">' + escapeHtml(p.tag.text) + '</span>' : '')
+      + inlineDefine
+      + inlineFormula
       + (hasInfo ? _miniCardInfoHtml(key, raw) : '')
       + '</div>';
   }
@@ -7566,10 +7607,10 @@ window.addEventListener('resize', () => {
     const m = data.metrics_labeled || {};
     const v = data.v34_meta || {};
 
-    // [1] 운용 권고 — 등급 카드 바로 아래 배너로 이동
+    // [1] 운용 권고 — 등급 카드 바로 아래 배너
     _renderActionBanner(data);
 
-    // [2] 종목 평가 — 5장 (시각화: PER/PBR 게이지 · ROE/ROIC WACC 막대 · FCF sparkline)
+    // [2] 종목 평가 — 5장
     _setMiniGrid('card-stock-eval-body', [
       { key: 'per',        raw: m.per },
       { key: 'pbr',        raw: m.pbr },
@@ -7579,15 +7620,19 @@ window.addEventListener('resize', () => {
     ]);
 
     // [3] 시장 위치 — 3장 (Cycle 원형 · B/B 스테퍼 · Style 사분면)
-    // CPI는 매크로 인라인으로 이동
     _setMiniGrid('card-market-diag-body', [
       { key: 'cycle_phase',     raw: v.cycle_phase },
       { key: 'bull_bear_stage', raw: v.bull_bear_stage },
       { key: 'style_quadrant',  raw: v.style_quadrant }
     ]);
 
-    // [4] 매크로 인라인 요약 — Rate Δ 게이지 + CPI + Spread + 손절 룰
-    _renderMacroInline(v);
+    // [4] 거시 환경 — 4장 (Rate Δ 게이지 · CPI · Spread · 손절 룰) 모두 mini card 동일 위계
+    _setMiniGrid('card-macro-watch-body', [
+      { key: 'rate_speed_3m_bp', raw: v.rate_speed_3m_bp },
+      { key: 'inflation_split',  raw: v.inflation_split },
+      { key: 'credit_spread',    raw: v.credit_spread },
+      { key: 'loss_threshold',   raw: v.loss_threshold || '본인 -10% · 기관 -22% · 위험 -45%' }
+    ]);
   }
 
   function fmtBreakdown(b) {
