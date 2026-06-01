@@ -7791,7 +7791,10 @@ window.addEventListener('resize', () => {
     _renderActionBanner(data);
 
     // [2] 종목 평가 — 6장 (EV/EBITDA 추가 — v34 §5.5.2 #34)
-    const evEbitdaRaw = m.ev_ebitda != null ? (Number(m.ev_ebitda).toFixed(1) + ' → ' + (m.ev_ebitda <= 8 ? '저평가' : m.ev_ebitda <= 12 ? '평균' : '고평가')) : null;
+    // metrics_labeled에 없음 → _metrics_raw에서 가져옴
+    const mRaw = data._metrics_raw || {};
+    const evVal = mRaw.ev_ebitda;
+    const evEbitdaRaw = (evVal != null && !isNaN(evVal)) ? (Number(evVal).toFixed(1) + ' → ' + (evVal <= 8 ? '저평가' : evVal <= 12 ? '평균' : '고평가')) : null;
     _setMiniGrid('card-stock-eval-body', [
       { key: 'per',        raw: m.per },
       { key: 'pbr',        raw: m.pbr },
