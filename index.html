@@ -3273,6 +3273,18 @@ body.embed-mode .bento-row {
 .persona-viz-cycle-label { font-size: 13px; fill: var(--text3); font-weight: 700;
   dominant-baseline: middle; }
 .persona-viz-cycle-label.is-current { fill: var(--accent); font-weight: 800; font-size: 14px; }
+/* 외곽 시계방향 순환 표시 */
+.persona-viz-cycle-ring {
+  fill: none;
+  stroke: var(--text3);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 4;
+  opacity: 0.55;
+}
+.persona-viz-cycle-arrow {
+  fill: var(--text2);
+  opacity: 0.85;
+}
 .persona-viz-cycle-arrow-path { fill: none; stroke: var(--text3); stroke-width: 1.2;
   stroke-linecap: round; opacity: 0.55; }
 .persona-viz-cycle-arrow-head { fill: var(--text3); opacity: 0.7; }
@@ -7277,30 +7289,44 @@ window.addEventListener('resize', () => {
       + '</svg>';
   }
 
-  // 4. Cycle 4국면 원형 사이클 (시계방향: 희망=좌상 → 성장=우상 → 낙관=우하 → 절망=좌하)
+  // 4. Cycle 4국면 원형 사이클 + 시계방향 순환 화살표
   function _renderCyclePhaseRing(value) {
-    const cx = 80, cy = 80, r = 56;
-    // SVG 좌표: x→오른쪽, y→아래. 각도: 0°=오른쪽, 90°=아래, 180°=왼쪽, 270°=위
+    const cx = 80, cy = 80, r = 56, rOuter = 70;
     const segs = [
-      { name: '희망', startDeg: 180, sweepDeg: 90, labelX: 46, labelY: 50 },   // 좌상 (180~270°)
-      { name: '성장', startDeg: 270, sweepDeg: 90, labelX: 114, labelY: 50 },  // 우상 (270~360°)
-      { name: '낙관', startDeg: 0,   sweepDeg: 90, labelX: 114, labelY: 114 }, // 우하 (0~90°)
-      { name: '절망', startDeg: 90,  sweepDeg: 90, labelX: 46, labelY: 114 }   // 좌하 (90~180°)
+      { name: '희망', startDeg: 180, sweepDeg: 90, labelX: 46, labelY: 50 },
+      { name: '성장', startDeg: 270, sweepDeg: 90, labelX: 114, labelY: 50 },
+      { name: '낙관', startDeg: 0,   sweepDeg: 90, labelX: 114, labelY: 114 },
+      { name: '절망', startDeg: 90,  sweepDeg: 90, labelX: 46, labelY: 114 }
     ];
-    function pt(deg) {
+    function pt(deg, radius) {
       const rad = deg * Math.PI / 180;
-      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+      return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) };
     }
-    let html = '<svg class="persona-viz-cycle" viewBox="0 0 160 160">';
+    let html = '<svg class="persona-viz-cycle" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">';
+    // 4분면 셀
     segs.forEach(function(s) {
       const isCur = s.name === value;
-      const a = pt(s.startDeg);
-      const b = pt(s.startDeg + s.sweepDeg);
+      const a = pt(s.startDeg, r);
+      const b = pt(s.startDeg + s.sweepDeg, r);
       html += '<path d="M ' + cx + ' ' + cy + ' L ' + a.x.toFixed(2) + ' ' + a.y.toFixed(2)
         + ' A ' + r + ' ' + r + ' 0 0 1 ' + b.x.toFixed(2) + ' ' + b.y.toFixed(2) + ' Z" '
         + 'class="persona-viz-cycle-seg ' + (isCur ? 'is-current' : '') + '"/>';
     });
-    // 라벨은 호 위에 별도로 그려서 잘림 방지
+    // 외곽 시계방향 점선 원 (순환 의미)
+    html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + rOuter + '" class="persona-viz-cycle-ring"/>';
+    // 시계방향 화살표 머리 4개 — 12시·3시·6시·9시 위치 (각 국면 끝 = 다음 국면 진입)
+    const arrows = [
+      { deg: 270, rotate: 0   },  // 12시 → 시계방향 다음 = 우측 (희망 → 성장)
+      { deg: 0,   rotate: 90  },  // 3시  → 다음 = 하단 (성장 → 낙관)
+      { deg: 90,  rotate: 180 },  // 6시  → 다음 = 좌측 (낙관 → 절망)
+      { deg: 180, rotate: 270 }   // 9시  → 다음 = 상단 (절망 → 희망)
+    ];
+    arrows.forEach(function(a) {
+      const p = pt(a.deg, rOuter);
+      html += '<polygon points="-4,-3 4,0 -4,3" class="persona-viz-cycle-arrow" '
+        + 'transform="translate(' + p.x.toFixed(2) + ',' + p.y.toFixed(2) + ') rotate(' + a.rotate + ')"/>';
+    });
+    // 라벨 (호 위에 별도)
     segs.forEach(function(s) {
       const isCur = s.name === value;
       html += '<text x="' + s.labelX + '" y="' + s.labelY + '" class="persona-viz-cycle-label '
