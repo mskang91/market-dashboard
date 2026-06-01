@@ -3438,19 +3438,20 @@ body.embed-mode .bento-row {
 }
 .persona-grade-price-formula strong { color: var(--text); font-weight: 800; }
 
-/* STOP footer (거시 환경 카드 안 마지막) */
+/* STOP footer (거시 환경 카드 안 마지막) — 폰트 키움 */
 .persona-macro-footer {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin-top: 14px; padding-top: 12px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 16px; padding: 14px 16px;
+  background: var(--surface-1); border-radius: 10px;
   border-top: 1px dashed var(--border);
-  font-size: 12px;
+  font-size: 14px;
 }
-.persona-macro-footer .icon { color: var(--orange); font-size: 14px; }
+.persona-macro-footer .icon { color: var(--orange); font-size: 18px; }
 .persona-macro-footer .label {
-  font-weight: 700; color: var(--accent2);
-  letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px;
+  font-weight: 800; color: var(--accent2);
+  letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px;
 }
-.persona-macro-footer .text { color: var(--text2); font-weight: 500; }
+.persona-macro-footer .text { color: var(--text); font-weight: 600; font-size: 14px; }
 
 /* ━━━ 매크로 인라인 요약 (시장 위치 아래) ━━━ */
 .persona-macro-inline {
@@ -4704,38 +4705,13 @@ function renderRaw(rows, liveData) {
       c('미디어통신',    'KRX 미디어통신',    'krx_sec_media',        2, 'krx_sec_media',        'pct');
   }
 
-  // B45 (5/19) → B182 P1-C (5/29) — 한국 채권수익률 11개 그룹화 (단기 4 / 중기 2 / 장기 3 / 회사채 2)
-  // 외톨이 row 차단 + 만기별 시각 분류 명확
+  // 페르소나 v34 정리: 국고채 3년 (벤치마크) + 신용 스프레드만 유지
+  // 기존 11종 (1Y/2Y/5Y/10Y/20Y/30Y/국민주택/회사채 AA-/BBB-/CD 91일) 모두 제거
   document.getElementById('kr-bond-cards').innerHTML =
     '<div class="bond-group">' +
-      '<div class="bond-group-header">단기 · CD · 국고채 1~3Y</div>' +
+      '<div class="bond-group-header">한국 채권 — 벤치마크 · 신용 스프레드</div>' +
       '<div class="bond-group-cards">' +
-        c('CD 91일',    'CD 91D',    'cd_91d', 2, 'cd_91d') +
-        c('국고채 1년', '국고채 1Y', 'ktb_1y', 2, 'ktb_1y') +
-        c('국고채 2년', '국고채 2Y', 'ktb_2y', 2, 'ktb_2y') +
         c('국고채 3년', '국고채 3Y', 'ktb_3y', 2, 'ktb_3y') +
-      '</div>' +
-    '</div>' +
-    '<div class="bond-group">' +
-      '<div class="bond-group-header">중기 · 국고채 5~10Y</div>' +
-      '<div class="bond-group-cards">' +
-        c('국고채 5년',  '국고채 5Y',  'ktb_5y',  2, 'ktb_5y') +
-        c('국고채 10년', '국고채 10Y', 'ktb_10y', 2, 'ktb_10y') +
-      '</div>' +
-    '</div>' +
-    '<div class="bond-group">' +
-      '<div class="bond-group-header">장기 · 국고채 20~30Y · 국민주택</div>' +
-      '<div class="bond-group-cards">' +
-        c('국고채 20년',  '국고채 20Y',  'ktb_20y', 2, 'ktb_20y') +
-        c('국고채 30년',  '국고채 30Y',  'ktb_30y', 2, 'ktb_30y') +
-        c('국민주택 5년', '국민주택 5Y', 'nhf_5y',  2, 'nhf_5y') +
-      '</div>' +
-    '</div>' +
-    '<div class="bond-group">' +
-      '<div class="bond-group-header">회사채 · 신용 스프레드 (B177 5/29)</div>' +
-      '<div class="bond-group-cards">' +
-        c('회사채 AA-',  '회사채 AA-',  'corp_aa',  2, 'corp_aa') +
-        c('회사채 BBB-', '회사채 BBB-', 'corp_bbb', 2, 'corp_bbb') +
         creditSpreadCard() +
       '</div>' +
     '</div>';
