@@ -170,7 +170,20 @@ body.hide-numbers .sensitive-number { filter: blur(6px); transition: filter 0.25
 /* SECTION */
 .section { margin-bottom: var(--s-9); }
 .section-header { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-5); padding-bottom: var(--s-4); border-bottom: 1px solid var(--border); }
-.section-bar { width: 4px; height: 22px; border-radius: 3px; flex-shrink: 0; background: var(--sc, var(--accent)); box-shadow: 0 0 8px var(--sc-glow, rgba(37,99,235,0.4)); }
+.section-bar {
+  width: 4px; height: 22px; border-radius: 3px; flex-shrink: 0;
+  background: linear-gradient(180deg, var(--sc, var(--accent)), var(--sc-glow, var(--accent2)));
+  box-shadow: 0 0 12px var(--sc-glow, var(--persona-accent-glow, rgba(37,99,235,0.45)));
+}
+.section-header {
+  position: relative;
+}
+.section-header::after {
+  content: ''; position: absolute;
+  bottom: -1px; left: 0; height: 1px; width: 40px;
+  background: linear-gradient(90deg, var(--sc, var(--accent)), transparent);
+  opacity: 0.6;
+}
 .section-title { font-size: 15px; font-weight: 800; color: var(--sc, var(--text)); letter-spacing: 0.1px; word-break: keep-all; overflow-wrap: break-word; white-space: nowrap; }
 .section-badge { font-size: 11px; color: var(--text3); background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 2px 9px; border-radius: 20px; }
 
@@ -409,11 +422,25 @@ body.light .flow-top-card { background: var(--bg2); }
 }
 .card:hover {
   background: var(--surface-2);
-  border-color: var(--border2);
-  box-shadow: var(--shadow-hover);
+  border-color: var(--persona-accent-glow, rgba(49,130,246,0.30));
+  box-shadow: 0 8px 24px var(--persona-accent-soft, rgba(49,130,246,0.15)), var(--shadow-hover);
   transform: translateY(-2px);
   z-index: 350;
 }
+
+/* Web3 톤 전역 focus-visible (Option C — 모든 탭 일관) */
+.card:focus-visible,
+.dash-tab:focus-visible,
+.period-tab:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--persona-accent-soft, rgba(49,130,246,0.15));
+}
+input:focus-visible { outline: none; }
 /* 토스 마이크로인터랙션 (B35, 5/18) — 모든 클릭 가능 요소 press 시 살짝 눌림 */
 .card:active:not(.no-drill) { transform: scale(0.97); transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1); }
 .card.no-drill { cursor: default; }
@@ -1080,11 +1107,18 @@ body.embed-mode #news-list-mobile { display: none !important; }
   font-family: inherit;
   margin-bottom: -1px;
 }
-.dash-tab:hover { color: var(--text2); }
+.dash-tab:hover {
+  color: var(--text2);
+  background: var(--persona-accent-bg, rgba(49,130,246,0.10));
+  border-radius: 8px 8px 0 0;
+}
 .dash-tab.active {
   color: var(--text);
   border-bottom-color: var(--accent);
   font-weight: 700;
+  background: linear-gradient(180deg, transparent 0%, var(--persona-accent-bg, rgba(49,130,246,0.10)) 100%);
+  border-radius: 8px 8px 0 0;
+  text-shadow: 0 0 12px var(--persona-accent-soft, rgba(49,130,246,0.25));
 }
 .dash-tab-icon { font-size: 16px; line-height: 1; }
 .dash-tab-label { letter-spacing: -0.01em; }
