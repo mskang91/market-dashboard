@@ -4535,12 +4535,20 @@ document.addEventListener('click', function(e) {
       switchDashTab(tabBtn.dataset.tab);
     }
   });
-  // 페이지 로드 시 — 첫 active 버튼의 탭 복원 (기존 active='macro' 또는 localStorage 우선)
+  // 페이지 로드 시 — #persona-view를 #tab-market 안으로 이동 + 첫 탭 복원
   document.addEventListener('DOMContentLoaded', function() {
+    // 1) #persona-view가 #tab-market 외부에 있으면 안으로 이동 (구조 정합)
+    try {
+      const personaView = document.getElementById('persona-view');
+      const tabMarket = document.getElementById('tab-market');
+      if (personaView && tabMarket && !tabMarket.contains(personaView)) {
+        tabMarket.appendChild(personaView);
+      }
+    } catch (_e) {}
+    // 2) localStorage 또는 기본 active 탭 복원
     let saved = null;
     try { saved = localStorage.getItem('mh:dashTab'); } catch (_e) {}
     const initialTab = saved || (document.querySelector('.dash-tab.active') || {}).dataset?.tab || 'macro';
-    // persona 탭이 신설된 직후 첫 진입 시 기존 사용자 경험 보존 — saved가 'persona'면 그대로
     switchDashTab(initialTab);
   });
   // 전역 노출 (디버그용)
