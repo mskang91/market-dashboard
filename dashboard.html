@@ -835,7 +835,8 @@ body.light .table-wrap { background: #fff; }
   color: #60a5fa;
 }
 .flow-tab-custom-icon { font-size: 14px; }
-.flow-tab-custom-label { font-weight: 500; font-size: 12px; }
+.flow-tab-custom-label { font-weight: 500; font-size: 12px; margin-right: 4px; }
+.flow-tab-custom-sep { color: var(--text3, #94a3b8); font-weight: 500; padding: 0 2px; }
 .flow-tab-custom-input {
   background: rgba(0,0,0,0.2);
   border: 1px solid rgba(255,255,255,0.1);
@@ -6034,6 +6035,50 @@ function renderAssetFlow(points, accountNames) {
     return points.filter(function(p) { return p.label >= cutoffLabel; });
   }
 
+  // 2026-06-02 — 임의 from/to 범위 기준 계산
+  //   fromLabel/toLabel: 'YYYY-MM-DD'
+  //   from 이상 가장 이른 point = past / to 이하 가장 늦은 point = today
+  function computeByRange(fromLabel, toLabel) {
+    if (!points.length || !fromLabel || !toLabel) return null;
+    if (fromLabel > toLabel) return null;
+    let todayIdx = -1;
+    for (let i = points.length - 1; i >= 0; i--) {
+      if (points[i].label <= toLabel) { todayIdx = i; break; }
+    }
+    let pastIdx = -1;
+    for (let i = 0; i < points.length; i++) {
+      if (points[i].label >= fromLabel) { pastIdx = i; break; }
+    }
+    if (todayIdx < 0 || pastIdx < 0 || pastIdx >= todayIdx) return null;
+    const today = points[todayIdx];
+    const past = points[pastIdx];
+    const evalDiff = today.ev - past.ev;
+    const principalDiff = today.pr - past.pr;
+    const pnlDiff = evalDiff - principalDiff;
+    const pnlPct = past.ev > 0 ? (pnlDiff / past.ev) * 100 : 0;
+    const evalPct = past.ev > 0 ? (evalDiff / past.ev) * 100 : 0;
+    const actualDays = Math.round((new Date(today.label) - new Date(past.label)) / (1000 * 60 * 60 * 24));
+    const byAccount = accountNames.map(function(name) {
+      const evCol = name + '_평가금액';
+      const prCol = name + '_투자원금';
+      const todayEv = parseFloat(today.raw[evCol]) || 0;
+      const todayPr = parseFloat(today.raw[prCol]) || 0;
+      const pastEv  = parseFloat(past.raw[evCol])  || 0;
+      const pastPr  = parseFloat(past.raw[prCol])  || 0;
+      const evDiff = todayEv - pastEv;
+      const prDiff = todayPr - pastPr;
+      const pnlDiff2 = evDiff - prDiff;
+      const pnlPct2 = pastEv > 0 ? (pnlDiff2 / pastEv) * 100 : 0;
+      return { name: name, todayEv: todayEv, pastEv: pastEv, evDiff: evDiff, prDiff: prDiff, pnlDiff: pnlDiff2, pnlPct: pnlPct2 };
+    });
+    return { today: today, past: past, evalDiff: evalDiff, principalDiff: principalDiff, pnlDiff: pnlDiff, pnlPct: pnlPct, evalPct: evalPct, byAccount: byAccount, actualDays: actualDays };
+  }
+
+  function getSubPointsByRange(fromLabel, toLabel) {
+    if (!points.length || !fromLabel || !toLabel) return [];
+    return points.filter(function(p) { return p.label >= fromLabel && p.label <= toLabel; });
+  }
+
   // 색상 + 부호 helper
   function classFor(diff) {
     if (diff > 0) return 'flow-up';
@@ -6043,25 +6088,26 @@ function renderAssetFlow(points, accountNames) {
   function signFor(num) { return num >= 0 ? '+' : ''; }
 
   let currentPeriod = 'd1';  // 기본 = 어제
-  // 2026-06-02 — 사용자 지정 날짜 (캘린더 input) state
-  //   customFromDate: 'YYYY-MM-DD' (시작 날짜) — to는 자동 today
-  //   currentPeriod === 'custom' 시 PERIODS 대신 customFromDate 사용
+  // 2026-06-02 — 사용자 지정 날짜 (양쪽 range 캘린더)
+  //   customFromDate ~ customToDate (둘 다 'YYYY-MM-DD')
+  //   currentPeriod === 'custom' 시 양쪽 input 사용
   let customFromDate = '';
+  let customToDate = '';
 
   function render() {
-    // 'custom' 분기 — 사용자 지정 날짜 기준 days 계산
-    let periodDays, periodLabel;
-    if (currentPeriod === 'custom' && customFromDate && points.length) {
-      const todayDate = new Date(points[points.length - 1].label);
-      const fromDate = new Date(customFromDate);
-      periodDays = Math.max(1, Math.round((todayDate - fromDate) / (1000 * 60 * 60 * 24)));
-      periodLabel = customFromDate + ' 이후';
+    // 'custom' 분기 — 양쪽 range (from ~ to) 또는 단축 토글 (days)
+    let periodDays, periodLabel, result;
+    if (currentPeriod === 'custom' && customFromDate && customToDate && points.length) {
+      result = computeByRange(customFromDate, customToDate);
+      periodDays = result ? result.actualDays : 0;
+      // YYYY.MM.DD ~ YYYY.MM.DD 형식
+      periodLabel = customFromDate.replace(/-/g, '.') + ' ~ ' + customToDate.replace(/-/g, '.');
     } else {
       const period = PERIODS.find(p => p.key === currentPeriod);
       periodDays = period.days;
       periodLabel = period.label;
+      result = computePeriod(periodDays);
     }
-    const result = computePeriod(periodDays);
 
     if (!result) {
       el.innerHTML = `<div class="empty-state empty-state--accent"><p>${periodLabel} 데이터 없음</p></div>`;
@@ -6077,9 +6123,9 @@ function renderAssetFlow(points, accountNames) {
     const heroVerb  = evalDiff > 0 ? '늘었어요' : evalDiff < 0 ? '줄었어요' : '변동 없어요';
 
     // 데이터 부족 시 실제 사용된 기간 표시
-    const heroLabel = periodDays <= maxAvail
-      ? (currentPeriod === 'custom' ? `${periodLabel} ` : `${periodLabel}보다 `)
-      : `${actualDays}일 전(전체 데이터)보다 `;
+    const heroLabel = currentPeriod === 'custom'
+      ? `${periodLabel} 기간 `
+      : (periodDays <= maxAvail ? `${periodLabel}보다 ` : `${actualDays}일 전(전체 데이터)보다 `);
 
     // 원금 변동 노티 — "원금은 +N원 더 저축했습니다" 형태 (사용자 의도 반영)
     //   입금/출금은 손익이 아닌 별도 사건. 손익에서 차감 X — 분리 표시
@@ -6097,20 +6143,31 @@ function renderAssetFlow(points, accountNames) {
                 ${disabled ? 'disabled' : ''}
                 title="${disabled ? `데이터 ${totalDays}일치 — ${p.label} 부족 (${maxAvail}일까지)` : ''}">${p.label}</button>`;
     }).join('');
-    // 2026-06-02 — 사용자 지정 날짜 input
-    //   today 기준 maxAvail 캘린더일 전까지 선택 가능
+    // 2026-06-02 — 사용자 지정 날짜 양쪽 range (YYYY.MM.DD ~ YYYY.MM.DD)
+    //   from input ~ to input. 클릭 시 캘린더 picker 자동 열림
     const todayLabel = points.length ? points[points.length - 1].label : '';
     const oldestLabel = points.length ? points[0].label : '';
+    const fromVal = customFromDate || (currentPeriod === 'custom' ? '' : '');
+    const toVal = customToDate || (currentPeriod === 'custom' ? todayLabel : '');
     const customInputHtml = `
       <div class="flow-tab-custom ${currentPeriod === 'custom' ? 'active' : ''}">
         <span class="flow-tab-custom-icon">📅</span>
         <span class="flow-tab-custom-label">직접 선택</span>
         <input type="date" class="flow-tab-custom-input"
-               id="flow-custom-date-input"
+               id="flow-custom-from"
                min="${oldestLabel}"
                max="${todayLabel}"
-               value="${customFromDate}"
-               onchange="window._flowSetCustomDate && window._flowSetCustomDate(this.value)" />
+               value="${fromVal}"
+               placeholder="시작일"
+               onchange="window._flowSetCustomRange && window._flowSetCustomRange('from', this.value)" />
+        <span class="flow-tab-custom-sep">~</span>
+        <input type="date" class="flow-tab-custom-input"
+               id="flow-custom-to"
+               min="${oldestLabel}"
+               max="${todayLabel}"
+               value="${toVal}"
+               placeholder="종료일"
+               onchange="window._flowSetCustomRange && window._flowSetCustomRange('to', this.value)" />
       </div>`;
 
     // 계좌별 카드 — 손익 메인 + 원금 변동 노티 분리
@@ -6168,7 +6225,9 @@ function renderAssetFlow(points, accountNames) {
     //   ev 라인은 입금/출금 시 수직 점프 발생 → 손익만 표시하면 진짜 변동만 보임
     //   tooltip에는 평가/원금/손익 3개 동시 표시
     //   X축: 1주 이상 토글에서 날짜 ticks 박힘 (어제 토글은 2 point라 hide)
-    const subPoints = getSubPoints(Math.min(periodDays, maxAvail));
+    const subPoints = currentPeriod === 'custom' && customFromDate && customToDate
+      ? getSubPointsByRange(customFromDate, customToDate)
+      : getSubPoints(Math.min(periodDays, maxAvail));
     if (subPoints.length >= 2) {
       // 차트 위 날짜 범위 라벨 (예: "05/22 ~ 05/29 · 7일치 누적 손익")
       const labelSlot = document.getElementById('flow-mini-label-slot');
@@ -6307,27 +6366,24 @@ function renderAssetFlow(points, accountNames) {
         render();
       });
     });
-    // 2026-06-02 — 캘린더 input → custom 기간 설정 핸들러
-    //   window 전역에 expose해서 input onchange에서 호출
-    window._flowSetCustomDate = function(dateStr) {
+    // 2026-06-02 — 양쪽 range 캘린더 input 핸들러
+    //   from 또는 to 변경 시 currentPeriod = 'custom' 후 render
+    window._flowSetCustomRange = function(which, dateStr) {
       if (!dateStr) return;
-      customFromDate = dateStr;
-      currentPeriod = 'custom';
-      render();
-    };
-    // 캘린더 wrap 클릭 시 input focus (UX 보강)
-    const customWrap = el.querySelector('.flow-tab-custom');
-    if (customWrap) {
-      customWrap.addEventListener('click', function(e) {
-        if (e.target.tagName !== 'INPUT') {
-          const inp = customWrap.querySelector('input');
-          if (inp) {
-            try { inp.showPicker && inp.showPicker(); } catch (_e) {}
-            inp.focus();
-          }
+      if (which === 'from') customFromDate = dateStr;
+      else if (which === 'to') customToDate = dateStr;
+      // 양쪽 모두 박힌 후에만 custom mode 진입
+      if (customFromDate && customToDate) {
+        // from > to면 swap
+        if (customFromDate > customToDate) {
+          const tmp = customFromDate;
+          customFromDate = customToDate;
+          customToDate = tmp;
         }
-      });
-    }
+        currentPeriod = 'custom';
+        render();
+      }
+    };
   }
 
   render();
