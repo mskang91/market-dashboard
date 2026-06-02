@@ -5931,12 +5931,27 @@ function renderAssetFlow(points, accountNames) {
   ];
 
   const totalDays = points.length;
-  const maxAvail = totalDays - 1;  // N일치면 최대 N-1일 전 비교 가능
+  // 2026-06-02 — maxAvail을 캘린더일 기준으로 변경 (1개월=30 캘린더일 대응)
+  const maxAvail = points.length > 1
+    ? Math.round((new Date(points[points.length - 1].label) - new Date(points[0].label)) / (1000 * 60 * 60 * 24))
+    : 0;
 
-  // N일 전 point 찾기 (없으면 가장 오래된 point)
+  // N일 전 point 찾기 — 캘린더일 기준 (2026-06-02 사용자 피드백)
+  //   영업일 30개 = 약 42 캘린더일이라 "1개월" 의도와 다름
+  //   cutoff = today_date - daysAgo (캘린더일) → 그 시점 또는 그 직전 영업일 point 반환
   function findPastPoint(daysAgo) {
-    const idx = Math.max(0, points.length - 1 - daysAgo);
-    return { point: points[idx], actualDays: points.length - 1 - idx };
+    const todayLabel = points[points.length - 1].label;  // 'YYYY-MM-DD'
+    const todayDate = new Date(todayLabel);
+    const cutoff = new Date(todayDate);
+    cutoff.setDate(cutoff.getDate() - daysAgo);
+    const cutoffLabel = cutoff.toISOString().slice(0, 10);
+    let bestIdx = 0;
+    for (let i = points.length - 1; i >= 0; i--) {
+      if (points[i].label <= cutoffLabel) { bestIdx = i; break; }
+    }
+    const pastDate = new Date(points[bestIdx].label);
+    const actualDays = Math.round((todayDate - pastDate) / (1000 * 60 * 60 * 24));
+    return { point: points[bestIdx], actualDays: actualDays };
   }
 
   // 기간별 손익/원금 분리 계산 (5/29 fix: 입금 오염 차단)
@@ -5975,9 +5990,15 @@ function renderAssetFlow(points, accountNames) {
   }
 
   // 미니 차트용 sub-points (기간 안의 daily values)
+  // 차트용 sub-points — 캘린더일 기준 (2026-06-02 사용자 피드백)
+  //   예: 1개월(30) = today_date - 30 = 05/03 이후 모든 영업일 point 반환
   function getSubPoints(daysAgo) {
-    const startIdx = Math.max(0, points.length - 1 - daysAgo);
-    return points.slice(startIdx);
+    if (!points.length) return [];
+    const todayLabel = points[points.length - 1].label;
+    const cutoff = new Date(todayLabel);
+    cutoff.setDate(cutoff.getDate() - daysAgo);
+    const cutoffLabel = cutoff.toISOString().slice(0, 10);
+    return points.filter(function(p) { return p.label >= cutoffLabel; });
   }
 
   // 색상 + 부호 helper
