@@ -6094,13 +6094,69 @@ function renderAssetFlow(points, accountNames) {
   let customFromDate = '';
   let customToDate = '';
 
+  // tabs HTML — 단축 토글 (어제~1년)
+  function _buildTabsHtml() {
+    return PERIODS.map(p => {
+      const disabled = p.days > maxAvail;
+      return `<button class="flow-tab ${p.key === currentPeriod ? 'active' : ''}"
+                data-period="${p.key}"
+                ${disabled ? 'disabled' : ''}
+                title="${disabled ? `데이터 ${totalDays}일치 — ${p.label} 부족 (${maxAvail}일까지)` : ''}">${p.label}</button>`;
+    }).join('');
+  }
+  // 직접 선택 캘린더 input (양쪽 range)
+  function _buildCustomInputHtml() {
+    const todayLabel = points.length ? points[points.length - 1].label : '';
+    const oldestLabel = points.length ? points[0].label : '';
+    const fromVal = customFromDate || '';
+    const toVal = customToDate || '';
+    return `
+      <div class="flow-tab-custom ${currentPeriod === 'custom' ? 'active' : ''}">
+        <span class="flow-tab-custom-icon">📅</span>
+        <span class="flow-tab-custom-label">직접 선택</span>
+        <input type="date" class="flow-tab-custom-input"
+               id="flow-custom-from"
+               min="${oldestLabel}" max="${todayLabel}" value="${fromVal}"
+               onchange="window._flowSetCustomRange && window._flowSetCustomRange('from', this.value)" />
+        <span class="flow-tab-custom-sep">~</span>
+        <input type="date" class="flow-tab-custom-input"
+               id="flow-custom-to"
+               min="${oldestLabel}" max="${todayLabel}" value="${toVal}"
+               onchange="window._flowSetCustomRange && window._flowSetCustomRange('to', this.value)" />
+      </div>`;
+  }
+  // 핸들러 attach — render 끝마다 호출 (innerHTML 교체 후)
+  function _attachFlowHandlers() {
+    el.querySelectorAll('.flow-tab:not(:disabled)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentPeriod = btn.dataset.period;
+        render();
+      });
+    });
+  }
+  window._flowSetCustomRange = function(which, dateStr) {
+    if (!dateStr) return;
+    if (which === 'from') customFromDate = dateStr;
+    else if (which === 'to') customToDate = dateStr;
+    if (customFromDate && customToDate) {
+      if (customFromDate > customToDate) {
+        const tmp = customFromDate;
+        customFromDate = customToDate;
+        customToDate = tmp;
+      }
+      currentPeriod = 'custom';
+      render();
+    } else {
+      // 한쪽만 박힌 상태 — render 안 하고 input value만 유지
+    }
+  };
+
   function render() {
     // 'custom' 분기 — 양쪽 range (from ~ to) 또는 단축 토글 (days)
     let periodDays, periodLabel, result;
     if (currentPeriod === 'custom' && customFromDate && customToDate && points.length) {
       result = computeByRange(customFromDate, customToDate);
       periodDays = result ? result.actualDays : 0;
-      // YYYY.MM.DD ~ YYYY.MM.DD 형식
       periodLabel = customFromDate.replace(/-/g, '.') + ' ~ ' + customToDate.replace(/-/g, '.');
     } else {
       const period = PERIODS.find(p => p.key === currentPeriod);
@@ -6108,9 +6164,21 @@ function renderAssetFlow(points, accountNames) {
       periodLabel = period.label;
       result = computePeriod(periodDays);
     }
+    // tabs + 캘린더 input은 항상 생성 (empty state 시에도 표시)
+    const tabsBuilt = _buildTabsHtml();
+    const customInputBuilt = _buildCustomInputHtml();
+    const tabsWrap = `<div class="flow-tabs">${tabsBuilt}${customInputBuilt}</div>`;
 
     if (!result) {
-      el.innerHTML = `<div class="empty-state empty-state--accent"><p>${periodLabel} 데이터 없음</p></div>`;
+      // empty state — toggle + 캘린더 input 유지 (사용자가 다시 입력/토글 가능)
+      el.innerHTML = `
+        <div class="empty-state empty-state--accent" style="padding:28px 20px;text-align:center">
+          <p style="margin:0">${periodLabel} 데이터 없음</p>
+          <small style="color:var(--text3,#94a3b8);font-size:11px;margin-top:6px;display:block">다른 기간을 선택하거나 단축 토글을 눌러주세요</small>
+        </div>
+        ${tabsWrap}
+      `;
+      _attachFlowHandlers();
       return;
     }
 
@@ -6136,39 +6204,9 @@ function renderAssetFlow(points, accountNames) {
         </div>`
       : '';
 
-    const tabs = PERIODS.map(p => {
-      const disabled = p.days > maxAvail;
-      return `<button class="flow-tab ${p.key === currentPeriod ? 'active' : ''}"
-                data-period="${p.key}"
-                ${disabled ? 'disabled' : ''}
-                title="${disabled ? `데이터 ${totalDays}일치 — ${p.label} 부족 (${maxAvail}일까지)` : ''}">${p.label}</button>`;
-    }).join('');
-    // 2026-06-02 — 사용자 지정 날짜 양쪽 range (YYYY.MM.DD ~ YYYY.MM.DD)
-    //   from input ~ to input. 클릭 시 캘린더 picker 자동 열림
-    const todayLabel = points.length ? points[points.length - 1].label : '';
-    const oldestLabel = points.length ? points[0].label : '';
-    const fromVal = customFromDate || (currentPeriod === 'custom' ? '' : '');
-    const toVal = customToDate || (currentPeriod === 'custom' ? todayLabel : '');
-    const customInputHtml = `
-      <div class="flow-tab-custom ${currentPeriod === 'custom' ? 'active' : ''}">
-        <span class="flow-tab-custom-icon">📅</span>
-        <span class="flow-tab-custom-label">직접 선택</span>
-        <input type="date" class="flow-tab-custom-input"
-               id="flow-custom-from"
-               min="${oldestLabel}"
-               max="${todayLabel}"
-               value="${fromVal}"
-               placeholder="시작일"
-               onchange="window._flowSetCustomRange && window._flowSetCustomRange('from', this.value)" />
-        <span class="flow-tab-custom-sep">~</span>
-        <input type="date" class="flow-tab-custom-input"
-               id="flow-custom-to"
-               min="${oldestLabel}"
-               max="${todayLabel}"
-               value="${toVal}"
-               placeholder="종료일"
-               onchange="window._flowSetCustomRange && window._flowSetCustomRange('to', this.value)" />
-      </div>`;
+    // tabs + customInputHtml은 _buildTabsHtml / _buildCustomInputHtml 재사용 (empty state와 동일 logic)
+    const tabs = _buildTabsHtml();
+    const customInputHtml = _buildCustomInputHtml();
 
     // 계좌별 카드 — 손익 메인 + 원금 변동 노티 분리
     const accountCards = byAccount
@@ -6359,31 +6397,8 @@ function renderAssetFlow(points, accountNames) {
       });
     }
 
-    // tab 클릭 핸들러
-    el.querySelectorAll('.flow-tab:not(:disabled)').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentPeriod = btn.dataset.period;
-        render();
-      });
-    });
-    // 2026-06-02 — 양쪽 range 캘린더 input 핸들러
-    //   from 또는 to 변경 시 currentPeriod = 'custom' 후 render
-    window._flowSetCustomRange = function(which, dateStr) {
-      if (!dateStr) return;
-      if (which === 'from') customFromDate = dateStr;
-      else if (which === 'to') customToDate = dateStr;
-      // 양쪽 모두 박힌 후에만 custom mode 진입
-      if (customFromDate && customToDate) {
-        // from > to면 swap
-        if (customFromDate > customToDate) {
-          const tmp = customFromDate;
-          customFromDate = customToDate;
-          customToDate = tmp;
-        }
-        currentPeriod = 'custom';
-        render();
-      }
-    };
+    // tab 클릭 + 캘린더 input handler attach (재사용 함수 호출)
+    _attachFlowHandlers();
   }
 
   render();
