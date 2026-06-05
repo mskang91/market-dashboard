@@ -377,6 +377,22 @@ body.light .flow-top-card { background: var(--bg2); }
   .flow-top-card.theme-limit .ft-row { grid-template-columns: 18px 1fr 52px 48px; }
 }
 
+/* B184 (6/5) — 품목별 수출 (관세청 HSK): 수출액 + YoY% + 12개월 미니 막대 */
+.flow-top-card.theme-export { border-top: 3px solid #38bdf8; }
+.flow-top-card.theme-export .ft-row { grid-template-columns: 22px 1.2fr 64px 60px 78px; }
+.flow-top-card.theme-export .ft-exp { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); font-size: 11.5px; }
+.flow-top-card.theme-export .ft-yoy { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 11.5px; }
+.flow-top-card.theme-export .ft-yoy.pos { color: var(--green); }
+.flow-top-card.theme-export .ft-yoy.neg { color: var(--red); }
+.flow-top-card.theme-export .ft-yoy.neu { color: var(--text2); }
+.flow-top-card.theme-export .ft-spark { display: flex; align-items: flex-end; gap: 1.5px; height: 18px; }
+.flow-top-card.theme-export .ft-spark .sb { flex: 1 1 0; min-width: 2px; background: rgba(56,189,248,0.32); border-radius: 1px; }
+.flow-top-card.theme-export .ft-spark .sb.last { background: #38bdf8; }
+@media (max-width: 640px) {
+  .flow-top-card.theme-export .ft-row { grid-template-columns: 18px 1fr 58px 54px; }
+  .flow-top-card.theme-export .ft-spark { display: none; }
+}
+
 /* CARD */
 .card {
   background: var(--bg2);
@@ -3430,6 +3446,12 @@ body.embed-mode .privacy-btn { display: none !important; }
         <div class="cards g2" id="kr-fgn-limit-cards"></div>
       </div>
 
+      <!-- 6) B184 (6/5) — 품목별 수출 (관세청 HSK) — 실물 수출 신호 (반도체·선박·승용차·화장품·라면) -->
+      <div class="section" data-tab-target="macro" style="--sc:#38bdf8;--sc-glow:rgba(56,189,248,0.35)">
+        <div class="section-header"><div class="section-bar"></div><span class="section-title">📦 품목별 수출 (관세청 HSK)</span><span class="section-badge">관세청 HSK · 월별 · 품목별 수출액 + 전년동월 대비(YoY)</span></div>
+        <div class="cards g2" id="customs-export-cards"></div>
+      </div>
+
     </div><!-- /tab-market -->
 
     <!-- ════ 📝 블로그 콘텐츠 탭 (본인 검토용 — Gemini L3 풀 글 생성) ════ -->
@@ -4605,6 +4627,62 @@ function renderRaw(rows, liveData) {
     '</div>';
   }
 
+  // B184 (6/5) — 품목별 수출 (관세청 HSK) 카드 (foreignLimitTopCard 미러링 + YoY색/12개월 미니막대)
+  //   raw = JSON {latestM:'YYYYMM', items:[{key,hsSgn,expDlr(USD$),yoy(%),series:[12개월 USD$]}]}
+  function customsExportCard(title, rawCol) {
+    const raw = last(rawCol);
+    let items = []; let latestM = '';
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (parsed && parsed.items) items = parsed.items;
+      if (parsed && parsed.latestM) latestM = String(parsed.latestM);
+    } catch (e) { /* silent */ }
+    if (!items.length) {
+      return '<div class="flow-top-card empty">' +
+        '<div class="flow-top-header"><span class="flow-top-title">' + title + '</span><span class="flow-top-badge">데이터 대기</span></div>' +
+        '<div class="flow-top-empty">관세청 HSK 월별 수집 후 자동 표시</div>' +
+        '</div>';
+    }
+    const ymDisp = (latestM && latestM.length === 6) ? (latestM.slice(0, 4) + '.' + latestM.slice(4, 6)) : latestM;
+    const rowsHtml = items.map((it) => {
+      const yoyNum = Number(it.yoy);
+      const yoyCls = (isNaN(yoyNum) || yoyNum === 0) ? 'neu' : (yoyNum > 0 ? 'pos' : 'neg');
+      const yoyDisp = (it.yoy != null && !isNaN(yoyNum)) ? ((yoyNum > 0 ? '+' : '') + yoyNum.toFixed(1) + '%') : '-';
+      const expEok = (it.expDlr != null && !isNaN(Number(it.expDlr))) ? (Number(it.expDlr) / 1e8) : null;
+      const expDisp = expEok != null ? (expEok.toLocaleString('ko-KR', { maximumFractionDigits: 1 }) + '억$') : '-';
+      const series = Array.isArray(it.series) ? it.series.map(Number).filter(v => !isNaN(v)) : [];
+      const sMax = series.length ? Math.max(...series, 1) : 1;
+      const sparkHtml = series.length
+        ? '<div class="ft-spark" title="최근 12개월 수출 추이 (좌→우: 과거→현재)">' +
+            series.map((v, si) => {
+              const h = Math.max(8, Math.round((v / sMax) * 100));
+              return '<div class="sb' + (si === series.length - 1 ? ' last' : '') + '" style="height:' + h + '%"></div>';
+            }).join('') +
+          '</div>'
+        : '<div class="ft-spark"></div>';
+      const nameSafe = String(it.key || '-').replace(/"/g, '&quot;');
+      const hsSafe = String(it.hsSgn || '').replace(/"/g, '&quot;');
+      const tooltip = hsSafe ? (nameSafe + ' (HS ' + hsSafe + ') · ' + expDisp + ' · YoY ' + yoyDisp) : nameSafe;
+      return '<div class="ft-row">' +
+        '<span class="ft-rank">·</span>' +
+        '<span class="ft-name" title="' + tooltip + '">' + (it.key || '-') + '</span>' +
+        '<span class="ft-exp" title="월 수출액(억달러)">' + expDisp + '</span>' +
+        '<span class="ft-yoy ' + yoyCls + '" title="전년동월 대비">' + yoyDisp + '</span>' +
+        sparkHtml +
+        '</div>';
+    }).join('');
+    return '<div class="flow-top-card theme-export">' +
+      '<div class="flow-top-header">' +
+        '<span class="flow-top-title">' + title + '</span>' +
+        '<span class="flow-top-badge">관세청 HSK · 월별 · 기준월 ' + ymDisp + '</span>' +
+      '</div>' +
+      '<div class="flow-top-rows">' + rowsHtml + '</div>' +
+      '<div class="flow-top-foot" style="font-size:10.5px;color:var(--text3);padding-top:4px;line-height:1.45;">' +
+        '품목별 수출액과 전년동월 대비. 반도체=메모리 사이클, 선박=조선 수출 등 실물 수출 신호.' +
+      '</div>' +
+    '</div>';
+  }
+
   // X3 (5/27 밤): index-cards = KOSPI + S&P500만
   document.getElementById('index-cards').innerHTML =
     c('KOSPI','KOSPI','kospi') + c('S&P 500','S&P500','sp500');
@@ -4636,6 +4714,13 @@ function renderRaw(rows, liveData) {
   if (krFgnLimitElD) {
     krFgnLimitElD.innerHTML =
       foreignLimitTopCard('🔒 외국인 한도소진 Top', '외국인 한도소진 Top');
+  }
+
+  // B184 (6/5) — 품목별 수출 (관세청 HSK) — 5품목 수출액 + YoY + 12개월 추이
+  const customsExportElD = document.getElementById('customs-export-cards');
+  if (customsExportElD) {
+    customsExportElD.innerHTML =
+      customsExportCard('📦 품목별 수출 (관세청 HSK)', '품목별 수출 JSON');
   }
 
   // B93 (5/20) — 한국 섹터 지수 (KRX 테마 10개)
