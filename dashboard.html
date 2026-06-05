@@ -363,9 +363,18 @@ body.light .flow-top-card { background: var(--bg2); }
 .flow-top-card .ft-bar { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 5px; }
 .flow-top-card.theme-short .ft-bar { background: linear-gradient(90deg, #ef4444, #f87171); }
 .flow-top-card .ft-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); font-size: 11.5px; }
+/* B176 (6/5) — 외국인 한도소진 Top (limit 테마): 한도 근접/꽉참 시각화 */
+.flow-top-card.theme-limit { border-top: 3px solid #f59e0b; }
+.flow-top-card.theme-limit .ft-bar { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.flow-top-card.theme-limit .ft-row.is-full .ft-bar { background: linear-gradient(90deg, #ef4444, #f87171); }
+.flow-top-card.theme-limit .ft-row.is-full .ft-val { color: #ef4444; font-weight: 700; }
+.flow-top-card.theme-limit .ft-row.is-full .ft-name::after { content: ' 🔒'; font-size: 10px; }
+.flow-top-card .ft-own { text-align: right; font-variant-numeric: tabular-nums; font-size: 10.5px; color: var(--text2); }
+.flow-top-card.theme-limit .ft-row { grid-template-columns: 22px 1.4fr 1fr 60px 56px; }
 @media (max-width: 640px) {
   .flow-top-card .ft-row { grid-template-columns: 18px 1fr 60px; }
   .flow-top-card .ft-barwrap { display: none; }
+  .flow-top-card.theme-limit .ft-row { grid-template-columns: 18px 1fr 52px 48px; }
 }
 
 /* CARD */
@@ -3415,6 +3424,12 @@ body.embed-mode .privacy-btn { display: none !important; }
         <div class="cards g2" id="crypto-cards"></div>
       </div>
 
+      <!-- 5) B176 (6/5) — 외국인 한도소진 Top (외국인 지분 한도 근접/꽉참 종목) -->
+      <div class="section" data-tab-target="macro" style="--sc:#f59e0b;--sc-glow:rgba(245,158,11,0.35)">
+        <div class="section-header"><div class="section-bar"></div><span class="section-title">🔒 외국인 한도소진 Top</span><span class="section-badge">[D-1] KRX 공식 · 외국인 지분 한도 대비 소진율 (100% = 추가 매수 불가)</span></div>
+        <div class="cards g2" id="kr-fgn-limit-cards"></div>
+      </div>
+
     </div><!-- /tab-market -->
 
     <!-- ════ 📝 블로그 콘텐츠 탭 (본인 검토용 — Gemini L3 풀 글 생성) ════ -->
@@ -4544,6 +4559,52 @@ function renderRaw(rows, liveData) {
     '</div>';
   }
 
+  // B176 (6/5) — 외국인 한도소진 Top 카드 (flowTopCard 미러링 + 듀얼값/한도경고 변형)
+  //   raw = JSON {date, items:[{name, code, exh(소진율%), own(보유율%)}, ...]} — 소진율 내림차순
+  //   flowTopCard와 차이: ① 값 2개(exh+own) ② bar는 0~100% 고정 스케일 ③ exh=100 빨강 경고(🔒)
+  function foreignLimitTopCard(title, rawCol) {
+    const raw = last(rawCol);
+    let items = []; let dateStr = '';
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (parsed && parsed.items) items = parsed.items.slice(0, 10);
+      if (parsed && parsed.date) dateStr = String(parsed.date);
+    } catch (e) { /* silent */ }
+    if (!items.length) {
+      return '<div class="flow-top-card empty">' +
+        '<div class="flow-top-header"><span class="flow-top-title">' + title + '</span><span class="flow-top-badge">데이터 대기</span></div>' +
+        '<div class="flow-top-empty">19:00 KST 트리거 후 자동 수집</div>' +
+        '</div>';
+    }
+    const rowsHtml = items.map((it, i) => {
+      const exh = it.exh, own = it.own;
+      const pct = Math.max(0, Math.min(100, Number(exh) || 0));
+      const isFull = (Number(exh) || 0) >= 100;
+      const exhDisp = (exh != null && !isNaN(exh)) ? (Number(exh).toFixed(exh % 1 === 0 ? 0 : 2) + '%') : '-';
+      const ownDisp = (own != null && !isNaN(own)) ? (Number(own).toFixed(own % 1 === 0 ? 0 : 2) + '%') : '-';
+      const nameSafe = String(it.name || '-').replace(/"/g, '&quot;');
+      const codeSafe = String(it.code || '').replace(/"/g, '&quot;');
+      const tooltip = codeSafe ? (nameSafe + ' (' + codeSafe + ') · 소진율 ' + exhDisp + ' · 보유율 ' + ownDisp) : nameSafe;
+      return '<div class="ft-row' + (isFull ? ' is-full' : '') + '">' +
+        '<span class="ft-rank">' + (i + 1) + '</span>' +
+        '<span class="ft-name" title="' + tooltip + '">' + (it.name || '-') + '</span>' +
+        '<div class="ft-barwrap"><div class="ft-bar" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+        '<span class="ft-val" title="외국인 한도소진율">' + exhDisp + '</span>' +
+        '<span class="ft-own" title="외국인 보유율">' + ownDisp + '</span>' +
+        '</div>';
+    }).join('');
+    return '<div class="flow-top-card theme-limit">' +
+      '<div class="flow-top-header">' +
+        '<span class="flow-top-title">' + title + '</span>' +
+        '<span class="flow-top-badge">' + dateStr + ' · KRX 공식</span>' +
+      '</div>' +
+      '<div class="flow-top-rows">' + rowsHtml + '</div>' +
+      '<div class="flow-top-foot" style="font-size:10.5px;color:var(--text3);padding-top:4px;line-height:1.45;">' +
+        '외국인 지분 한도 대비 소진율(좌)·보유율(우). 100%(🔒) = 외국인 추가 매수 불가 (통신·항공·전력 등 규제산업).' +
+      '</div>' +
+    '</div>';
+  }
+
   // X3 (5/27 밤): index-cards = KOSPI + S&P500만
   document.getElementById('index-cards').innerHTML =
     c('KOSPI','KOSPI','kospi') + c('S&P 500','S&P500','sp500');
@@ -4568,6 +4629,13 @@ function renderRaw(rows, liveData) {
       // B96 (5/20) — 공매도 잔고 Top
       flowTopCard('🐻 공매도 잔고 Top KOSPI',       '공매도 잔고 Top KOSPI',    'short', 'bal_rto',    '%') +
       flowTopCard('🐻 공매도 잔고 Top KOSDAQ',      '공매도 잔고 Top KOSDAQ',   'short', 'bal_rto',    '%');
+  }
+
+  // B176 (6/5) — 외국인 한도소진 Top (한도 근접/꽉참 종목)
+  const krFgnLimitElD = document.getElementById('kr-fgn-limit-cards');
+  if (krFgnLimitElD) {
+    krFgnLimitElD.innerHTML =
+      foreignLimitTopCard('🔒 외국인 한도소진 Top', '외국인 한도소진 Top');
   }
 
   // B93 (5/20) — 한국 섹터 지수 (KRX 테마 10개)
@@ -9158,7 +9226,7 @@ async function loadAll() {
     '<div class="skeleton skeleton-line w-80"></div>' +
     '</div>';
   const cardLoadingHtml = skeletonCard + skeletonCard + skeletonCard + skeletonCard;
-  ['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
+  ['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-fgn-limit-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = cardLoadingHtml;
   });
@@ -9169,7 +9237,7 @@ async function loadAll() {
   // 2. bundle-light fetch (1 라운드트립) — raw + mdd30 + sector + live
   fetchBundle('light').then(bundle => {
     if (!bundle || (!bundle.raw && !bundle.mdd)) {
-      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-fgn-limit-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
       return;
     }
 
@@ -9199,7 +9267,7 @@ async function loadAll() {
       initPopupDirection();
     } catch (e) {
       console.error('[renderRaw]', e);
-      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
+      _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-fgn-limit-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards'], '시장 데이터 렌더 실패');
     }
 
     try {
@@ -9214,7 +9282,7 @@ async function loadAll() {
     try { renderSectorHeatmap(); } catch (e) { console.error('[Sector]', e); }
   }).catch(e => {
     console.error('[Bundle light]', e);
-    _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
+    _renderAreaError(['index-cards','macro-cards','kr-valuation-cards','kr-flow-cards','kr-market-cards','kr-flow-top-cards','kr-fgn-limit-cards','kr-sector-cards','kr-bond-cards','us-liquidity-cards','bok-macro-cards','us-signal-cards','option-volatility-cards','commodity-cards','kr-etf-cards','etf-cards','crypto-cards','mdd-cards'], '시장 데이터 로드 실패');
   });
 
   // 5. 300ms 후 bundle-heavy (Insight + News) — 인지 속도 분리
