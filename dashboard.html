@@ -2344,6 +2344,18 @@ body.embed-mode .privacy-btn { display: none !important; }
           </div>
         </section>
 
+        <!-- B166 — 미국 Reddit 시장 견인 Top 5 (drivers, market 행 col14) -->
+        <section id="drivers-section">
+          <h3>🚀 오늘 미국 Reddit 시장 견인 Top 5</h3>
+          <div class="drivers-list" id="drivers-list"></div>
+        </section>
+
+        <!-- B166 — 종목 미국 Reddit 관심도 추이 3일 (daily_trend, detail 행 col13) -->
+        <section id="trend-section">
+          <h3>📈 종목 미국 Reddit 관심도 추이 (3일)</h3>
+          <div class="trend-list" id="trend-list"></div>
+        </section>
+
         <section id="wepoll-section">
           <h3>🇰🇷 한국 위폴 인기글</h3>
           <div id="wepoll-matched"></div>
@@ -2433,6 +2445,25 @@ body.embed-mode .privacy-btn { display: none !important; }
         #market-pulse section h3 { margin: 0 0 var(--s-3) 0; font-size: 15px; font-weight: 700; color: var(--text); }
         #market-pulse #reddit-section { background: var(--surface-1); border-left: 3px solid var(--accent); }
         #market-pulse #wepoll-section { background: var(--surface-1); border-left: 3px solid var(--up); }
+        /* B166 — drivers / trend 카드 */
+        #market-pulse #drivers-section { background: var(--surface-1); border-left: 3px solid var(--accent); }
+        #market-pulse #trend-section { background: var(--surface-1); border-left: 3px solid var(--accent); }
+        #market-pulse .driver-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-2); border-bottom: 1px solid var(--border); }
+        #market-pulse .driver-row:last-child { border-bottom: none; }
+        #market-pulse .driver-tk { font-weight: 700; font-size: 13.5px; }
+        #market-pulse .driver-bar-wrap { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+        #market-pulse .driver-bar-track { flex: 1; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+        #market-pulse .driver-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+        #market-pulse .driver-buzz { font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; opacity: 0.9; min-width: 34px; text-align: right; }
+        #market-pulse .driver-meta { font-size: 11.5px; opacity: 0.78; text-align: right; line-height: 1.5; white-space: nowrap; }
+        #market-pulse .trend-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-2); border-bottom: 1px solid var(--border); }
+        #market-pulse .trend-row:last-child { border-bottom: none; }
+        #market-pulse .trend-tk { font-weight: 700; font-size: 13.5px; }
+        #market-pulse .trend-bars { display: flex; align-items: flex-end; gap: 5px; height: 28px; }
+        #market-pulse .trend-bars .tb { width: 10px; background: var(--accent); border-radius: 2px 2px 0 0; opacity: 0.55; min-height: 3px; }
+        #market-pulse .trend-bars .tb.latest { opacity: 1; }
+        #market-pulse .trend-delta { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+        #market-pulse .trend-buzz { font-size: 11px; opacity: 0.7; }
 
         #market-pulse .ticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-3); margin-bottom: var(--s-4); }
         #market-pulse .ticker-card { padding: var(--s-4) var(--s-3); background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-md); text-align: center; font-size: 12px; transition: all var(--d-base) var(--ease); }
@@ -2782,6 +2813,91 @@ body.embed-mode .privacy-btn { display: none !important; }
           }).join('');
         }
 
+        // B166 — 오늘 미국 Reddit 시장 견인 Top 5 (drivers, market 행 col14)
+        function renderDrivers(market) {
+          const el = document.getElementById('drivers-list');
+          if (!el) return;
+          const drivers = (market && Array.isArray(market.drivers)) ? market.drivers : [];
+          if (drivers.length === 0) {
+            el.innerHTML = '<div style="opacity:0.6;font-size:13px;padding:22px 16px;text-align:center;line-height:1.7;">' +
+              '<div style="font-size:22px;margin-bottom:6px;opacity:0.7;">🚀</div>' +
+              '미국 Reddit 견인 종목을 수집하고 있어요.<br>' +
+              '<span style="font-size:11.5px;opacity:0.7;">매일 오전 6시 자동 갱신</span>' +
+              '</div>';
+            return;
+          }
+          const top = drivers.slice(0, 5);
+          const maxBuzz = Math.max.apply(null, top.map(d => Number(d.buzz_score) || 0).concat([1]));
+          el.innerHTML = top.map(d => {
+            const buzz = Number(d.buzz_score) || 0;
+            const ment = Number(d.mentions) || 0;
+            const sent = Number(d.sentiment_score) || 0;
+            const pct = Math.max(3, Math.round(buzz / maxBuzz * 100));
+            const sentCls = sent > 0 ? 'pos' : (sent < 0 ? 'neg' : 'neu');
+            const sentStr = (sent > 0 ? '+' : '') + sent.toFixed(3);
+            const krName = KR_NAME[d.ticker] || '';
+            return '<div class="driver-row" title="' + esc(d.ticker) + (krName ? ' · ' + esc(krName) : '') + '">' +
+              '<div class="driver-tk">' + esc(d.ticker || '?') + '</div>' +
+              '<div class="driver-bar-wrap">' +
+                '<div class="driver-bar-track"><div class="driver-bar-fill" style="width:' + pct + '%"></div></div>' +
+                '<span class="driver-buzz">' + buzz.toFixed(0) + '</span>' +
+              '</div>' +
+              '<div class="driver-meta">💬 ' + ment.toLocaleString() + '<br>' +
+                '<span class="' + sentCls + '">감성 ' + sentStr + '</span></div>' +
+              '</div>';
+          }).join('');
+        }
+
+        // B166 — 종목 미국 Reddit 관심도 추이 3일 (daily_trend, detail 행 col13)
+        function renderTrend(details) {
+          const el = document.getElementById('trend-list');
+          if (!el) return;
+          const keys = details ? Object.keys(details) : [];
+          const rows = [];
+          keys.forEach(t => {
+            const d = details[t];
+            const dt = (d && Array.isArray(d.daily_trend)) ? d.daily_trend : [];
+            if (dt.length > 0) rows.push({ ticker: t, dt: dt });
+          });
+          if (rows.length === 0) {
+            el.innerHTML = '<div style="opacity:0.6;font-size:13px;padding:22px 16px;text-align:center;line-height:1.7;">' +
+              '<div style="font-size:22px;margin-bottom:6px;opacity:0.7;">📈</div>' +
+              '종목별 추이 데이터를 수집하고 있어요.<br>' +
+              '<span style="font-size:11.5px;opacity:0.7;">매일 오전 6시 자동 갱신</span>' +
+              '</div>';
+            return;
+          }
+          el.innerHTML = rows.map(r => {
+            // daily_trend는 최신순([0]=오늘). 막대는 과거→현재 순으로 표시
+            const series = r.dt.slice(0, 3);
+            const latest = Number(series[0] && series[0].buzz_score) || 0;
+            const oldest = Number(series[series.length - 1] && series[series.length - 1].buzz_score) || 0;
+            const maxB = Math.max.apply(null, series.map(s => Number(s.buzz_score) || 0).concat([1]));
+            const bars = series.slice().reverse().map((s, i, arr) => {
+              const b = Number(s.buzz_score) || 0;
+              const h = Math.max(3, Math.round(b / maxB * 28));
+              const isLatest = i === arr.length - 1;
+              return '<div class="tb' + (isLatest ? ' latest' : '') + '" style="height:' + h + 'px" title="' +
+                esc(String(s.date || '')) + ' buzz ' + b.toFixed(0) + '"></div>';
+            }).join('');
+            let deltaStr, deltaCls;
+            if (oldest > 0) {
+              const chg = (latest - oldest) / oldest * 100;
+              deltaCls = chg > 0 ? 'pos' : (chg < 0 ? 'neg' : 'neu');
+              deltaStr = (chg > 0 ? '↑' : (chg < 0 ? '↓' : '▬')) + ' ' + Math.abs(chg).toFixed(0) + '%';
+            } else {
+              deltaCls = 'neu'; deltaStr = '▬ —';
+            }
+            const krName = KR_NAME[r.ticker] || '';
+            return '<div class="trend-row" title="' + esc(r.ticker) + (krName ? ' · ' + esc(krName) : '') + '">' +
+              '<div class="trend-tk">' + esc(r.ticker) + '</div>' +
+              '<div class="trend-bars">' + bars + '</div>' +
+              '<div><div class="trend-delta ' + deltaCls + '">' + deltaStr + '</div>' +
+                '<div class="trend-buzz">buzz ' + latest.toFixed(0) + '</div></div>' +
+              '</div>';
+          }).join('');
+        }
+
         let slideTimer = null;
         let slidePool = [];
         let slideIdx = 0;
@@ -3073,6 +3189,8 @@ body.embed-mode .privacy-btn { display: none !important; }
 
             renderMarketLine(sentiment.market);
             renderTickerCards(sentiment.trending, sentiment.details);
+            renderDrivers(sentiment.market);              // B166
+            renderTrend(sentiment.details);               // B166
             slidePool = buildSlidePool(sentiment.details);
             slideIdx = 0;
             renderSlide();
