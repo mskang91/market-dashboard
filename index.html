@@ -230,6 +230,9 @@ body.light .section-header { border-bottom-color: var(--border); }
 /* BENTO ROW: 2 sections side by side */
 .bento-row { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; margin-bottom: 28px; }
 .bento-row .section { margin-bottom: 0; }
+/* B184 (6/5) — 균등 2단(1fr 1fr) + 상단 정렬 변형 (한도소진 Top ↔ 품목별 수출) */
+.bento-row.eq { grid-template-columns: 1fr 1fr; align-items: start; }
+@media (max-width: 980px) { .bento-row.eq { grid-template-columns: 1fr; } }
 
 /* ════════════════════════════════════════════════════════════════════
    B46 매트릭스 카드 (5/19) — 한국 수급 (외국인/기관/개인/기타법인)
@@ -460,6 +463,30 @@ body.light .flow-top-card { background: var(--bg2); }
 .flow-top-card.theme-export .ft-row {
   /* rank · name · 수출액(억$) · YoY% · 12개월 미니 막대 */
   grid-template-columns: 20px minmax(54px, 1.3fr) 64px 60px 78px;
+  align-items: center;
+}
+/* B184 (6/5) — 품목명 + 의미(테마) 2줄 세로 배치 (export 카드 전용 override) */
+.flow-top-card.theme-export .ft-name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  white-space: normal;
+  line-height: 1.25;
+  gap: 1px;
+}
+.flow-top-card.theme-export .ft-name .ft-name-txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flow-top-card.theme-export .ft-name .ft-mean {
+  font-size: 11px;
+  opacity: 0.55;
+  color: var(--text3);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .flow-top-card.theme-export .ft-exp {
   text-align: right;
@@ -2841,24 +2868,27 @@ body.embed-mode .bento-row {
         <div class="cards g2" id="kr-flow-top-cards"></div>
       </div>
 
-      <!-- B176 (6/5) — 외국인 한도소진 Top (외국인 지분 한도 근접/꽉참 종목) -->
-      <div class="section" data-tab-target="macro" style="--sc:#f59e0b;--sc-glow:rgba(245,158,11,0.35)">
-        <div class="section-header">
-          <div class="section-bar"></div>
-          <span class="section-title">🔒 외국인 한도소진 Top</span>
-          <span class="section-badge">D-1 · KRX 공식 · 외국인 지분 한도 대비 소진율 (100% = 추가 매수 불가)</span>
+      <!-- B184 (6/5) — 외국인 한도소진 Top + 품목별 수출 2단(나란히) 배치 -->
+      <div class="bento-row eq" data-tab-target="macro">
+        <!-- B176 (6/5) — 외국인 한도소진 Top (외국인 지분 한도 근접/꽉참 종목) -->
+        <div class="section" style="--sc:#f59e0b;--sc-glow:rgba(245,158,11,0.35)">
+          <div class="section-header">
+            <div class="section-bar"></div>
+            <span class="section-title">🔒 외국인 한도소진 Top</span>
+            <span class="section-badge">D-1 · KRX 공식 · 외국인 지분 한도 대비 소진율 (100% = 추가 매수 불가)</span>
+          </div>
+          <div class="cards g2" id="kr-fgn-limit-cards"></div>
         </div>
-        <div class="cards g2" id="kr-fgn-limit-cards"></div>
-      </div>
 
-      <!-- B184 (6/5) — 품목별 수출 (관세청 HSK) — 실물 수출 신호 (반도체·선박·승용차·화장품·라면) -->
-      <div class="section" data-tab-target="macro" style="--sc:#38bdf8;--sc-glow:rgba(56,189,248,0.35)">
-        <div class="section-header">
-          <div class="section-bar"></div>
-          <span class="section-title">📦 품목별 수출 (관세청 HSK)</span>
-          <span class="section-badge">관세청 HSK · 월별 · 품목별 수출액 + 전년동월 대비(YoY)</span>
+        <!-- B184 (6/5) — 품목별 수출 (관세청 HSK) — 실물 수출 신호 (반도체·선박·승용차·화장품·라면) -->
+        <div class="section" style="--sc:#38bdf8;--sc-glow:rgba(56,189,248,0.35)">
+          <div class="section-header">
+            <div class="section-bar"></div>
+            <span class="section-title">📦 품목별 수출 (관세청 HSK)</span>
+            <span class="section-badge">관세청 HSK · 월별 · 품목별 수출액 + 전년동월 대비(YoY)</span>
+          </div>
+          <div class="cards g2" id="customs-export-cards"></div>
         </div>
-        <div class="cards g2" id="customs-export-cards"></div>
       </div>
 
       <!-- B93 (5/20) — 한국 섹터 지수 (KRX 테마 10개, 미국 GICS 11과 대칭) -->
@@ -5565,6 +5595,17 @@ function renderRaw(rows, liveData) {
   //   raw = JSON {latestM:'YYYYMM', items:[{key,hsSgn,expDlr(USD$),yoy(%),series:[12개월 USD$]}]}
   //   foreignLimitTopCard와 차이: ① 값 = 수출액(억$)+YoY% ② YoY 양수녹색/음수빨강 ③ bar 대신 12개월 series 미니막대(최신강조)
   function customsExportCard(title, rawCol) {
+    // B184 (6/5) — 품목별 의미(테마) 맵: 품목명 아래 작은 회색 보조 텍스트
+    var MEAN = {
+      'D램':'메모리 슈퍼사이클·HBM',
+      'NAND':'낸드 플래시 사이클',
+      'SSD':'AI 데이터센터 스토리지',
+      '시스템반도체':'비메모리·파운드리',
+      '선박':'K-조선(수주 인도)',
+      '승용차':'현대차·기아',
+      '화장품':'K-뷰티 글로벌',
+      '라면':'K-푸드 글로벌'
+    };
     const raw = last(rawCol);
     let items = [];
     let latestM = '';
@@ -5609,9 +5650,11 @@ function renderRaw(rows, liveData) {
       const nameSafe = String(it.key || '-').replace(/"/g, '&quot;');
       const hsSafe = String(it.hsSgn || '').replace(/"/g, '&quot;');
       const tooltip = hsSafe ? (nameSafe + ' (HS ' + hsSafe + ') · ' + expDisp + ' · YoY ' + yoyDisp) : nameSafe;
+      const meanTxt = MEAN[it.key] || '';
+      const meanHtml = meanTxt ? '<small class="ft-mean">' + meanTxt + '</small>' : '';
       return '<div class="ft-row">' +
         '<span class="ft-rank">·</span>' +
-        '<span class="ft-name" title="' + tooltip + '">' + (it.key || '-') + '</span>' +
+        '<span class="ft-name" title="' + tooltip + '"><span class="ft-name-txt">' + (it.key || '-') + '</span>' + meanHtml + '</span>' +
         '<span class="ft-exp" title="월 수출액(억달러)">' + expDisp + '</span>' +
         '<span class="ft-yoy ' + yoyCls + '" title="전년동월 대비">' + yoyDisp + '</span>' +
         sparkHtml +
