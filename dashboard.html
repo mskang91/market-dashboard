@@ -388,10 +388,14 @@ body.light .flow-top-card { background: var(--bg2); }
 .flow-top-card.theme-export .ft-name .ft-name-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flow-top-card.theme-export .ft-name .ft-mean { font-size: 11px; opacity: 0.55; color: var(--text3); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .flow-top-card.theme-export .ft-exp { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--text); font-size: 11.5px; }
-.flow-top-card.theme-export .ft-yoy { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 11.5px; }
-.flow-top-card.theme-export .ft-yoy.pos { color: var(--green); }
-.flow-top-card.theme-export .ft-yoy.neg { color: var(--red); }
-.flow-top-card.theme-export .ft-yoy.neu { color: var(--text2); }
+.flow-top-card.theme-export .ft-yoy { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 11.5px; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
+.flow-top-card.theme-export .ft-yoy .pos { color: var(--green); }
+.flow-top-card.theme-export .ft-yoy .neg { color: var(--red); }
+.flow-top-card.theme-export .ft-yoy .neu { color: var(--text2); }
+.flow-top-card.theme-export .ftm { font-size: 10px; font-weight: 600; opacity: 0.9; }
+.flow-top-card.theme-export .ftm.pos { color: var(--green); }
+.flow-top-card.theme-export .ftm.neg { color: var(--red); }
+.flow-top-card.theme-export .ftm.neu { color: var(--text2); }
 .flow-top-card.theme-export .ft-spark { display: flex; align-items: flex-end; gap: 1.5px; height: 18px; }
 .flow-top-card.theme-export .ft-spark .sb { flex: 1 1 0; min-width: 2px; background: rgba(56,189,248,0.32); border-radius: 1px; }
 .flow-top-card.theme-export .ft-spark .sb.last { background: #38bdf8; }
@@ -4686,11 +4690,15 @@ function renderRaw(rows, liveData) {
       const tooltip = hsSafe ? (nameSafe + ' (HS ' + hsSafe + ') · ' + expDisp + ' · YoY ' + yoyDisp) : nameSafe;
       const meanTxt = MEAN[it.key] || '';
       const meanHtml = meanTxt ? '<small class="ft-mean">' + meanTxt + '</small>' : '';
+      // MoM (전월 대비) — series 마지막 2개월 비교
+      const momNum = (series.length >= 2 && series[series.length - 2]) ? ((series[series.length - 1] - series[series.length - 2]) / series[series.length - 2] * 100) : NaN;
+      const momCls = (isNaN(momNum) || momNum === 0) ? 'neu' : (momNum > 0 ? 'pos' : 'neg');
+      const momDisp = !isNaN(momNum) ? ((momNum > 0 ? '+' : '') + momNum.toFixed(1) + '%') : '-';
       return '<div class="ft-row">' +
         '<span class="ft-rank">·</span>' +
         '<span class="ft-name" title="' + tooltip + '"><span class="ft-name-txt">' + (it.key || '-') + '</span>' + meanHtml + '</span>' +
         '<span class="ft-exp" title="월 수출액(억달러)">' + expDisp + '</span>' +
-        '<span class="ft-yoy ' + yoyCls + '" title="전년동월 대비">' + yoyDisp + '</span>' +
+        '<span class="ft-yoy"><span class="' + yoyCls + '" title="전년동월(YoY)">' + yoyDisp + '</span><small class="ftm ' + momCls + '" title="전월 대비(MoM)">전월 ' + momDisp + '</small></span>' +
         sparkHtml +
         '</div>';
     }).join('');
