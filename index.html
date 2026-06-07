@@ -231,7 +231,7 @@ body.light .section-header { border-bottom-color: var(--border); }
 .bento-row { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; margin-bottom: 28px; }
 .bento-row .section { margin-bottom: 0; }
 /* B184 (6/5) — 균등 2단(1fr 1fr) + 상단 정렬 변형 (한도소진 Top ↔ 품목별 수출) */
-.bento-row.eq { grid-template-columns: 1fr 1fr; align-items: start; }
+.bento-row.eq { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
 @media (max-width: 980px) { .bento-row.eq { grid-template-columns: 1fr; } }
 
 /* ════════════════════════════════════════════════════════════════════
